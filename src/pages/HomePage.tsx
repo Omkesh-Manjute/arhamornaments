@@ -49,7 +49,11 @@ const HomePage: React.FC = () => {
       <CollectionSlider 
         title="Stunning Every Ear"
         subtitle="Look at our brand new earring collection just for you"
-        bannerImage="https://images.unsplash.com/photo-1635767798638-3e25273a8236?w=1200"
+        banners={[
+          { image: "https://images.unsplash.com/photo-1635767798638-3e25273a8236?w=1200", title: "Stunning <br /> every Ear", link: "/products?category=earrings" },
+          { image: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=1200", title: "Handcrafted <br /> Elegance", link: "/products?category=earrings" },
+          { image: "https://images.unsplash.com/photo-1598560912015-f5291404d88e?w=1200", title: "Timeless <br /> Masterpieces", link: "/products?category=earrings" }
+        ]}
         items={earringCollection}
       />
 
