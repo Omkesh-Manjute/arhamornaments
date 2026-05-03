@@ -11,7 +11,11 @@ const LuckyWheel: React.FC = () => {
   
   const { isLoggedIn, login, addWinnings, user } = useUser();
   
-  const [formData, setFormData] = useState({
+  useEffect(() => {
+    const handleOpen = () => setIsOpen(true);
+    window.addEventListener('open-lucky-wheel', handleOpen);
+    return () => window.removeEventListener('open-lucky-wheel', handleOpen);
+  }, []);
     name: '',
     email: '',
     phone: '',
@@ -66,17 +70,7 @@ const LuckyWheel: React.FC = () => {
     }
   };
 
-  if (!isOpen) {
-    return (
-      <button 
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-24 right-6 z-40 bg-gold text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform flex items-center gap-2 group animate-bounce"
-      >
-        <Gift className="group-hover:rotate-12 transition-transform" />
-        <span className="font-bold text-xs uppercase tracking-widest pr-2 font-heading">Spin & Win</span>
-      </button>
-    );
-  }
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, ShoppingBag, Menu, X, User, Heart, Wallet, Settings, LogOut } from 'lucide-react';
+import { Search, ShoppingBag, Menu, X, User, Heart, Wallet, Settings, LogOut, Gift, MessageCircle } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useUser } from '../context/UserContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -215,6 +215,36 @@ const Header: React.FC = () => {
             >
               Admin
             </Link>
+            
+            {/* New Special Mobile Actions */}
+            <div className="pt-4 space-y-4">
+              <button
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('open-lucky-wheel'));
+                  setIsMenuOpen(false);
+                }}
+                className="w-full flex items-center justify-between p-4 bg-gold/5 rounded-2xl border border-gold/10 text-gold group"
+              >
+                <div className="flex items-center gap-3">
+                  <Gift size={20} />
+                  <span className="text-xs font-bold uppercase tracking-widest">Spin & Win</span>
+                </div>
+                <div className="w-6 h-6 bg-gold text-white rounded-full flex items-center justify-center text-[10px] animate-pulse">!</div>
+              </button>
+
+              <button
+                onClick={() => {
+                  const message = encodeURIComponent('Hi! I\'m interested in your jewellery collection. Please share more details.');
+                  window.open(`https://wa.me/919371504182?text=${message}`, '_blank');
+                  setIsMenuOpen(false);
+                }}
+                className="w-full flex items-center gap-3 p-4 bg-green-50 rounded-2xl border border-green-100 text-green-600"
+              >
+                <MessageCircle size={20} />
+                <span className="text-xs font-bold uppercase tracking-widest">WhatsApp Support</span>
+              </button>
+            </div>
+
             {isLoggedIn && (
               <button
                 onClick={() => { logout(); setIsMenuOpen(false); }}

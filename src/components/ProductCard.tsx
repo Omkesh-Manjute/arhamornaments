@@ -19,85 +19,105 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const isFavorite = isInWishlist(product.id);
   const currentPrice = calculateProductPrice(product);
 
-
-
   return (
-    <div className="relative">
+    <div className="relative group">
       <Link 
         to={`/product/${product.id}`}
-        className="block group bg-white luxury-card rounded-[2.5rem] p-3 transition-all duration-700 border border-gray-100 shadow-sm overflow-hidden"
+        className="block bg-white rounded-[2rem] overflow-hidden transition-all duration-500 hover:shadow-2xl border border-gray-100"
       >
         {/* Image Container */}
-        <div className="relative aspect-square overflow-hidden bg-offwhite rounded-[2rem]">
+        <div className="relative aspect-[4/5] overflow-hidden bg-offwhite">
           <img
             src={product.images[0]}
             alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-[1.5s]"
             loading="lazy"
           />
           
-          {/* Badges */}
-          <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
-            <span className="bg-[#FFF3E0]/90 backdrop-blur-sm text-[#E65100] text-[10px] uppercase tracking-wider font-bold px-3 py-1 rounded-md border border-[#FFE0B2]">
-              Make Order
-            </span>
-            {product.trending && (
-              <span className="bg-charcoal/80 backdrop-blur-md text-white text-[9px] uppercase tracking-[0.3em] font-black px-4 py-1.5 rounded-full shadow-lg border border-white/10">
+          {/* Subtle Badges */}
+          {product.trending && (
+            <div className="absolute top-4 left-4">
+              <span className="bg-white/90 backdrop-blur-md text-charcoal text-[9px] uppercase tracking-[0.2em] font-bold px-3 py-1 rounded-full shadow-sm border border-gray-100">
                 Trending
               </span>
-            )}
+            </div>
+          )}
+
+          {/* Quick Action Overlay */}
+          <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
+             <div className="bg-white/90 backdrop-blur-md p-4 rounded-full scale-90 group-hover:scale-100 transition-transform duration-500 shadow-xl">
+                <Eye size={20} className="text-charcoal" />
+             </div>
           </div>
         </div>
 
         {/* Content */}
-        <div className="py-6 px-4 space-y-2">
-          <div className="flex items-center justify-between gap-2">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-gray-400 font-black">
+        <div className="p-5 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[9px] uppercase tracking-[0.2em] text-gray-400 font-bold">
               {product.category}
-            </p>
-            <p className="text-[10px] uppercase tracking-[0.2em] text-gold font-black">
-              {product.material}
-            </p>
+            </span>
+            <div className="flex gap-0.5">
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} size={8} className="fill-gold text-gold" />
+              ))}
+            </div>
           </div>
-          <h3 className="font-heading text-xl font-bold text-charcoal transition line-clamp-1 uppercase">
+          
+          <h3 className="font-heading text-lg font-bold text-charcoal group-hover:text-gold transition-colors line-clamp-1">
             {product.name}
           </h3>
           
+          {/* Tech Specs Grid */}
           {(product.grossWeight || product.netWeight) && (
-            <div className="space-y-0.5 py-1">
+            <div className="grid grid-cols-2 gap-2 py-2 border-y border-gray-100/50">
               {product.grossWeight && (
-                <p className="text-xs text-gray-500 font-medium">Gwt : {product.grossWeight.toFixed(3)}</p>
+                <div className="flex flex-col">
+                  <span className="text-[8px] uppercase text-gray-400 font-bold">Gross Wt</span>
+                  <span className="text-xs font-bold text-charcoal">{product.grossWeight.toFixed(3)}g</span>
+                </div>
               )}
               {product.netWeight && (
-                <p className="text-xs text-gray-500 font-medium">Nwt : {product.netWeight.toFixed(3)}</p>
+                <div className="flex flex-col">
+                  <span className="text-[8px] uppercase text-gray-400 font-bold">Net Wt</span>
+                  <span className="text-xs font-bold text-charcoal">{product.netWeight.toFixed(3)}g</span>
+                </div>
               )}
             </div>
           )}
-          <div className="flex items-center justify-between pt-2 border-t border-gray-50">
-            <p className="text-xl font-black text-charcoal">{formatPrice(currentPrice)}</p>
-            <div className="flex gap-0.5">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} size={10} className="fill-gold text-gold" />
-              ))}
-            </div>
+
+          <div className="flex items-center justify-between pt-1">
+            <p className="text-lg font-black text-charcoal tracking-tight">
+              {formatPrice(currentPrice)}
+            </p>
+            <button 
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                addToCart(product, 1);
+              }}
+              className="w-10 h-10 rounded-full bg-offwhite flex items-center justify-center hover:bg-gold hover:text-white transition-colors group/btn shadow-sm"
+            >
+              <ShoppingBag size={18} className="group-hover/btn:scale-110 transition-transform" />
+            </button>
           </div>
         </div>
       </Link>
 
-      {/* Wishlist Button - Placed outside the Link to avoid nested interactivity issues */}
+      {/* Wishlist Button */}
       <button 
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
           toggleWishlist(product);
         }}
-        className={`absolute top-7 right-7 p-3 rounded-full shadow-lg transition-all z-30 ${
+        className={`absolute top-4 right-4 p-2.5 rounded-full shadow-md transition-all z-20 ${
           isFavorite 
             ? 'bg-red-500 text-white scale-110' 
             : 'bg-white/80 backdrop-blur-md text-charcoal hover:bg-white'
         }`}
       >
-        <Heart size={18} className={isFavorite ? 'fill-current' : ''} />
+        <Heart size={16} className={isFavorite ? 'fill-current' : ''} />
       </button>
     </div>
   );
