@@ -19,35 +19,18 @@ const PriceContext = createContext<PriceContextType | undefined>(undefined);
 
 export const PriceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [rates, setRates] = useState<MetalRates>({
-    gold24K: 7450,
-    gold22K: 6830,
-    gold18K: 5580,
-    gold14K: 4340,
-    silver: 92,
-    platinum: 3200
+    gold24K: 14716,
+    gold22K: 14015,
+    gold18K: 11400,
+    gold14K: 8900,
+    silver: 265,
+    platinum: 4500
   });
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate API fetch for live rates
-    const fetchRates = () => {
-      // In a real app, this would be an API call
-      // For now, we simulate small fluctuations
-      const fluctuation = () => (Math.random() - 0.5) * 10;
-      setRates(prev => ({
-        gold24K: prev.gold24K + fluctuation(),
-        gold22K: prev.gold22K + fluctuation(),
-        gold18K: prev.gold18K + fluctuation(),
-        gold14K: prev.gold14K + fluctuation(),
-        silver: prev.silver + fluctuation() / 10,
-        platinum: prev.platinum + fluctuation()
-      }));
-      setIsLoading(false);
-    };
-
-    fetchRates();
-    const interval = setInterval(fetchRates, 30000); // Update every 30 seconds
-    return () => clearInterval(interval);
+    // Live rates are now set to specific values requested by the user
+    setIsLoading(false);
   }, []);
 
   const calculateProductPrice = (product: any, selectedPurity?: string) => {

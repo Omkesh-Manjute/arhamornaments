@@ -6,10 +6,10 @@ const LivePriceTicker: React.FC = () => {
   const { rates } = usePrice();
   
   const prices = [
-    { name: 'Gold 24K', price: `₹${Math.round(rates.gold24K).toLocaleString()}`, change: '+₹45', up: true, carat: '24K' },
-    { name: 'Gold 22K', price: `₹${Math.round(rates.gold22K).toLocaleString()}`, change: '+₹40', up: true, carat: '22K' },
-    { name: 'Gold 18K', price: `₹${Math.round(rates.gold18K).toLocaleString()}`, change: '-₹10', up: false, carat: '18K' },
-    { name: 'Silver 999', price: `₹${rates.silver.toFixed(2)}`, change: '+₹0.20', up: true, carat: '1g' },
+    { name: 'Gold 24K', price: `₹${Math.round(rates.gold24K).toLocaleString()}`, change: 'Live', up: true, carat: '24K' },
+    { name: 'Gold 22K', price: `₹${Math.round(rates.gold22K).toLocaleString()}`, change: 'Live', up: true, carat: '22K' },
+    { name: 'Silver 999', price: `₹${rates.silver.toFixed(0)}/g`, change: 'Live', up: true, carat: '1g' },
+    { name: 'Silver Bar', price: `₹${(rates.silver * 1001.78).toLocaleString(undefined, { maximumFractionDigits: 0 })}/kg`, change: 'Live', up: true, carat: '1kg' },
   ];
 
   return (
