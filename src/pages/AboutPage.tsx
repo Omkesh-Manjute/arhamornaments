@@ -1,6 +1,55 @@
 import React from 'react';
 import { Sparkles, Heart, Shield, Users, Clock } from 'lucide-react';
 
+const CountUp: React.FC<{ end: number, suffix?: string, duration?: number }> = ({ end, suffix = "", duration = 2000 }) => {
+  const [count, setCount] = React.useState(0);
+  const countRef = React.useRef(0);
+  const [isVisible, setIsVisible] = React.useState(false);
+  const elementRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (elementRef.current) {
+      observer.observe(elementRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  React.useEffect(() => {
+    if (!isVisible) return;
+
+    let startTime: number | null = null;
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      const currentCount = Math.floor(progress * end);
+      
+      if (currentCount !== countRef.current) {
+        countRef.current = currentCount;
+        setCount(currentCount);
+      }
+
+      if (progress < 1) {
+        window.requestAnimationFrame(animate);
+      }
+    };
+
+    window.requestAnimationFrame(animate);
+  }, [isVisible, end, duration]);
+
+  return <div ref={elementRef}>{count}{suffix}</div>;
+};
+
 const AboutPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-white">
@@ -39,7 +88,9 @@ const AboutPage: React.FC = () => {
               <img src="/images/about_craftsmanship.png" className="w-full h-full object-cover" alt="Our Craft" />
             </div>
             <div className="absolute -bottom-8 -left-8 bg-charcoal text-white p-10 rounded-[2rem] shadow-xl border border-gold/20 hidden lg:block">
-              <p className="text-3xl font-heading font-bold text-gold">35+</p>
+              <div className="text-3xl font-heading font-bold text-gold">
+                <CountUp end={35} suffix="+" />
+              </div>
               <p className="text-xs uppercase tracking-widest font-medium opacity-60">Years of Experience</p>
             </div>
           </div>
@@ -82,13 +133,15 @@ const AboutPage: React.FC = () => {
         </div>
         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-12 text-center relative z-10">
           {[
-            { label: "Products Created", value: "15K+" },
-            { label: "Happy Clients", value: "50K+" },
-            { label: "Awards Won", value: "24" },
-            { label: "Artisans", value: "80+" }
+            { label: "Products Created", value: 15, suffix: "K+" },
+            { label: "Happy Clients", value: 50, suffix: "K+" },
+            { label: "Awards Won", value: 24, suffix: "" },
+            { label: "Artisans", value: 80, suffix: "+" }
           ].map((stat, i) => (
             <div key={i} className="space-y-2">
-              <p className="text-4xl md:text-5xl font-heading font-bold text-gold">{stat.value}</p>
+              <div className="text-4xl md:text-5xl font-heading font-bold text-gold">
+                <CountUp end={stat.value} suffix={stat.suffix} />
+              </div>
               <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">{stat.label}</p>
             </div>
           ))}
