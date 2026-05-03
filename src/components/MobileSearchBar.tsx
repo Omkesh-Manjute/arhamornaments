@@ -3,7 +3,7 @@ import { Search, Camera, Mic } from 'lucide-react';
 
 const MobileSearchBar: React.FC = () => {
   return (
-    <div className="px-4 py-3 bg-white block lg:hidden">
+    <div className="px-4 pt-1 pb-2 bg-white block lg:hidden">
       <div className="relative flex items-center bg-offwhite rounded-2xl border border-gray-100 shadow-inner px-4 py-3.5 group transition-all focus-within:ring-2 focus-within:ring-gold/20">
         <Search className="text-gray-400 group-focus-within:text-gold transition-colors" size={20} />
         <input 

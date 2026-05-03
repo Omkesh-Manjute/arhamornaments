@@ -20,7 +20,7 @@ const categories: Category[] = [
 
 const CategorySlider: React.FC = () => {
   return (
-    <div className="w-full bg-white py-4 border-b border-gray-100 overflow-hidden">
+    <div className="w-full bg-white py-2 border-b border-gray-100 overflow-hidden">
       <div className="flex overflow-x-auto no-scrollbar gap-4 px-4 md:px-8 pb-2">
         {categories.map((category) => (
           <Link 

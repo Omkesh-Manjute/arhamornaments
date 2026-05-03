@@ -32,8 +32,8 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="min-h-screen overflow-x-hidden">
-      {/* Mobile-Only Top Section - Reduced Gap */}
-      <div className="lg:hidden pt-[100px] bg-white">
+      {/* Mobile-Only Top Section - Fixed Gap */}
+      <div className="lg:hidden pt-[88px] bg-white">
         <MobileSearchBar />
         <CategorySlider />
         <MobileHeroSlider />
@@ -53,7 +53,7 @@ const HomePage: React.FC = () => {
       />
 
       {/* Categories Grid - Enhanced */}
-      <section className="px-4 md:px-8 py-24 bg-white">
+      <section className="px-4 md:px-8 py-8 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16 space-y-4">
             <span className="text-gold uppercase tracking-[0.4em] text-[10px] font-bold block mb-2">The Collection</span>

@@ -18,7 +18,7 @@ const MobileHeroSlider: React.FC = () => {
   }, []);
 
   return (
-    <div className="relative w-full aspect-[4/5] overflow-hidden lg:hidden mb-6">
+    <div className="relative w-full aspect-[4/5] overflow-hidden lg:hidden mb-2">
       <div 
         className="flex transition-transform duration-700 ease-in-out h-full"
         style={{ transform: `translateX(-${currentIndex * 100}%)` }}

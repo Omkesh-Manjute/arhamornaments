@@ -18,7 +18,7 @@ interface CollectionSliderProps {
 
 const CollectionSlider: React.FC<CollectionSliderProps> = ({ title, subtitle, bannerImage, items }) => {
   return (
-    <section className="px-4 md:px-8 py-16 bg-white">
+    <section className="px-4 md:px-8 py-8 bg-white">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-10 space-y-2">
