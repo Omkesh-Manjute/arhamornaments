@@ -78,6 +78,35 @@ const ProductDetail: React.FC = () => {
     });
   };
 
+  // Recently Viewed Logic
+  const [recentlyViewed, setRecentlyViewed] = useState<any[]>([]);
+
+  React.useEffect(() => {
+    if (product) {
+      // 1. Get existing from local storage
+      const stored = localStorage.getItem('recentlyViewed');
+      let viewedIds: string[] = stored ? JSON.parse(stored) : [];
+
+      // 2. Add current ID if not already there, or move to front
+      viewedIds = viewedIds.filter(id => id !== product.id);
+      viewedIds.unshift(product.id);
+
+      // 3. Keep only last 10
+      const limitedIds = viewedIds.slice(0, 10);
+
+      // 4. Save back to local storage
+      localStorage.setItem('recentlyViewed', JSON.stringify(limitedIds));
+
+      // 5. Update state (excluding current product)
+      const viewedProducts = limitedIds
+        .filter(id => id !== product.id)
+        .map(id => products.find(p => p.id === id))
+        .filter(Boolean);
+      
+      setRecentlyViewed(viewedProducts);
+    }
+  }, [product.id]);
+
   return (
     <div className="min-h-screen bg-[#FCFBF7]">
       {/* Breadcrumb */}
@@ -331,8 +360,9 @@ const ProductDetail: React.FC = () => {
         {/* Related Products */}
         <div className="mt-32 space-y-12">
           <div className="text-center space-y-2">
-            <h4 className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em]">Gallery</h4>
-            <h2 className="text-4xl font-heading font-bold text-charcoal">More from {product.category}</h2>
+            <h4 className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em]">Collection</h4>
+            <h2 className="text-4xl font-heading font-bold text-charcoal">Similar Products</h2>
+            <div className="w-12 h-1 bg-gold mx-auto mt-4"></div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {relatedProducts.map((p) => (
@@ -340,6 +370,22 @@ const ProductDetail: React.FC = () => {
             ))}
           </div>
         </div>
+
+        {/* Recently Viewed Products */}
+        {recentlyViewed.length > 0 && (
+          <div className="mt-32 space-y-12">
+            <div className="text-center space-y-2">
+              <h4 className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em]">History</h4>
+              <h2 className="text-4xl font-heading font-bold text-charcoal">Recently Viewed</h2>
+              <div className="w-12 h-1 bg-gold mx-auto mt-4"></div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              {recentlyViewed.map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
