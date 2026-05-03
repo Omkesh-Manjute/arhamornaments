@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, ArrowRight, Star, ShieldCheck, Truck, Gem } from 'lucide-react';
-import ProductCard from '../components/ProductCard';
+import { ShieldCheck, Truck, Gem } from 'lucide-react';
 import HeritageHero from '../components/HeritageHero';
 import { products } from '../data/products';
 import MobileSearchBar from '../components/MobileSearchBar';

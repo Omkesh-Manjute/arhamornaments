@@ -1,14 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { User } from '../types';
 
-interface User {
-  name: string;
-  email: string;
-  phone: string;
-  walletBalance: number;
-  tier: 'silver' | 'gold' | 'platinum';
-  points: number;
-  joinedDate: string;
-}
 
 interface UserContextType {
   user: User | null;
@@ -32,6 +24,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = (name: string, email: string, phone: string) => {
     const newUser: User = { 
+      id: Date.now().toString(),
       name, 
       email, 
       phone, 
@@ -50,11 +43,12 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const addWinnings = (amount: number) => {
-    if (user) {
-      const updatedUser = { ...user, walletBalance: user.walletBalance + amount };
-      setUser(updatedUser);
+    setUser(prev => {
+      if (!prev) return null;
+      const updatedUser = { ...prev, walletBalance: prev.walletBalance + amount };
       localStorage.setItem('arham_user', JSON.stringify(updatedUser));
-    }
+      return updatedUser;
+    });
   };
 
   return (

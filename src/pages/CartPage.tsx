@@ -6,7 +6,7 @@ import { formatPrice, generateCartOrderMessage, openWhatsApp } from '../utils/wh
 import GiftPersonalization from '../components/GiftPersonalization';
 
 const CartPage: React.FC = () => {
-  const { items, removeFromCart, updateQuantity, totalPrice, giftOptions, clearCart } = useCart();
+  const { items, removeFromCart, updateQuantity, giftOptions, clearCart } = useCart();
   const navigate = useNavigate();
 
   const handleWhatsAppOrder = () => {

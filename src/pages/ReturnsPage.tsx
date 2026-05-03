@@ -1,5 +1,5 @@
 import React from 'react';
-import { RefreshCcw, Truck, ShieldCheck, Clock } from 'lucide-react';
+import { RefreshCcw, ShieldCheck, Clock } from 'lucide-react';
 
 const ReturnsPage: React.FC = () => {
   return (

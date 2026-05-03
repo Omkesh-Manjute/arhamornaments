@@ -18,7 +18,7 @@ interface PriceContextType {
 const PriceContext = createContext<PriceContextType | undefined>(undefined);
 
 export const PriceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [rates, setRates] = useState<MetalRates>({
+  const [rates] = useState<MetalRates>({
     gold24K: 14716,
     gold22K: 14015,
     gold18K: 11400,

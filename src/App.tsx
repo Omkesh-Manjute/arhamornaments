@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { HashRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
 import { UserProvider } from './context/UserContext';
 import Header from './components/Header';
 import Footer from './components/Footer';
-import FloatingWhatsApp from './components/FloatingWhatsApp';
 import HomePage from './pages/HomePage';
 import ProductListing from './pages/ProductListing';
 import ProductDetail from './pages/ProductDetail';
@@ -78,21 +77,5 @@ function App() {
   );
 }
 
-// Placeholder component for pages not yet implemented
-const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
-  <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-    <div className="text-center">
-      <span className="text-6xl mb-4 block">🚧</span>
-      <h2 className="text-2xl font-bold text-gray-900 mb-2">{title}</h2>
-      <p className="text-gray-500 mb-6">This page is coming soon!</p>
-      <a
-        href="/"
-        className="inline-flex items-center gap-2 px-6 py-3 bg-amber-500 text-white rounded-full font-semibold hover:bg-amber-600 transition"
-      >
-        Go to Homepage
-      </a>
-    </div>
-  </div>
-);
 
 export default App;

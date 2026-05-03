@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, ShoppingBag, Menu, X, User, Heart, Wallet, Settings, LogOut, ChevronRight } from 'lucide-react';
+import { Search, ShoppingBag, Menu, User, Heart, Wallet, Settings, LogOut, ChevronRight, Gift } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useUser } from '../context/UserContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -275,6 +275,8 @@ const Header: React.FC = () => {
                 <span className="text-sm font-semibold text-charcoal">{item.label}</span>
                 <ChevronRight size={18} className="text-gray-300" />
               </Link>
+            ))}
+
             {/* Spin & Win Section */}
             <button 
               onClick={() => {

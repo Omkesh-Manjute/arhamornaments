@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Heart, Share2, ChevronLeft, ChevronRight, Star, Truck, Shield, RotateCcw, MessageCircle, ShoppingCart, Minus, Plus, Gem, Award, Check, Phone, PhoneCall } from 'lucide-react';
+import { Heart, Share2, Star, Truck, Shield, RotateCcw, MessageCircle, Minus, Plus, Award, Phone } from 'lucide-react';
 import { products } from '../data/products';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';

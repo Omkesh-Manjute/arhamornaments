@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Heart, Shield, Users, Clock } from 'lucide-react';
+import { Sparkles, Shield, Users } from 'lucide-react';
 
 const CountUp: React.FC<{ end: number, suffix?: string, duration?: number }> = ({ end, suffix = "", duration = 2000 }) => {
   const [count, setCount] = React.useState(0);

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, TrendingUp, TrendingDown } from 'lucide-react';
-import { usePrice } from '../context/PriceContext';
+import { ChevronRight } from 'lucide-react';
 
 interface CollectionItem {
   id: string;
@@ -18,15 +17,7 @@ interface CollectionSliderProps {
 }
 
 const CollectionSlider: React.FC<CollectionSliderProps> = ({ title, subtitle, banners = [], items }) => {
-  const { rates } = usePrice();
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
-
-  const prices = [
-    { name: 'Gold 24K', price: `₹${Math.round(rates.gold24K).toLocaleString()}`, change: '+₹45', up: true },
-    { name: 'Gold 22K', price: `₹${Math.round(rates.gold22K).toLocaleString()}`, change: '+₹40', up: true },
-    { name: 'Gold 18K', price: `₹${Math.round(rates.gold18K).toLocaleString()}`, change: '-₹10', up: false },
-    { name: 'Silver 999', price: `₹${rates.silver.toFixed(2)}`, change: '+₹0.20', up: true },
-  ];
 
   useEffect(() => {
     if (banners.length > 1) {

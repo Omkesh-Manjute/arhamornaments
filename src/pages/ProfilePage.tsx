@@ -1,6 +1,6 @@
 import React from 'react';
 import { useUser } from '../context/UserContext';
-import { User, Mail, Phone, Wallet, Package, Heart, Settings, LogOut, ChevronRight, Award, Crown, Zap, Sparkles, Gem, Clock } from 'lucide-react';
+import { User, Mail, Phone, Package, Heart, Settings, LogOut, ChevronRight, Award, Crown, Zap, Sparkles, Gem, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const ProfilePage: React.FC = () => {

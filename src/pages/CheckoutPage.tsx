@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { MessageCircle, Check, MapPin, User, Gift, Sparkles, ShieldCheck, ChevronLeft, CreditCard } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { formatPrice, generateCartOrderMessage, openWhatsApp } from '../utils/whatsapp';
@@ -85,11 +85,11 @@ const CheckoutPage: React.FC = () => {
     });
 
     // Add Gift Personalization to Message
-    if (giftOptions.wrapType !== 'none') {
+    if (giftOptions.isGift) {
       message += `\n\n🎁 *GIFT PERSONALIZATION*`;
       message += `\nPackaging: ${giftOptions.wrapType === 'luxury' ? 'Premium Luxury Wrap (+₹500)' : 'Standard Gift Wrap'}`;
       if (giftOptions.message) message += `\nMessage: "${giftOptions.message}"`;
-      if (giftOptions.videoUrl) message += `\nVideo Message QR: ${giftOptions.videoUrl}`;
+      if (giftOptions.videoMessageUrl) message += `\nVideo Message QR: ${giftOptions.videoMessageUrl}`;
     }
 
     message += `\n\n💰 *FINAL TOTAL:* ${formatPrice(grandTotal)}`;
@@ -341,7 +341,7 @@ const CheckoutPage: React.FC = () => {
                         <div className="flex items-center gap-2 text-[10px] text-white/40 uppercase font-black tracking-widest">
                           <span>Qty: {item.quantity}</span>
                           <span className="w-1 h-1 bg-white/10 rounded-full" />
-                          <span>{item.purity}</span>
+                          <span>{item.selectedPurity}</span>
                         </div>
                         <p className="text-gold font-bold text-sm">{formatPrice(item.product.price * item.quantity)}</p>
                       </div>
@@ -350,7 +350,7 @@ const CheckoutPage: React.FC = () => {
                 </div>
 
                 {/* Gift Personalization Summary */}
-                {giftOptions.wrapType !== 'none' && (
+                {giftOptions.isGift && (
                   <div className="pt-8 border-t border-white/5 space-y-4">
                     <div className="flex items-center gap-3">
                       <Gift className="text-gold" size={18} />

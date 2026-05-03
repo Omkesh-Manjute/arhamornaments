@@ -1,14 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, ShoppingBag, ArrowRight, Trash2 } from 'lucide-react';
+import { Heart, ArrowRight, Trash2 } from 'lucide-react';
 import { useWishlist } from '../context/WishlistContext';
 import { useCart } from '../context/CartContext';
-import { formatPrice } from '../utils/whatsapp';
 import ProductCard from '../components/ProductCard';
 
 const WishlistPage: React.FC = () => {
   const { wishlist, removeFromWishlist } = useWishlist();
-  const { addToCart } = useCart();
+  useCart();
 
   if (wishlist.length === 0) {
     return (

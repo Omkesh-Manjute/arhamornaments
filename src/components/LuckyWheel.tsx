@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Gift, Wallet, Coins, Gem, Banknote, Check } from 'lucide-react';
+import { X, Gift, Check } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 
 const LuckyWheel: React.FC = () => {
@@ -113,13 +113,15 @@ const LuckyWheel: React.FC = () => {
 
             {/* The Wheel Image */}
             <div 
-              className="w-[92%] h-[92%] rounded-full relative overflow-hidden transition-transform duration-[5000ms] cubic-bezier(0.15, 0, 0.1, 1) shadow-[0_0_60px_rgba(0,0,0,0.3)] z-10"
+              className="w-[90%] h-[90%] rounded-full relative overflow-hidden transition-transform duration-[5000ms] cubic-bezier(0.15, 0, 0.1, 1) shadow-[0_0_60px_rgba(0,0,0,0.3)] z-10 bg-white"
               style={{ 
                 transform: `rotate(${rotation}deg)`,
                 backgroundImage: "url('/images/lucky-wheel.png')",
-                backgroundSize: 'cover',
+                backgroundSize: '98%',
                 backgroundPosition: 'center',
-                border: '4px solid rgba(255,255,255,0.1)'
+                backgroundRepeat: 'no-repeat',
+                border: '4px solid rgba(255,255,255,0.2)',
+                boxSizing: 'border-box'
               }}
             >
             </div>

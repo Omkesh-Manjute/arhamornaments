@@ -3,7 +3,7 @@ export interface Product {
   name: string;
   price: number; // Base price or calculated price
   originalPrice?: number;
-  category: 'rings' | 'necklaces' | 'earrings' | 'coins' | 'bangles' | 'pendants';
+  category: 'rings' | 'necklaces' | 'earrings' | 'coins' | 'bangles' | 'pendants' | 'mangalsutra';
   material: 'gold' | 'silver' | 'diamond' | 'platinum';
   
   // Jewelry specific details
@@ -37,6 +37,7 @@ export interface User {
   tier: 'silver' | 'gold' | 'platinum';
   points: number;
   joinedDate: string;
+  avatar?: string;
 }
 
 export interface GiftOptions {
