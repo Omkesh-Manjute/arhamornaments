@@ -43,6 +43,3 @@ const LivePriceTicker: React.FC = () => {
 };
 
 export default LivePriceTicker;
-
-
-export default LivePriceTicker;
