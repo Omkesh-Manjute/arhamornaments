@@ -155,8 +155,8 @@ const AboutPage: React.FC = () => {
           <h2 className="text-4xl font-heading font-bold text-charcoal">Visionary Leadership</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-          <div className="aspect-video rounded-[3rem] overflow-hidden bg-gray-100 border border-gray-200">
-            <img src="/images/heritage_portrait.png" className="w-full h-full object-cover" alt="Founder" />
+          <div className="aspect-[4/5] rounded-[3rem] overflow-hidden shadow-2xl border border-gray-100">
+            <img src="/images/founder_portrait.png" className="w-full h-full object-cover" alt="Founder Praveen Jain" />
           </div>
           <div className="space-y-6">
             <h3 className="text-3xl font-heading font-bold text-charcoal">Message from our Founder</h3>

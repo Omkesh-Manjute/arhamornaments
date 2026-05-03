@@ -44,12 +44,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hidePrice = false })
             </div>
           )}
 
-          {/* Quick Action Overlay */}
-          <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
-             <div className="bg-white/90 backdrop-blur-md p-4 rounded-full scale-90 group-hover:scale-100 transition-transform duration-500 shadow-xl">
-                <Eye size={20} className="text-charcoal" />
-             </div>
-          </div>
         </div>
 
         {/* Content */}

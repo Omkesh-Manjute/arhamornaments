@@ -62,9 +62,16 @@ const ProductDetail: React.FC = () => {
     )
     .slice(0, 4);
 
-  const relatedProducts = products
-    .filter(p => p.category === product.category && p.id !== product.id)
-    .slice(0, 4);
+  const relatedProducts = useMemo(() => {
+    let related = products.filter(p => p.category === product.category && p.id !== product.id);
+    
+    // Fallback: If no similar products in same category, show trending/featured items from other categories
+    if (related.length === 0) {
+      related = products.filter(p => p.id !== product.id && (p.trending || p.featured));
+    }
+    
+    return related.slice(0, 4);
+  }, [product.id, product.category]);
 
   const handleWhatsAppEnquiry = () => {
     const message = generateProductEnquiryMessage({ ...product, price: currentPrice });
@@ -87,23 +94,21 @@ const ProductDetail: React.FC = () => {
       const stored = localStorage.getItem('recentlyViewed');
       let viewedIds: string[] = stored ? JSON.parse(stored) : [];
 
-      // 2. Add current ID if not already there, or move to front
+      // 2. Filter out current and ensure uniqueness
       viewedIds = viewedIds.filter(id => id !== product.id);
-      viewedIds.unshift(product.id);
-
-      // 3. Keep only last 10
-      const limitedIds = viewedIds.slice(0, 10);
-
-      // 4. Save back to local storage
-      localStorage.setItem('recentlyViewed', JSON.stringify(limitedIds));
-
-      // 5. Update state (excluding current product)
-      const viewedProducts = limitedIds
-        .filter(id => id !== product.id)
+      
+      // 3. Update state with what was already there (before adding current)
+      const viewedProducts = viewedIds
         .map(id => products.find(p => p.id === id))
-        .filter(Boolean);
+        .filter((p): p is any => !!p)
+        .slice(0, 4);
       
       setRecentlyViewed(viewedProducts);
+
+      // 4. Add current ID to the front for NEXT page visit
+      viewedIds.unshift(product.id);
+      const limitedIds = viewedIds.slice(0, 10);
+      localStorage.setItem('recentlyViewed', JSON.stringify(limitedIds));
     }
   }, [product.id]);
 
@@ -357,7 +362,7 @@ const ProductDetail: React.FC = () => {
           </div>
         )}
 
-        {/* Related Products */}
+        {/* Similar Products */}
         <div className="mt-32 space-y-12">
           <div className="text-center space-y-2">
             <h4 className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em]">Collection</h4>
@@ -392,4 +397,3 @@ const ProductDetail: React.FC = () => {
 };
 
 export default ProductDetail;
-
