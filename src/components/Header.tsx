@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, ShoppingBag, Menu, X, User, Heart, Wallet, Settings, LogOut, Gift, MessageCircle } from 'lucide-react';
+import { Search, ShoppingBag, Menu, X, User, Heart, Wallet, Settings, LogOut, Gift, MessageCircle, ChevronRight } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useUser } from '../context/UserContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -230,14 +230,14 @@ const Header: React.FC = () => {
                 onClick={() => setIsMenuOpen(false)}
               >
                 <span className="text-sm font-semibold text-charcoal">{item.label}</span>
-                <Menu size={16} className="text-[#8B2323] -rotate-90" />
+                <ChevronRight size={18} className="text-gray-300" />
               </Link>
             ))}
           </div>
 
           {/* Shop For Section */}
           <div className="py-4">
-            <h4 className="text-[11px] font-bold text-[#8B2323] uppercase tracking-[0.15em] px-4 mb-3">Shop For</h4>
+
             <div className="space-y-1">
               {[
                 { label: 'Men', path: '/products?gender=men' },
@@ -250,7 +250,7 @@ const Header: React.FC = () => {
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <span className="text-sm font-semibold text-charcoal">{item.label}</span>
-                  <Menu size={16} className="text-[#8B2323] -rotate-90" />
+                  <ChevronRight size={18} className="text-gray-300" />
                 </Link>
               ))}
             </div>
@@ -261,7 +261,7 @@ const Header: React.FC = () => {
             {[
               { label: 'Jewellery Plans', path: '/plans' },
               { label: 'Gift Card', path: '/gift-cards' },
-              { label: 'Gold Rate', path: '/gold-rate' },
+
               { label: 'Offers & Contest Details', path: '/offers' },
               { label: 'Cyber Security Policy', path: '/policy' },
               { label: 'Get In Touch', path: '/contact' },
@@ -274,7 +274,7 @@ const Header: React.FC = () => {
                 onClick={() => setIsMenuOpen(false)}
               >
                 <span className="text-sm font-medium text-gray-600">{item.label}</span>
-                {item.label === 'Get In Touch' && <Menu size={16} className="text-[#8B2323] -rotate-90" />}
+                <ChevronRight size={18} className="text-gray-300" />
               </Link>
             ))}
 
