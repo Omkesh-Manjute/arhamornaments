@@ -45,7 +45,7 @@ const Header: React.FC = () => {
 
   return (
     <header 
-      className={`fixed top-0 lg:top-0 left-0 right-0 z-50 transition-all duration-500 mt-[36px] lg:mt-0 ${
+      className={`fixed top-[36px] left-0 right-0 z-50 transition-all duration-500 ${
         isScrolled || !isHomePage ? 'bg-white shadow-md py-2' : 'bg-white lg:bg-transparent py-2 lg:py-6'
       } ${!isHomePage || isScrolled ? 'border-b border-gray-100' : ''}`}
     >

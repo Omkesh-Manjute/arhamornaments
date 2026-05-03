@@ -52,7 +52,7 @@ const HomePage: React.FC = () => {
         banners={[
           { image: "https://images.unsplash.com/photo-1635767798638-3e25273a8236?w=1200", title: "Stunning <br /> every Ear", link: "/products?category=earrings" },
           { image: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=1200", title: "Handcrafted <br /> Elegance", link: "/products?category=earrings" },
-          { image: "https://images.unsplash.com/photo-1535633302704-c02fbcdb8c2a?w=1200", title: "Timeless <br /> Masterpieces", link: "/products?category=earrings" }
+          { image: "https://images.unsplash.com/photo-1573408339311-253bc3faac7a?w=1200", title: "Timeless <br /> Masterpieces", link: "/products?category=earrings" }
         ]}
         items={earringCollection}
       />

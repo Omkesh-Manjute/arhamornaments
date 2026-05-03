@@ -40,29 +40,6 @@ const CollectionSlider: React.FC<CollectionSliderProps> = ({ title, subtitle, ba
   return (
     <section className="px-4 md:px-8 py-8 bg-white overflow-hidden">
       <div className="max-w-7xl mx-auto">
-        {/* Section Running Rate Ticker */}
-        <div className="mb-10 bg-[#0D4449] rounded-2xl overflow-hidden py-3 border border-gold/20 shadow-lg relative">
-          <div className="absolute left-0 top-0 bottom-0 px-4 bg-emerald-900 z-10 flex items-center border-r border-gold/20">
-             <span className="text-[9px] font-black text-gold uppercase tracking-[0.2em] whitespace-nowrap">Market Live</span>
-          </div>
-          <div className="flex whitespace-nowrap animate-ticker">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="flex items-center gap-10 px-4">
-                {prices.map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-3">
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">{item.name}</span>
-                    <span className="text-sm font-black text-white tracking-wide">{item.price}</span>
-                    <span className={`text-[10px] font-bold flex items-center gap-0.5 ${item.up ? 'text-green-400' : 'text-red-400'}`}>
-                      {item.up ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
-                      {item.change}
-                    </span>
-                    <div className="w-px h-3 bg-gold/10 mx-2"></div>
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-        </div>
 
         {/* Header */}
         <div className="text-center mb-10 space-y-2">
@@ -86,7 +63,7 @@ const CollectionSlider: React.FC<CollectionSliderProps> = ({ title, subtitle, ba
             >
               <img 
                 src={banner.image} 
-                alt={banner.title} 
+                alt={banner.title.replace(/<br \/>/g, ' ')} 
                 className="w-full h-full object-cover transition-transform duration-[5s] group-hover:scale-105" 
               />
               <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-transparent flex flex-col justify-center p-8 md:p-16">
