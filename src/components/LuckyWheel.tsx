@@ -92,11 +92,14 @@ const LuckyWheel: React.FC = () => {
                 key={i}
                 className={`absolute w-1.5 h-1.5 md:w-2 md:h-2 rounded-full z-20 transition-all duration-300 ${isSpinning ? 'animate-pulse scale-150' : ''}`}
                 style={{
-                  transform: `rotate(${i * (360 / 24)}deg) translateY(-115px) sm:translateY(-145px) md:translateY(-170px)`,
+                  transform: `rotate(${i * (360 / 24)}deg) translateY(var(--led-translate))`,
                   backgroundColor: isSpinning ? (i % 2 === 0 ? '#FFFFFF' : '#40C0CB') : '#40C0CB',
                   boxShadow: '0 0 10px rgba(255,255,255,0.9)',
-                  opacity: isSpinning ? (Math.random() > 0.5 ? 1 : 0.5) : 1
-                }}
+                  opacity: isSpinning ? (Math.random() > 0.5 ? 1 : 0.5) : 1,
+                  // CSS Variables for responsive translation
+                  '--led-translate': 'window' in globalThis && window.innerWidth < 640 ? '-115px' : 
+                                     'window' in globalThis && window.innerWidth < 768 ? '-145px' : '-170px'
+                } as any}
               />
             ))}
 
@@ -116,7 +119,7 @@ const LuckyWheel: React.FC = () => {
                 backgroundImage: "url('/images/lucky-wheel.png')",
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
-                border: '4px md:border-6 solid rgba(255,255,255,0.1)'
+                border: '4px solid rgba(255,255,255,0.1)'
               }}
             >
             </div>

@@ -57,6 +57,7 @@ const AppContent: React.FC = () => {
       </main>
 
       {!isAdminPage && <Footer />}
+      {!isAdminPage && <LuckyWheel />}
     </div>
   );
 };
