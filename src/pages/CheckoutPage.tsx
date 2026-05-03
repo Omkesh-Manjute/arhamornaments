@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { MessageCircle, Check, MapPin, User } from 'lucide-react';
+import { MessageCircle, Check, MapPin, User, Gift, Sparkles, ShieldCheck, ChevronLeft, CreditCard } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { formatPrice, generateCartOrderMessage, openWhatsApp } from '../utils/whatsapp';
 
@@ -15,7 +15,7 @@ interface FormData {
 }
 
 const CheckoutPage: React.FC = () => {
-  const { items, totalPrice, clearCart } = useCart();
+  const { items, totalPrice, clearCart, giftOptions } = useCart();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
@@ -32,8 +32,10 @@ const CheckoutPage: React.FC = () => {
 
   const [errors, setErrors] = useState<Partial<FormData>>({});
 
+  // Calculate Grand Total including Gift Surcharges
+  const giftSurcharge = giftOptions.wrapType === 'luxury' ? 500 : 0;
   const shippingCost = totalPrice >= 50000 ? 0 : 500;
-  const grandTotal = totalPrice + shippingCost;
+  const grandTotal = totalPrice + shippingCost + giftSurcharge;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -46,18 +48,18 @@ const CheckoutPage: React.FC = () => {
   const validate = (): boolean => {
     const newErrors: Partial<FormData> = {};
     
-    if (!formData.name.trim()) newErrors.name = 'Name is required';
+    if (!formData.name.trim()) newErrors.name = 'Full name is required';
     if (!formData.phone.trim()) {
-      newErrors.phone = 'Phone is required';
+      newErrors.phone = 'Mobile number is required';
     } else if (!/^\d{10}$/.test(formData.phone)) {
-      newErrors.phone = 'Enter valid 10-digit phone number';
+      newErrors.phone = 'Enter a valid 10-digit number';
     }
-    if (!formData.address.trim()) newErrors.address = 'Address is required';
+    if (!formData.address.trim()) newErrors.address = 'Delivery address is required';
     if (!formData.city.trim()) newErrors.city = 'City is required';
     if (!formData.pincode.trim()) {
       newErrors.pincode = 'Pincode is required';
     } else if (!/^\d{6}$/.test(formData.pincode)) {
-      newErrors.pincode = 'Enter valid 6-digit pincode';
+      newErrors.pincode = 'Enter a valid 6-digit pincode';
     }
 
     setErrors(newErrors);
@@ -67,21 +69,34 @@ const CheckoutPage: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validate()) return;
+    if (!validate()) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
     
     setIsSubmitting(true);
 
-    // Generate WhatsApp message
+    // Generate WhatsApp message with Gift Options
     const fullAddress = `${formData.address}, ${formData.city} - ${formData.pincode}`;
-    const message = generateCartOrderMessage(items, {
+    let message = generateCartOrderMessage(items, {
       name: formData.name,
       phone: formData.phone,
       address: fullAddress
     });
 
+    // Add Gift Personalization to Message
+    if (giftOptions.wrapType !== 'none') {
+      message += `\n\n🎁 *GIFT PERSONALIZATION*`;
+      message += `\nPackaging: ${giftOptions.wrapType === 'luxury' ? 'Premium Luxury Wrap (+₹500)' : 'Standard Gift Wrap'}`;
+      if (giftOptions.message) message += `\nMessage: "${giftOptions.message}"`;
+      if (giftOptions.videoUrl) message += `\nVideo Message QR: ${giftOptions.videoUrl}`;
+    }
+
+    message += `\n\n💰 *FINAL TOTAL:* ${formatPrice(grandTotal)}`;
+
     // Add notes if any
     const finalMessage = formData.notes 
-      ? message + `\n\n*Additional Notes:*\n${formData.notes}`
+      ? message + `\n\n📝 *Additional Notes:*\n${formData.notes}`
       : message;
 
     // Open WhatsApp
@@ -91,7 +106,7 @@ const CheckoutPage: React.FC = () => {
     setTimeout(() => {
       setIsSubmitting(false);
       setOrderPlaced(true);
-    }, 1000);
+    }, 1500);
   };
 
   if (items.length === 0 && !orderPlaced) {
@@ -101,33 +116,45 @@ const CheckoutPage: React.FC = () => {
 
   if (orderPlaced) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="text-center max-w-md">
-          <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Check size={48} className="text-green-600" />
+      <div className="min-h-screen bg-[#FCFBF7] flex items-center justify-center px-4">
+        <div className="text-center max-w-xl bg-white p-16 rounded-[4rem] shadow-2xl border border-gray-100 space-y-8 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-2 bg-gold" />
+          <div className="w-24 h-24 bg-gold/10 rounded-full flex items-center justify-center mx-auto text-gold animate-bounce">
+            <Check size={48} strokeWidth={3} />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Order Inquiry Sent!</h2>
-          <p className="text-gray-500 mb-6">
-            Your order details have been sent via WhatsApp. Our team will contact you shortly to confirm your order and discuss payment options.
-          </p>
-          <div className="space-y-3">
+          <div className="space-y-2">
+            <h2 className="text-4xl font-heading font-bold text-charcoal">The Inquiry is Sent</h2>
+            <p className="text-gray-500 font-medium leading-relaxed">
+              Your request for these exquisite pieces has been dispatched to our concierge team. We will contact you shortly to finalize the bespoke delivery and payment details.
+            </p>
+          </div>
+          
+          <div className="bg-gray-50 p-6 rounded-3xl space-y-3">
+            <div className="flex items-center justify-center gap-2 text-gold font-black uppercase tracking-widest text-[10px]">
+              <Sparkles size={14} />
+              White-Glove Service Activated
+            </div>
+            <p className="text-xs text-gray-400">Reference: ARH-{Math.random().toString(36).substr(2, 9).toUpperCase()}</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <button
               onClick={() => {
                 clearCart();
                 navigate('/');
               }}
-              className="w-full py-3 bg-amber-500 text-white rounded-full font-semibold hover:bg-amber-600 transition"
+              className="py-5 bg-charcoal text-white rounded-full font-black uppercase tracking-[0.2em] text-[11px] hover:bg-black transition-all shadow-xl"
             >
-              Continue Shopping
+              Continue Exploring
             </button>
             <a
-              href="https://wa.me/919876543210"
+              href="https://wa.me/919371504182"
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full py-3 bg-green-500 text-white rounded-full font-semibold hover:bg-green-600 transition inline-flex items-center justify-center gap-2"
+              className="py-5 bg-gold text-white rounded-full font-black uppercase tracking-[0.2em] text-[11px] hover:bg-amber-600 transition-all shadow-xl inline-flex items-center justify-center gap-2"
             >
               <MessageCircle size={18} />
-              Back to WhatsApp
+              Concierge Chat
             </a>
           </div>
         </div>
@@ -136,236 +163,261 @@ const CheckoutPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-            <Link to="/" className="hover:text-amber-600">Home</Link>
-            <span>/</span>
-            <Link to="/cart" className="hover:text-amber-600">Cart</Link>
-            <span>/</span>
-            <span className="text-gray-900">Checkout</span>
+    <div className="min-h-screen bg-[#FCFBF7] py-24">
+      <div className="max-w-7xl mx-auto px-6 md:px-8">
+        
+        {/* Progress Navigation */}
+        <div className="mb-12 flex items-center justify-between">
+          <button onClick={() => navigate('/cart')} className="flex items-center gap-2 text-gray-400 hover:text-charcoal transition font-bold text-sm">
+            <ChevronLeft size={20} />
+            Back to Treasury
+          </button>
+          <div className="hidden md:flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-gray-300">
+            <span>Authentication</span>
+            <div className="w-8 h-px bg-gray-200" />
+            <span>Shipping</span>
+            <div className="w-8 h-px bg-gray-200" />
+            <span className="text-gold">Review</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Checkout</h1>
         </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Form */}
-          <div className="lg:col-span-2">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Contact Information */}
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <User size={20} className="text-amber-600" />
-                  Contact Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Full Name *
-                    </label>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+          {/* Form Side */}
+          <div className="lg:col-span-7 space-y-10">
+            <header className="space-y-2">
+              <h1 className="text-5xl font-heading font-bold text-charcoal tracking-tight">Checkout</h1>
+              <p className="text-gray-400 font-medium">Finalize your luxury selection and shipping details.</p>
+            </header>
+
+            <form onSubmit={handleSubmit} className="space-y-12">
+              {/* Contact Section */}
+              <section className="bg-white rounded-[3rem] p-10 shadow-sm border border-gray-100 space-y-8">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-gold/10 rounded-2xl flex items-center justify-center text-gold">
+                    <User size={24} />
+                  </div>
+                  <h3 className="text-xl font-heading font-bold text-charcoal">Delivery Dossier</h3>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-3">
+                    <label className="text-[10px] uppercase tracking-widest text-gray-400 font-black ml-4">Legal Full Name</label>
                     <input
                       type="text"
                       name="name"
                       value={formData.name}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 ${
-                        errors.name ? 'border-red-500' : 'border-gray-200'
+                      placeholder="e.g. Omkesh Manjute"
+                      className={`w-full px-6 py-4 bg-gray-50 border rounded-3xl focus:outline-none focus:ring-2 focus:ring-gold/20 transition-all font-bold text-charcoal ${
+                        errors.name ? 'border-red-400' : 'border-gray-100 hover:border-gold/30'
                       }`}
-                      placeholder="Enter your full name"
                     />
-                    {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+                    {errors.name && <p className="text-red-400 text-[10px] font-bold uppercase ml-4">{errors.name}</p>}
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Phone Number *
-                    </label>
+                  <div className="space-y-3">
+                    <label className="text-[10px] uppercase tracking-widest text-gray-400 font-black ml-4">Secure Mobile</label>
                     <input
                       type="tel"
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 ${
-                        errors.phone ? 'border-red-500' : 'border-gray-200'
+                      placeholder="+91 00000 00000"
+                      className={`w-full px-6 py-4 bg-gray-50 border rounded-3xl focus:outline-none focus:ring-2 focus:ring-gold/20 transition-all font-bold text-charcoal ${
+                        errors.phone ? 'border-red-400' : 'border-gray-100 hover:border-gold/30'
                       }`}
-                      placeholder="10-digit mobile number"
                     />
-                    {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
+                    {errors.phone && <p className="text-red-400 text-[10px] font-bold uppercase ml-4">{errors.phone}</p>}
                   </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Email (Optional)
-                    </label>
+                  <div className="md:col-span-2 space-y-3">
+                    <label className="text-[10px] uppercase tracking-widest text-gray-400 font-black ml-4">Email Address (Optional)</label>
                     <input
                       type="email"
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
-                      placeholder="Enter your email"
+                      placeholder="luxury@arham.com"
+                      className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-3xl focus:outline-none focus:ring-2 focus:ring-gold/20 transition-all font-bold text-charcoal hover:border-gold/30"
                     />
                   </div>
                 </div>
-              </div>
+              </section>
 
-              {/* Shipping Address */}
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <MapPin size={20} className="text-amber-600" />
-                  Shipping Address
-                </h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Address *
-                    </label>
+              {/* Address Section */}
+              <section className="bg-white rounded-[3rem] p-10 shadow-sm border border-gray-100 space-y-8">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-gold/10 rounded-2xl flex items-center justify-center text-gold">
+                    <MapPin size={24} />
+                  </div>
+                  <h3 className="text-xl font-heading font-bold text-charcoal">Shipping Destination</h3>
+                </div>
+                
+                <div className="space-y-8">
+                  <div className="space-y-3">
+                    <label className="text-[10px] uppercase tracking-widest text-gray-400 font-black ml-4">Street Address</label>
                     <textarea
                       name="address"
                       value={formData.address}
                       onChange={handleChange}
                       rows={3}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none ${
-                        errors.address ? 'border-red-500' : 'border-gray-200'
+                      placeholder="Full residential address for white-glove delivery..."
+                      className={`w-full px-6 py-4 bg-gray-50 border rounded-3xl focus:outline-none focus:ring-2 focus:ring-gold/20 transition-all font-bold text-charcoal resize-none ${
+                        errors.address ? 'border-red-400' : 'border-gray-100 hover:border-gold/30'
                       }`}
-                      placeholder="House no, Street, Landmark"
                     />
-                    {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address}</p>}
+                    {errors.address && <p className="text-red-400 text-[10px] font-bold uppercase ml-4">{errors.address}</p>}
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        City *
-                      </label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-3">
+                      <label className="text-[10px] uppercase tracking-widest text-gray-400 font-black ml-4">City</label>
                       <input
                         type="text"
                         name="city"
                         value={formData.city}
                         onChange={handleChange}
-                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 ${
-                          errors.city ? 'border-red-500' : 'border-gray-200'
+                        className={`w-full px-6 py-4 bg-gray-50 border rounded-3xl focus:outline-none focus:ring-2 focus:ring-gold/20 transition-all font-bold text-charcoal ${
+                          errors.city ? 'border-red-400' : 'border-gray-100 hover:border-gold/30'
                         }`}
-                        placeholder="Enter city"
                       />
-                      {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Pincode *
-                      </label>
+                    <div className="space-y-3">
+                      <label className="text-[10px] uppercase tracking-widest text-gray-400 font-black ml-4">Pincode</label>
                       <input
                         type="text"
                         name="pincode"
                         value={formData.pincode}
                         onChange={handleChange}
-                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 ${
-                          errors.pincode ? 'border-red-500' : 'border-gray-200'
+                        className={`w-full px-6 py-4 bg-gray-50 border rounded-3xl focus:outline-none focus:ring-2 focus:ring-gold/20 transition-all font-bold text-charcoal ${
+                          errors.pincode ? 'border-red-400' : 'border-gray-100 hover:border-gold/30'
                         }`}
-                        placeholder="6-digit pincode"
                       />
-                      {errors.pincode && <p className="text-red-500 text-sm mt-1">{errors.pincode}</p>}
                     </div>
                   </div>
                 </div>
-              </div>
+              </section>
 
-              {/* Additional Notes */}
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Additional Notes (Optional)
-                </h3>
+              {/* Special Instructions */}
+              <section className="bg-white rounded-[3rem] p-10 shadow-sm border border-gray-100 space-y-6">
+                <h3 className="text-xl font-heading font-bold text-charcoal ml-4">Bespoke Requests</h3>
                 <textarea
                   name="notes"
                   value={formData.notes}
                   onChange={handleChange}
-                  rows={3}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"
-                  placeholder="Any special instructions, size requirements, or customization requests..."
+                  rows={2}
+                  placeholder="Any special size requirements, engraving details, or delivery instructions..."
+                  className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-3xl focus:outline-none focus:ring-2 focus:ring-gold/20 font-medium text-charcoal resize-none hover:border-gold/30 transition-all"
                 />
-              </div>
+              </section>
 
-              {/* Submit Button - Mobile */}
-              <div className="lg:hidden">
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full py-4 bg-green-500 text-white rounded-full font-semibold hover:bg-green-600 transition flex items-center justify-center gap-2 disabled:opacity-50"
-                >
-                  {isSubmitting ? (
-                    'Sending...'
-                  ) : (
-                    <>
-                      <MessageCircle size={20} />
-                      Place Order via WhatsApp
-                    </>
-                  )}
-                </button>
+              {/* Security Badge */}
+              <div className="flex items-center gap-3 justify-center text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+                <ShieldCheck size={16} className="text-gold" />
+                End-to-End Encrypted Secure Checkout
               </div>
             </form>
           </div>
 
-          {/* Order Summary */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-sm p-6 sticky top-24">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Order Summary</h3>
+          {/* Summary Side */}
+          <div className="lg:col-span-5">
+            <div className="bg-charcoal text-white rounded-[3.5rem] p-10 sticky top-24 shadow-2xl overflow-hidden">
+              {/* Gold Accent */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gold opacity-10 rounded-full blur-3xl -mr-16 -mt-16" />
+              
+              <div className="relative z-10 space-y-10">
+                <h3 className="text-2xl font-heading font-bold">Investment Summary</h3>
 
-              {/* Items */}
-              <div className="space-y-3 max-h-60 overflow-y-auto mb-4">
-                {items.map((item) => (
-                  <div key={item.product.id} className="flex gap-3">
-                    <img
-                      src={item.product.images[0]}
-                      alt={item.product.name}
-                      className="w-16 h-16 object-cover rounded-lg"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        {item.product.name}
+                {/* Item List */}
+                <div className="space-y-6 max-h-[30vh] overflow-y-auto pr-2 custom-scrollbar">
+                  {items.map((item) => (
+                    <div key={item.product.id} className="flex gap-4 group">
+                      <div className="w-20 h-20 rounded-2xl overflow-hidden border border-white/10 shrink-0">
+                        <img
+                          src={item.product.images[0]}
+                          alt={item.product.name}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <p className="text-sm font-bold truncate">{item.product.name}</p>
+                        <div className="flex items-center gap-2 text-[10px] text-white/40 uppercase font-black tracking-widest">
+                          <span>Qty: {item.quantity}</span>
+                          <span className="w-1 h-1 bg-white/10 rounded-full" />
+                          <span>{item.purity}</span>
+                        </div>
+                        <p className="text-gold font-bold text-sm">{formatPrice(item.product.price * item.quantity)}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Gift Personalization Summary */}
+                {giftOptions.wrapType !== 'none' && (
+                  <div className="pt-8 border-t border-white/5 space-y-4">
+                    <div className="flex items-center gap-3">
+                      <Gift className="text-gold" size={18} />
+                      <p className="text-xs font-black uppercase tracking-widest text-gold">Gift Personalization</p>
+                    </div>
+                    <div className="bg-white/5 p-5 rounded-3xl border border-white/10 space-y-2">
+                      <p className="text-xs font-bold">
+                        {giftOptions.wrapType === 'luxury' ? 'Premium Heritage Wrap' : 'Signature Arham Wrap'}
                       </p>
-                      <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
-                      <p className="text-sm font-semibold">{formatPrice(item.product.price * item.quantity)}</p>
+                      {giftOptions.message && (
+                        <p className="text-[10px] text-white/40 leading-relaxed italic">"{giftOptions.message}"</p>
+                      )}
                     </div>
                   </div>
-                ))}
-              </div>
-
-              <div className="border-t pt-4 space-y-3">
-                <div className="flex justify-between text-gray-600">
-                  <span>Subtotal</span>
-                  <span>{formatPrice(totalPrice)}</span>
-                </div>
-                <div className="flex justify-between text-gray-600">
-                  <span>Shipping</span>
-                  <span>{shippingCost === 0 ? <span className="text-green-600">FREE</span> : formatPrice(shippingCost)}</span>
-                </div>
-                <div className="flex justify-between text-lg font-bold pt-2 border-t">
-                  <span>Total</span>
-                  <span>{formatPrice(grandTotal)}</span>
-                </div>
-              </div>
-
-              {/* Submit Button - Desktop */}
-              <button
-                type="submit"
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                className="hidden lg:flex w-full mt-6 py-4 bg-green-500 text-white rounded-full font-semibold hover:bg-green-600 transition items-center justify-center gap-2 disabled:opacity-50"
-              >
-                {isSubmitting ? (
-                  'Sending...'
-                ) : (
-                  <>
-                    <MessageCircle size={20} />
-                    Place Order via WhatsApp
-                  </>
                 )}
-              </button>
 
-              <p className="text-xs text-gray-500 text-center mt-4">
-                Your order will be sent via WhatsApp for confirmation. Our team will contact you to complete the purchase.
-              </p>
+                {/* Financials */}
+                <div className="pt-8 border-t border-white/5 space-y-4 font-medium">
+                  <div className="flex justify-between text-white/60 text-sm">
+                    <span>Treasury Total</span>
+                    <span>{formatPrice(totalPrice)}</span>
+                  </div>
+                  {giftSurcharge > 0 && (
+                    <div className="flex justify-between text-white/60 text-sm">
+                      <span>Heritage Wrap</span>
+                      <span>{formatPrice(giftSurcharge)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-white/60 text-sm">
+                    <span>Delivery</span>
+                    <span>{shippingCost === 0 ? <span className="text-gold uppercase text-[10px] font-black">Complimentary</span> : formatPrice(shippingCost)}</span>
+                  </div>
+                  <div className="flex justify-between items-end pt-4 border-t border-white/10">
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gold">Final Investment</p>
+                      <h4 className="text-4xl font-heading font-bold">{formatPrice(grandTotal)}</h4>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <button
+                    onClick={handleSubmit}
+                    disabled={isSubmitting}
+                    className="w-full py-6 bg-gold text-white rounded-full font-black uppercase tracking-[0.2em] text-xs hover:bg-amber-600 transition-all flex items-center justify-center gap-3 shadow-2xl shadow-gold/20 disabled:opacity-50 active:scale-95"
+                  >
+                    {isSubmitting ? (
+                      <span className="animate-pulse">Processing...</span>
+                    ) : (
+                      <>
+                        <MessageCircle size={20} />
+                        Inquire via WhatsApp
+                      </>
+                    )}
+                  </button>
+                  <div className="flex items-center gap-2 justify-center py-2 px-4 bg-white/5 rounded-2xl border border-white/5">
+                    <CreditCard size={14} className="text-white/40" />
+                    <p className="text-[9px] text-white/40 uppercase font-black tracking-widest">
+                      Alternate Payment Methods Available in Chat
+                    </p>
+                  </div>
+                </div>
+
+                <p className="text-[10px] text-white/30 text-center leading-relaxed font-bold uppercase tracking-widest px-4">
+                  By inquiring, you agree to Arham's exclusive Terms of Heritage.
+                </p>
+              </div>
             </div>
           </div>
         </div>

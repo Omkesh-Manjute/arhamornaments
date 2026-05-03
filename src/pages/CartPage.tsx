@@ -1,11 +1,12 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, MessageCircle } from 'lucide-react';
+import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, MessageCircle, ArrowLeft, ShieldCheck, Truck, Sparkles } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { formatPrice, generateCartOrderMessage, openWhatsApp } from '../utils/whatsapp';
+import GiftPersonalization from '../components/GiftPersonalization';
 
 const CartPage: React.FC = () => {
-  const { items, removeFromCart, updateQuantity, totalPrice, clearCart } = useCart();
+  const { items, removeFromCart, updateQuantity, totalPrice, giftOptions, clearCart } = useCart();
   const navigate = useNavigate();
 
   const handleWhatsAppOrder = () => {
@@ -15,193 +16,230 @@ const CartPage: React.FC = () => {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-[#FCFBF7] flex items-center justify-center px-4">
         <div className="text-center max-w-md">
-          <div className="w-24 h-24 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <ShoppingBag size={48} className="text-amber-600" />
+          <div className="w-32 h-32 bg-gold/10 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner relative">
+            <ShoppingBag size={48} className="text-gold" />
+            <div className="absolute top-0 right-0 w-8 h-8 bg-white rounded-full shadow-lg flex items-center justify-center animate-bounce">
+              <span className="text-xs">?</span>
+            </div>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Your Cart is Empty</h2>
-          <p className="text-gray-500 mb-6">
-            Looks like you haven't added any jewellery to your cart yet. 
-            Start exploring our beautiful collection!
+          <h2 className="text-3xl font-heading font-bold text-charcoal mb-4">Your Treasury is Empty</h2>
+          <p className="text-gray-400 font-medium mb-10 leading-relaxed">
+            Beautiful pieces are waiting for you. Let's find something that speaks to your soul.
           </p>
           <Link
             to="/products"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-amber-500 text-white rounded-full font-semibold hover:bg-amber-600 transition"
+            className="inline-flex items-center gap-4 px-10 py-5 bg-charcoal text-white rounded-full font-black uppercase tracking-[0.2em] text-[11px] hover:bg-gold transition-all shadow-2xl active:scale-95"
           >
-            Start Shopping <ArrowRight size={18} />
+            Explore Collections <ArrowRight size={18} />
           </Link>
         </div>
       </div>
     );
   }
 
-  const shippingCost = totalPrice >= 50000 ? 0 : 500;
-  const grandTotal = totalPrice + shippingCost;
+  const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const shippingCost = subtotal >= 50000 ? 0 : 500;
+  const giftCharge = giftOptions.isGift && giftOptions.wrapType === 'luxury' ? 499 : 0;
+  const grandTotal = subtotal + shippingCost + giftCharge;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#FCFBF7] pb-24">
       {/* Header */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-            <Link to="/" className="hover:text-amber-600">Home</Link>
-            <span>/</span>
-            <span className="text-gray-900">Shopping Cart</span>
+      <div className="bg-white border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-6 py-10">
+          <div className="flex items-center gap-3 text-[10px] uppercase tracking-[0.3em] font-black text-gray-400 mb-4">
+            <Link to="/" className="hover:text-gold">Home</Link>
+            <span className="text-gray-200">/</span>
+            <span className="text-gold">My Treasury</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Shopping Cart</h1>
-          <p className="text-gray-500">{items.length} items in your cart</p>
+          <div className="flex justify-between items-end">
+            <div>
+              <h1 className="text-4xl font-heading font-bold text-charcoal">My Shopping Treasury</h1>
+              <p className="text-gray-400 font-medium mt-1">{items.length} exquisite items reserved</p>
+            </div>
+            <button
+              onClick={clearCart}
+              className="text-[10px] font-black uppercase tracking-widest text-red-400 hover:text-red-600 transition-colors"
+            >
+              Empty Treasury
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           {/* Cart Items */}
-          <div className="lg:col-span-2 space-y-4">
-            {items.map((item) => (
-              <div key={item.product.id} className="bg-white rounded-xl shadow-sm p-4">
-                <div className="flex gap-4">
-                  {/* Image */}
-                  <Link to={`/product/${item.product.id}`} className="flex-shrink-0">
-                    <img
-                      src={item.product.images[0]}
-                      alt={item.product.name}
-                      className="w-24 h-24 md:w-32 md:h-32 object-cover rounded-lg"
-                    />
-                  </Link>
+          <div className="lg:col-span-8 space-y-6">
+            <div className="space-y-4">
+              {items.map((item) => (
+                <div key={item.product.id} className="bg-white rounded-[2rem] shadow-sm p-6 border border-gray-50 group hover:shadow-xl transition-all duration-500">
+                  <div className="flex gap-8">
+                    {/* Image */}
+                    <Link to={`/product/${item.product.id}`} className="flex-shrink-0 w-32 h-32 md:w-40 md:h-40 rounded-2xl overflow-hidden shadow-lg group-hover:scale-105 transition-transform duration-500">
+                      <img
+                        src={item.product.images[0]}
+                        alt={item.product.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </Link>
 
-                  {/* Details */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-start gap-4">
-                      <div>
-                        <Link 
-                          to={`/product/${item.product.id}`}
-                          className="font-semibold text-gray-900 hover:text-amber-600 line-clamp-2"
-                        >
-                          {item.product.name}
-                        </Link>
-                        <p className="text-sm text-gray-500 mt-1 capitalize">
-                          {item.product.category} • {item.product.material}
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => removeFromCart(item.product.id)}
-                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-
-                    <div className="flex flex-wrap items-center justify-between gap-4 mt-4">
-                      {/* Quantity */}
-                      <div className="flex items-center border rounded-full">
+                    {/* Details */}
+                    <div className="flex-1 flex flex-col justify-between py-2">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <Link 
+                            to={`/product/${item.product.id}`}
+                            className="text-xl font-bold text-charcoal hover:text-gold transition-colors block"
+                          >
+                            {item.product.name}
+                          </Link>
+                          <div className="flex items-center gap-3 mt-2">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-gold bg-gold/5 px-2 py-1 rounded">
+                              {item.product.material}
+                            </span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                              {item.product.category}
+                            </span>
+                          </div>
+                        </div>
                         <button
-                          onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                          className="p-2 hover:bg-gray-100 rounded-l-full"
+                          onClick={() => removeFromCart(item.product.id)}
+                          className="w-10 h-10 flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
                         >
-                          <Minus size={16} />
-                        </button>
-                        <span className="w-10 text-center font-medium">{item.quantity}</span>
-                        <button
-                          onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                          className="p-2 hover:bg-gray-100 rounded-r-full"
-                        >
-                          <Plus size={16} />
+                          <Trash2 size={20} />
                         </button>
                       </div>
 
-                      {/* Price */}
-                      <div className="text-right">
-                        <p className="text-lg font-bold text-gray-900">
-                          {formatPrice(item.product.price * item.quantity)}
-                        </p>
-                        {item.quantity > 1 && (
-                          <p className="text-sm text-gray-500">
-                            {formatPrice(item.product.price)} each
+                      <div className="flex items-center justify-between mt-6">
+                        {/* Quantity */}
+                        <div className="flex items-center bg-gray-50 rounded-full px-2 py-1">
+                          <button
+                            onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                            className="w-10 h-10 flex items-center justify-center hover:bg-white rounded-full transition-all text-charcoal"
+                          >
+                            <Minus size={16} />
+                          </button>
+                          <span className="w-12 text-center font-bold text-charcoal">{item.quantity}</span>
+                          <button
+                            onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                            className="w-10 h-10 flex items-center justify-center hover:bg-white rounded-full transition-all text-charcoal"
+                          >
+                            <Plus size={16} />
+                          </button>
+                        </div>
+
+                        {/* Price */}
+                        <div className="text-right">
+                          <p className="text-2xl font-heading font-black text-charcoal">
+                            {formatPrice(item.product.price * item.quantity)}
                           </p>
-                        )}
+                          {item.quantity > 1 && (
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">
+                              {formatPrice(item.product.price)} each
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
-
-            {/* Clear Cart */}
-            <div className="flex justify-between items-center pt-4">
-              <Link
-                to="/products"
-                className="text-amber-600 hover:text-amber-700 font-medium"
-              >
-                ← Continue Shopping
-              </Link>
-              <button
-                onClick={clearCart}
-                className="text-red-500 hover:text-red-600 font-medium"
-              >
-                Clear Cart
-              </button>
+              ))}
             </div>
+
+            <GiftPersonalization />
+
+            <Link
+              to="/products"
+              className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-charcoal hover:text-gold transition-colors"
+            >
+              <ArrowLeft size={16} /> Continue Exploring
+            </Link>
           </div>
 
           {/* Order Summary */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-sm p-6 sticky top-24">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Order Summary</h3>
+          <div className="lg:col-span-4">
+            <div className="bg-charcoal text-white rounded-[3rem] p-10 sticky top-24 shadow-2xl overflow-hidden relative">
+              {/* Luxury Accent */}
+              <div className="absolute top-0 right-0 w-40 h-40 bg-gold opacity-10 rounded-full -mr-20 -mt-20 blur-3xl"></div>
+              
+              <h3 className="text-2xl font-heading font-bold mb-8 flex items-center gap-3">
+                <Sparkles size={24} className="text-gold" />
+                Treasury Summary
+              </h3>
 
-              <div className="space-y-3 pb-4 border-b">
-                <div className="flex justify-between text-gray-600">
-                  <span>Subtotal ({items.reduce((sum, i) => sum + i.quantity, 0)} items)</span>
-                  <span>{formatPrice(totalPrice)}</span>
+              <div className="space-y-6 pb-8 border-b border-white/10">
+                <div className="flex justify-between items-center">
+                  <span className="text-white/50 text-[10px] font-black uppercase tracking-[0.2em]">Merchandise</span>
+                  <span className="font-bold">{formatPrice(subtotal)}</span>
                 </div>
-                <div className="flex justify-between text-gray-600">
-                  <span>Shipping</span>
-                  <span>{shippingCost === 0 ? <span className="text-green-600">FREE</span> : formatPrice(shippingCost)}</span>
+                
+                <div className="flex justify-between items-center">
+                  <span className="text-white/50 text-[10px] font-black uppercase tracking-[0.2em]">Concierge & Ship</span>
+                  <span className="font-bold">
+                    {shippingCost === 0 ? <span className="text-gold">Complimentary</span> : formatPrice(shippingCost)}
+                  </span>
                 </div>
+
+                {giftOptions.isGift && (
+                  <div className="flex justify-between items-center animate-in fade-in zoom-in duration-300">
+                    <span className="text-white/50 text-[10px] font-black uppercase tracking-[0.2em]">Gift Services</span>
+                    <span className="font-bold">
+                      {giftCharge === 0 ? <span className="text-gold">Complimentary</span> : formatPrice(giftCharge)}
+                    </span>
+                  </div>
+                )}
+                
                 {shippingCost > 0 && (
-                  <p className="text-xs text-amber-600">
-                    Add {formatPrice(50000 - totalPrice)} more for free shipping!
-                  </p>
+                  <div className="bg-white/5 p-4 rounded-2xl">
+                    <p className="text-[9px] text-gold font-black uppercase tracking-widest leading-relaxed">
+                      Complimentary white-glove delivery on orders above {formatPrice(50000)}. 
+                      <Link to="/products" className="underline ml-1">Add {formatPrice(50000 - subtotal)} more</Link>
+                    </p>
+                  </div>
                 )}
               </div>
 
-              <div className="flex justify-between py-4 text-lg font-bold">
-                <span>Total</span>
-                <span>{formatPrice(grandTotal)}</span>
+              <div className="flex justify-between py-10">
+                <div className="flex flex-col">
+                  <span className="text-white/50 text-[10px] font-black uppercase tracking-[0.2em]">Total Value</span>
+                  <span className="text-[10px] text-gold/60 font-bold mt-1 uppercase tracking-tighter">VAT & GST Inclusive</span>
+                </div>
+                <span className="text-4xl font-heading font-black text-white">{formatPrice(grandTotal)}</span>
               </div>
 
               {/* Checkout Buttons */}
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <button
                   onClick={() => navigate('/checkout')}
-                  className="w-full py-3 bg-amber-500 text-white rounded-full font-semibold hover:bg-amber-600 transition flex items-center justify-center gap-2"
+                  className="w-full py-6 bg-gold text-white rounded-full font-black uppercase tracking-[0.3em] text-[11px] hover:bg-white hover:text-charcoal transition-all shadow-xl active:scale-95 flex items-center justify-center gap-4"
                 >
-                  Proceed to Checkout <ArrowRight size={18} />
+                  Secure Checkout <ArrowRight size={18} />
                 </button>
                 <button
                   onClick={handleWhatsAppOrder}
-                  className="w-full py-3 bg-green-500 text-white rounded-full font-semibold hover:bg-green-600 transition flex items-center justify-center gap-2"
+                  className="w-full py-6 border-2 border-white/20 text-white rounded-full font-black uppercase tracking-[0.3em] text-[11px] hover:bg-white/5 transition-all flex items-center justify-center gap-4 active:scale-95"
                 >
                   <MessageCircle size={18} />
-                  Order via WhatsApp
+                  Concierge via WhatsApp
                 </button>
               </div>
 
-              {/* Trust Badges */}
-              <div className="mt-6 pt-4 border-t">
-                <div className="flex items-center justify-center gap-4 text-gray-400 text-sm">
-                  <div className="flex items-center gap-1">
-                    <span>🔒</span>
-                    <span>Secure</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span>✅</span>
-                    <span>Verified</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span>↩️</span>
-                    <span>Returns</span>
-                  </div>
+              {/* Security Badges */}
+              <div className="mt-10 grid grid-cols-3 gap-4">
+                <div className="flex flex-col items-center gap-2">
+                  <ShieldCheck size={20} className="text-gold/50" />
+                  <span className="text-[8px] font-black uppercase tracking-widest opacity-40 text-center">Protected</span>
+                </div>
+                <div className="flex flex-col items-center gap-2">
+                  <Truck size={20} className="text-gold/50" />
+                  <span className="text-[8px] font-black uppercase tracking-widest opacity-40 text-center">Tracked</span>
+                </div>
+                <div className="flex flex-col items-center gap-2">
+                  <Sparkles size={20} className="text-gold/50" />
+                  <span className="text-[8px] font-black uppercase tracking-widest opacity-40 text-center">Certified</span>
                 </div>
               </div>
             </div>

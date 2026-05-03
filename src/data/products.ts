@@ -235,6 +235,11 @@ export const products: Product[] = [
       '/images/products/heart_diamond_pendant.png'
     ],
     description: 'Romantic heart-shaped diamond pendant. Perfect gift for Valentine\'s Day or anniversary.',
+    metalWeight: 3.5,
+    makingCharges: 450,
+    purity: '18K',
+    diamondWeight: 0.25,
+    diamondQuality: 'VS',
     inStock: true,
     featured: true,
     trending: true,
@@ -247,6 +252,9 @@ export const products: Product[] = [
     price: 15999,
     category: 'pendants',
     material: 'gold',
+    metalWeight: 2.2,
+    makingCharges: 350,
+    purity: '22K',
     occasion: 'daily',
     images: [
       'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=500'
@@ -263,6 +271,9 @@ export const products: Product[] = [
     originalPrice: 75999,
     category: 'pendants',
     material: 'gold',
+    metalWeight: 6.8,
+    makingCharges: 600,
+    purity: '18K',
     occasion: 'party',
     images: [
       'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=500'
@@ -279,6 +290,9 @@ export const products: Product[] = [
     originalPrice: 99999,
     category: 'pendants',
     material: 'gold',
+    metalWeight: 12.5,
+    makingCharges: 850,
+    purity: '22K',
     occasion: 'bridal',
     images: ['/images/products/antique_floral.png'],
     description: 'Traditional Indian antique gold pendant featuring a round floral motif with matte finish, rubies and pearls.',
@@ -295,6 +309,11 @@ export const products: Product[] = [
     originalPrice: 135000,
     category: 'pendants',
     material: 'diamond',
+    metalWeight: 10.2,
+    makingCharges: 1200,
+    purity: '18K',
+    diamondWeight: 0.85,
+    diamondQuality: 'VVS',
     occasion: 'party',
     images: ['/images/products/mughal_filigree.png'],
     description: 'Intricate Mughal-inspired gold filigree pendant with delicate symmetrical patterns and diamond accents.',
@@ -309,6 +328,9 @@ export const products: Product[] = [
     price: 158999,
     category: 'pendants',
     material: 'gold',
+    metalWeight: 24.5,
+    makingCharges: 1500,
+    purity: '22K',
     occasion: 'party',
     images: ['/images/products/lion_head.png'],
     description: 'Bold sculptural Lion Head pendant in solid 22k yellow gold with emerald eyes and ornate scrollwork.',
@@ -325,6 +347,11 @@ export const products: Product[] = [
     originalPrice: 110000,
     category: 'pendants',
     material: 'diamond',
+    metalWeight: 8.5,
+    makingCharges: 950,
+    purity: '18K',
+    diamondWeight: 0.65,
+    diamondQuality: 'VS',
     occasion: 'gift',
     images: ['/images/products/guardian_angel.png'],
     description: 'Modern Guardian Angel pendant with diamond-encrusted wings in white and yellow gold fusion.',
@@ -333,6 +360,7 @@ export const products: Product[] = [
     rating: 4.9,
     reviews: 64
   },
+
   {
     id: '21',
     name: 'Peacock Fusion Enamel Pendant',

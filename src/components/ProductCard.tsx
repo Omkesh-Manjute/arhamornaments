@@ -5,6 +5,7 @@ import { Product } from '../types';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { formatPrice } from '../utils/whatsapp';
+import { usePrice } from '../context/PriceContext';
 
 interface ProductCardProps {
   product: Product;
@@ -13,7 +14,12 @@ interface ProductCardProps {
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
+  const { calculateProductPrice } = usePrice();
+  
   const isFavorite = isInWishlist(product.id);
+  const currentPrice = calculateProductPrice(product);
+
+
 
   return (
     <div className="group bg-white luxury-card rounded-[2.5rem] p-3 transition-all duration-700 overflow-hidden border border-gray-100 shadow-sm">
@@ -88,7 +94,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           </h3>
         </Link>
         <div className="flex items-center justify-between pt-2 border-t border-gray-50">
-          <p className="text-xl font-heading font-black text-charcoal">{formatPrice(product.price)}</p>
+          <p className="text-xl font-heading font-black text-charcoal">{formatPrice(currentPrice)}</p>
           <div className="flex gap-0.5">
             {[...Array(5)].map((_, i) => (
               <Star key={i} size={10} className="fill-gold text-gold" />

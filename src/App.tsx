@@ -18,9 +18,11 @@ import TermsPage from './pages/TermsPage';
 import PrivacyPage from './pages/PrivacyPage';
 import FAQPage from './pages/FAQPage';
 import ReturnsPage from './pages/ReturnsPage';
+import EducationPage from './pages/EducationPage';
 import LuckyWheel from './components/LuckyWheel';
 import LivePriceTicker from './components/LivePriceTicker';
 import { WishlistProvider } from './context/WishlistContext';
+import { PriceProvider } from './context/PriceContext';
 
 const AppContent: React.FC = () => {
   const location = useLocation();
@@ -49,6 +51,8 @@ const AppContent: React.FC = () => {
           <Route path="/return" element={<ReturnsPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/account" element={<ProfilePage />} />
+          <Route path="/education" element={<EducationPage />} />
+          <Route path="/academy" element={<EducationPage />} />
         </Routes>
       </main>
 
@@ -61,15 +65,17 @@ const AppContent: React.FC = () => {
 
 function App() {
   return (
-    <UserProvider>
-      <CartProvider>
-        <WishlistProvider>
-          <BrowserRouter>
-            <AppContent />
-          </BrowserRouter>
-        </WishlistProvider>
-      </CartProvider>
-    </UserProvider>
+    <PriceProvider>
+      <UserProvider>
+        <CartProvider>
+          <WishlistProvider>
+            <BrowserRouter>
+              <AppContent />
+            </BrowserRouter>
+          </WishlistProvider>
+        </CartProvider>
+      </UserProvider>
+    </PriceProvider>
   );
 }
 
