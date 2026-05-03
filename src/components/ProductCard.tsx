@@ -9,9 +9,10 @@ import { usePrice } from '../context/PriceContext';
 
 interface ProductCardProps {
   product: Product;
+  hidePrice?: boolean;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ product, hidePrice = false }) => {
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { calculateProductPrice } = usePrice();
@@ -86,21 +87,23 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             </div>
           )}
 
-          <div className="flex items-center justify-between pt-1">
-            <p className="text-lg font-black text-charcoal tracking-tight">
-              {formatPrice(currentPrice)}
-            </p>
-            <button 
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                addToCart(product, 1);
-              }}
-              className="w-10 h-10 rounded-full bg-offwhite flex items-center justify-center hover:bg-gold hover:text-white transition-colors group/btn shadow-sm"
-            >
-              <ShoppingBag size={18} className="group-hover/btn:scale-110 transition-transform" />
-            </button>
-          </div>
+          {!hidePrice && (
+            <div className="flex items-center justify-between pt-1">
+              <p className="text-lg font-black text-charcoal tracking-tight">
+                {formatPrice(currentPrice)}
+              </p>
+              <button 
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  addToCart(product, 1);
+                }}
+                className="w-10 h-10 rounded-full bg-offwhite flex items-center justify-center hover:bg-gold hover:text-white transition-colors group/btn shadow-sm"
+              >
+                <ShoppingBag size={18} className="group-hover/btn:scale-110 transition-transform" />
+              </button>
+            </div>
+          )}
         </div>
       </Link>
 

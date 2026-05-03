@@ -8,6 +8,7 @@ import MobileSearchBar from '../components/MobileSearchBar';
 import CategorySlider from '../components/CategorySlider';
 import MobileHeroSlider from '../components/MobileHeroSlider';
 import CollectionSlider from '../components/CollectionSlider';
+import BestSellerSection from '../components/BestSellerSection';
 
 const HomePage: React.FC = () => {
   const featuredProducts = products.filter(p => p.featured).slice(0, 4);
@@ -114,27 +115,14 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Best Sellers Section */}
-      <section className="px-4 md:px-8 py-24 bg-offwhite">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row items-end justify-between mb-16 gap-6">
-            <div className="space-y-4">
-              <span className="text-gold uppercase tracking-[0.4em] text-[10px] font-bold block">Top Picks</span>
-              <h2 className="text-4xl md:text-6xl font-heading font-bold text-charcoal">Best Sellers</h2>
-            </div>
-            <Link to="/products" className="text-charcoal hover:text-gold flex items-center gap-2 font-bold uppercase tracking-widest text-xs transition border-b border-charcoal/10 pb-2">
-              View All Masterpieces <ChevronRight size={16} />
-            </Link>
-          </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-10">
-            {featuredProducts.map((product, i) => (
-              <div key={product.id} className={`${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`} style={{ transitionDelay: `${i * 100}ms` }}>
-                <ProductCard product={product} />
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Best Sellers Section - Tanishq Style */}
+      <BestSellerSection 
+        title="Gold Best Sellers"
+        subtitle="Look at our gold collection curated just for you"
+        bannerImage="/images/products/necklaces_category.png"
+        bannerLink="/products?category=gold"
+        products={featuredProducts}
+      />
 
       {/* Featured Spotlight (Floating Elements) */}
       <section className="px-4 md:px-8 py-24 bg-charcoal relative overflow-hidden">
