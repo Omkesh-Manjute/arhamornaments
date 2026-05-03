@@ -183,9 +183,6 @@ const Header: React.FC = () => {
               </div>
               <div className="flex flex-col">
                 <h3 className="text-xl font-bold text-charcoal">Hi {isLoggedIn ? user?.name.split(' ')[0] : 'Guest'}!</h3>
-                <p className="text-[11px] font-semibold text-[#8B2323] tracking-wide mt-0.5">
-                  NeuCoins - <span className="font-bold">0</span>
-                </p>
               </div>
             </div>
             <button 
@@ -203,15 +200,19 @@ const Header: React.FC = () => {
               <button className="px-4 py-1.5 rounded-md text-gray-400 font-bold text-sm">$</button>
             </div>
 
-            {/* Redeem Badge */}
-            <div className="ml-auto relative">
-              <div className="w-20 h-20 rounded-full border-2 border-dashed border-[#8B2323] flex items-center justify-center">
-                <div className="text-center leading-tight">
-                  <p className="text-[10px] font-bold text-[#8B2323]">Redeem<br/>points</p>
-                </div>
+            <button 
+              onClick={() => {
+                setIsMenuOpen(false);
+                window.dispatchEvent(new CustomEvent('open-lucky-wheel'));
+              }}
+              className="ml-auto w-20 h-20 rounded-full border-2 border-dashed border-gold flex flex-col items-center justify-center bg-gold/5 group transition-all active:scale-95"
+            >
+              <div className="text-center leading-tight">
+                <Gift size={20} className="text-gold mx-auto mb-1 group-hover:bounce" />
+                <p className="text-[9px] font-bold text-gold uppercase tracking-tighter">Spin<br/>& Win</p>
               </div>
-              <div className="absolute top-1 right-1 w-2.5 h-2.5 bg-[#8B2323] rounded-full border-2 border-white shadow-sm" />
-            </div>
+              <div className="absolute top-1 right-1 w-2.5 h-2.5 bg-gold rounded-full border-2 border-white shadow-sm animate-pulse" />
+            </button>
           </div>
         </div>
 
@@ -274,7 +275,27 @@ const Header: React.FC = () => {
                 <span className="text-sm font-semibold text-charcoal">{item.label}</span>
                 <ChevronRight size={18} className="text-gray-300" />
               </Link>
-            ))}
+            {/* Spin & Win Section */}
+            <button 
+              onClick={() => {
+                setIsMenuOpen(false);
+                window.dispatchEvent(new CustomEvent('open-lucky-wheel'));
+              }}
+              className="w-full mt-6 flex items-center justify-between p-5 bg-gradient-to-r from-gold/20 via-gold/5 to-white rounded-2xl border border-gold/30 shadow-lg transition-all active:scale-[0.98] group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-gold flex items-center justify-center text-white shadow-xl group-hover:rotate-12 transition-transform">
+                  <Gift size={24} />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-black text-charcoal uppercase tracking-wider">Spin & Win Rewards</p>
+                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Assured prizes up to ₹500</p>
+                </div>
+              </div>
+              <div className="w-8 h-8 rounded-full bg-gold/10 flex items-center justify-center text-gold">
+                <ChevronRight size={18} />
+              </div>
+            </button>
 
             {isLoggedIn && (
               <button
