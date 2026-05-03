@@ -207,7 +207,7 @@ export const products: Product[] = [
     material: 'gold',
     occasion: 'gift',
     images: [
-      'https://images.unsplash.com/photo-1610375461246-83df859d849d?w=500'
+      '/images/products/gold_coin_1.jpg'
     ],
     description: '24K pure gold coin with Lakshmi design. Perfect for festivals and auspicious occasions.',
     inStock: true,
@@ -227,7 +227,7 @@ export const products: Product[] = [
     material: 'gold',
     occasion: 'gift',
     images: [
-      'https://images.unsplash.com/photo-1610375461246-83df859d849d?w=500'
+      '/images/products/gold_coin_2.jpg'
     ],
     description: '24K pure gold coin with Ganesh design. Ideal for gifting on religious occasions.',
     inStock: true,
@@ -550,6 +550,44 @@ export const products: Product[] = [
     inStock: true,
     rating: 4.7,
     reviews: 8
+  },
+  {
+    id: '28',
+    name: 'Gold Coin 2gm - Arham Special',
+    designNo: 'GCN-2801-24K',
+    grossWeight: 2.000,
+    netWeight: 2.000,
+    laborCharges: 3,
+    price: 14999,
+    category: 'coins',
+    material: 'gold',
+    occasion: 'gift',
+    images: [
+      '/images/products/gold_coin_3.jpg'
+    ],
+    description: '24K pure gold coin from Arham Ornaments. High purity and exquisite finish.',
+    inStock: true,
+    rating: 4.9,
+    reviews: 56
+  },
+  {
+    id: '29',
+    name: 'Gold Coin 1gm - Premium Mint',
+    designNo: 'GCN-2901-24K',
+    grossWeight: 1.000,
+    netWeight: 1.000,
+    laborCharges: 3,
+    price: 7599,
+    category: 'coins',
+    material: 'gold',
+    occasion: 'daily',
+    images: [
+      '/images/products/gold_coin_4.jpg'
+    ],
+    description: 'Perfectly minted 24K gold coin, 1 gram. A symbol of prosperity and a great investment.',
+    inStock: true,
+    rating: 4.8,
+    reviews: 124
   }
 ];
 
@@ -572,7 +610,7 @@ export const banners: Banner[] = [
     id: '3',
     title: 'Gold Coins Festival',
     subtitle: 'Pure 24K gold coins for every occasion',
-    image: 'https://images.unsplash.com/photo-1610375461246-83df859d849d?w=1200',
+    image: '/images/products/gold_coin_1.jpg',
     link: '/category/coins'
   }
 ];
@@ -581,7 +619,7 @@ export const categories: Category[] = [
   { id: 'rings', name: 'Rings', icon: '💍', count: 24 },
   { id: 'necklaces', name: 'Necklaces', icon: '📿', count: 18 },
   { id: 'earrings', name: 'Earrings', icon: '✨', count: 32 },
-  { id: 'coins', name: 'Coins', icon: '🪙', count: 8 },
+  { id: 'coins', name: 'Coins', icon: '🪙', count: 4 },
   { id: 'bangles', name: 'Bangles', icon: '⭕', count: 15 },
   { id: 'pendants', name: 'Pendants', icon: '💎', count: 21 }
 ];

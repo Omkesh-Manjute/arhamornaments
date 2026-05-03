@@ -10,7 +10,7 @@ interface Category {
 
 const categories: Category[] = [
   { id: 'earrings', name: 'Earrings', image: '/images/products/earrings.png', path: '/products?category=earrings' },
-  { id: 'gold-coins', name: 'Gold Coins', image: '/images/products/gold_coins.png', path: '/products?category=coins' },
+  { id: 'gold-coins', name: 'Gold Coins', image: '/images/products/gold_coin_2.jpg', path: '/products?category=coins' },
   { id: 'necklaces', name: 'Necklaces', image: '/images/products/necklaces_category.png', path: '/products?category=necklaces' },
   { id: 'rings', name: 'Rings', image: '/images/products/engagement_ring.png', path: '/products?category=rings' },
   { id: 'pendants', name: 'Pendants', image: '/images/products/heart_diamond_pendant.png', path: '/products?category=pendants' },
