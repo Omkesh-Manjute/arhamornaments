@@ -11,16 +11,18 @@ const LuckyWheel: React.FC = () => {
   
   const { isLoggedIn, login, addWinnings, user } = useUser();
   
-  useEffect(() => {
-    const handleOpen = () => setIsOpen(true);
-    window.addEventListener('open-lucky-wheel', handleOpen);
-    return () => window.removeEventListener('open-lucky-wheel', handleOpen);
-  }, []);
+  const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
     agreed: false
   });
+
+  useEffect(() => {
+    const handleOpen = () => setIsOpen(true);
+    window.addEventListener('open-lucky-wheel', handleOpen);
+    return () => window.removeEventListener('open-lucky-wheel', handleOpen);
+  }, []);
 
   const segments = [
     { label: '₹500', sub: 'Wallet', value: 500, type: 'cash' },
@@ -36,24 +38,14 @@ const LuckyWheel: React.FC = () => {
   const spinWheel = () => {
     if (isSpinning) return;
     setIsSpinning(true);
-    // Extra rotations + random segment offset
-    // Each segment is 45 degrees. To center a segment, we point to (index * 45)
-    // We add a random offset within the segment (-20 to 20 deg) for realism
     const extraDegrees = 1800 + Math.floor(Math.random() * 360);
     const newRotation = rotation + extraDegrees;
     setRotation(newRotation);
 
     setTimeout(() => {
       setIsSpinning(false);
-      // Logic to find winner:
-      // The pointer is at 0 deg relative to the container.
-      // The wheel is at newRotation.
-      // The segment under the pointer is segments[index]
       const actualDegree = (newRotation % 360);
-      // We need to find which segment is at the top.
-      // If segments[0] is at the top at 0 rotation:
       const segmentSize = 360 / segments.length;
-      // Index is (360 - rotation % 360) / 45
       const index = Math.floor(((360 - (actualDegree % 360)) % 360) / segmentSize);
       const winner = segments[index];
       
@@ -73,77 +65,69 @@ const LuckyWheel: React.FC = () => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="bg-white rounded-[2.5rem] overflow-hidden max-w-4xl w-full relative flex flex-col md:flex-row shadow-2xl">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-hidden">
+      <div className="bg-white rounded-[2rem] md:rounded-[2.5rem] overflow-hidden max-w-4xl w-full max-h-[95vh] relative flex flex-col md:flex-row shadow-2xl overflow-y-auto">
         <button 
           onClick={() => setIsOpen(false)}
-          className="absolute top-6 right-6 z-10 p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition"
+          className="absolute top-4 right-4 md:top-6 md:right-6 z-50 p-2 bg-gray-100/80 backdrop-blur-md hover:bg-gray-200 rounded-full transition shadow-lg"
         >
           <X size={20} />
         </button>
 
         {/* Left Side: The Wheel Area (White/Teal Theme) */}
-        <div className="flex-1 bg-[#E0F7F9] p-8 md:p-12 flex flex-col items-center justify-center space-y-8 min-h-[450px]">
+        <div className="flex-1 bg-[#E0F7F9] p-6 md:p-12 flex flex-col items-center justify-center space-y-6 md:space-y-8 min-h-[350px] md:min-h-[450px]">
           <div className="text-center space-y-1">
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#40C0CB]">Sign Up</span>
-            <h2 className="text-4xl font-heading font-bold text-[#0D4449]">PLAY & WIN</h2>
-            <p className="text-[#5A8D92] text-xs">Assured rewards worth up to <span className="font-bold text-charcoal">₹500</span> in your wallet</p>
+            <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-[#40C0CB]">Sign Up</span>
+            <h2 className="text-3xl md:text-4xl font-heading font-bold text-[#0D4449]">PLAY & WIN</h2>
+            <p className="text-[#5A8D92] text-[10px] md:text-xs">Assured rewards worth up to <span className="font-bold text-charcoal">₹500</span></p>
           </div>
 
-          <div className="relative w-80 h-80 md:w-96 md:h-96 flex items-center justify-center">
+          <div className="relative w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 flex items-center justify-center">
             {/* LED Glowing Rim */}
-            <div className="absolute inset-0 rounded-full border-[12px] border-[#0D4449] shadow-[0_0_50px_rgba(64,192,203,0.4)] z-0"></div>
+            <div className="absolute inset-0 rounded-full border-[8px] md:border-[12px] border-[#0D4449] shadow-[0_0_50px_rgba(64,192,203,0.4)] z-0"></div>
             
             {/* LED Lights (Dynamic) */}
             {[...Array(24)].map((_, i) => (
               <div 
                 key={i}
-                className={`absolute w-2 h-2 rounded-full z-20 transition-all duration-300 ${isSpinning ? 'animate-pulse scale-150' : ''}`}
+                className={`absolute w-1.5 h-1.5 md:w-2 md:h-2 rounded-full z-20 transition-all duration-300 ${isSpinning ? 'animate-pulse scale-150' : ''}`}
                 style={{
-                  transform: `rotate(${i * (360 / 24)}deg) translateY(-170px)`,
+                  transform: `rotate(${i * (360 / 24)}deg) translateY(-115px) sm:translateY(-145px) md:translateY(-170px)`,
                   backgroundColor: isSpinning ? (i % 2 === 0 ? '#FFFFFF' : '#40C0CB') : '#40C0CB',
-                  boxShadow: '0 0 15px rgba(255,255,255,0.9)',
+                  boxShadow: '0 0 10px rgba(255,255,255,0.9)',
                   opacity: isSpinning ? (Math.random() > 0.5 ? 1 : 0.5) : 1
                 }}
               />
             ))}
 
             {/* Premium Pointer */}
-            <div className={`absolute -top-6 left-1/2 -translate-x-1/2 z-30 w-16 h-16 flex flex-col items-center drop-shadow-[0_10px_20px_rgba(0,0,0,0.4)] ${isSpinning ? 'animate-bounce' : ''}`}>
-               <div className="w-10 h-14 bg-gradient-to-b from-gold via-yellow-400 to-gold rounded-b-2xl relative border-x border-white/20">
-                 <div className="absolute top-2 left-1/2 -translate-x-1/2 w-2 h-2 bg-white rounded-full shadow-[0_0_10px_white] animate-pulse"></div>
-                 <div className="absolute top-6 left-1/2 -translate-x-1/2 w-2 h-2 bg-white rounded-full shadow-[0_0_10px_white]"></div>
-                 <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-t-[20px] border-t-gold"></div>
+            <div className={`absolute -top-4 md:-top-6 left-1/2 -translate-x-1/2 z-30 w-12 h-12 md:w-16 md:h-16 flex flex-col items-center drop-shadow-[0_10px_20px_rgba(0,0,0,0.4)] ${isSpinning ? 'animate-bounce' : ''}`}>
+               <div className="w-8 h-10 md:w-10 md:h-14 bg-gradient-to-b from-gold via-yellow-400 to-gold rounded-b-xl md:rounded-b-2xl relative border-x border-white/20">
+                 <div className="absolute top-1 md:top-2 left-1/2 -translate-x-1/2 w-1.5 h-1.5 md:w-2 md:h-2 bg-white rounded-full shadow-[0_0_10px_white] animate-pulse"></div>
+                 <div className="absolute -bottom-1.5 md:-bottom-2 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[8px] md:border-l-[12px] border-l-transparent border-r-[8px] md:border-r-[12px] border-r-transparent border-t-[15px] md:border-t-[20px] border-t-gold"></div>
                </div>
-               {/* Pointer Sparkles */}
-               {isSpinning && (
-                 <div className="absolute top-0 w-full h-full pointer-events-none">
-                    <div className="absolute top-0 left-0 w-1 h-1 bg-white rounded-full animate-ping"></div>
-                    <div className="absolute bottom-0 right-0 w-1 h-1 bg-white rounded-full animate-ping delay-100"></div>
-                 </div>
-               )}
             </div>
 
             {/* The Wheel Image */}
             <div 
-              className="w-[90%] h-[90%] rounded-full relative overflow-hidden transition-transform duration-[5000ms] cubic-bezier(0.15, 0, 0.1, 1) shadow-[0_0_60px_rgba(0,0,0,0.3)] z-10"
+              className="w-[92%] h-[92%] rounded-full relative overflow-hidden transition-transform duration-[5000ms] cubic-bezier(0.15, 0, 0.1, 1) shadow-[0_0_60px_rgba(0,0,0,0.3)] z-10"
               style={{ 
                 transform: `rotate(${rotation}deg)`,
                 backgroundImage: "url('/images/lucky-wheel.png')",
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
-                border: '6px solid rgba(255,255,255,0.1)'
+                border: '4px md:border-6 solid rgba(255,255,255,0.1)'
               }}
             >
             </div>
             
-            {/* Center Decorative Hub (Luxury Glassmorphism) */}
-            <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
-              <div className="w-28 h-28 bg-gradient-to-tr from-gold via-yellow-100 to-gold rounded-full border-8 border-white/30 flex items-center justify-center text-center p-3 shadow-[0_15px_35px_rgba(0,0,0,0.5)]">
-                <div className="w-full h-full rounded-full border-2 border-gold/40 flex flex-col items-center justify-center bg-white/10 backdrop-blur-sm">
-                   <span className="text-charcoal text-[10px] font-black uppercase leading-tight tracking-[0.2em]">ARHAM</span>
-                   <div className="h-[1px] w-10 bg-charcoal/30 my-1"></div>
-                   <span className="text-charcoal text-[8px] font-bold uppercase tracking-widest opacity-80">LUCKY SPIN</span>
+            {/* Center Decorative Hub */}
+            <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none scale-75 md:scale-100">
+              <div className="w-20 h-20 md:w-28 md:h-28 bg-gradient-to-tr from-gold via-yellow-100 to-gold rounded-full border-4 md:border-8 border-white/30 flex items-center justify-center text-center p-2 md:p-3 shadow-[0_15px_35px_rgba(0,0,0,0.5)]">
+                <div className="w-full h-full rounded-full border border-gold/40 flex flex-col items-center justify-center bg-white/10 backdrop-blur-sm">
+                   <span className="text-charcoal text-[8px] md:text-[10px] font-black uppercase leading-tight tracking-[0.2em]">ARHAM</span>
+                   <div className="h-[1px] w-6 md:w-10 bg-charcoal/30 my-0.5 md:my-1"></div>
+                   <span className="text-charcoal text-[6px] md:text-[8px] font-bold uppercase tracking-widest opacity-80">LUCKY SPIN</span>
                 </div>
               </div>
             </div>

@@ -75,20 +75,48 @@ const CartPage: React.FC = () => {
           <div className="lg:col-span-8 space-y-6">
             <div className="space-y-4">
               {items.map((item) => (
-                <div key={item.product.id} className="bg-white rounded-[2rem] shadow-sm p-6 border border-gray-50 group hover:shadow-xl transition-all duration-500">
-                  <div className="flex gap-8">
+                <div key={item.product.id} className="bg-white rounded-[2rem] shadow-sm p-4 sm:p-6 border border-gray-50 group hover:shadow-xl transition-all duration-500">
+                  <div className="flex flex-col sm:flex-row gap-4 sm:gap-8">
                     {/* Image */}
-                    <Link to={`/product/${item.product.id}`} className="flex-shrink-0 w-32 h-32 md:w-40 md:h-40 rounded-2xl overflow-hidden shadow-lg group-hover:scale-105 transition-transform duration-500">
-                      <img
-                        src={item.product.images[0]}
-                        alt={item.product.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </Link>
+                    <div className="flex gap-4 sm:block">
+                      <Link to={`/product/${item.product.id}`} className="flex-shrink-0 w-24 h-24 sm:w-40 sm:h-40 rounded-2xl overflow-hidden shadow-md group-hover:scale-105 transition-transform duration-500">
+                        <img
+                          src={item.product.images[0]}
+                          alt={item.product.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </Link>
+                      
+                      {/* Mobile Title Area (Shown only on mobile to save space) */}
+                      <div className="sm:hidden flex-1 py-1">
+                        <Link 
+                          to={`/product/${item.product.id}`}
+                          className="text-base font-bold text-charcoal hover:text-gold transition-colors line-clamp-2"
+                        >
+                          {item.product.name}
+                        </Link>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-[8px] font-black uppercase tracking-widest text-gold bg-gold/5 px-1.5 py-0.5 rounded">
+                            {item.product.material}
+                          </span>
+                          <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">
+                            {item.product.category}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <button
+                        onClick={() => removeFromCart(item.product.id)}
+                        className="sm:hidden w-8 h-8 flex items-center justify-center text-gray-300 hover:text-red-500 transition-all self-start"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
 
                     {/* Details */}
-                    <div className="flex-1 flex flex-col justify-between py-2">
-                      <div className="flex justify-between items-start">
+                    <div className="flex-1 flex flex-col justify-between py-1">
+                      {/* Desktop Title & Delete */}
+                      <div className="hidden sm:flex justify-between items-start">
                         <div>
                           <Link 
                             to={`/product/${item.product.id}`}
@@ -113,31 +141,31 @@ const CartPage: React.FC = () => {
                         </button>
                       </div>
 
-                      <div className="flex items-center justify-between mt-6">
+                      <div className="flex items-center justify-between mt-2 sm:mt-6">
                         {/* Quantity */}
-                        <div className="flex items-center bg-gray-50 rounded-full px-2 py-1">
+                        <div className="flex items-center bg-gray-50 rounded-full px-1 py-0.5 sm:px-2 sm:py-1 scale-90 sm:scale-100 origin-left">
                           <button
                             onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                            className="w-10 h-10 flex items-center justify-center hover:bg-white rounded-full transition-all text-charcoal"
+                            className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center hover:bg-white rounded-full transition-all text-charcoal"
                           >
-                            <Minus size={16} />
+                            <Minus size={14} />
                           </button>
-                          <span className="w-12 text-center font-bold text-charcoal">{item.quantity}</span>
+                          <span className="w-8 sm:w-12 text-center font-bold text-charcoal text-sm">{item.quantity}</span>
                           <button
                             onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                            className="w-10 h-10 flex items-center justify-center hover:bg-white rounded-full transition-all text-charcoal"
+                            className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center hover:bg-white rounded-full transition-all text-charcoal"
                           >
-                            <Plus size={16} />
+                            <Plus size={14} />
                           </button>
                         </div>
 
                         {/* Price */}
                         <div className="text-right">
-                          <p className="text-2xl font-black text-charcoal">
+                          <p className="text-lg sm:text-2xl font-black text-charcoal tracking-tight">
                             {formatPrice(item.product.price * item.quantity)}
                           </p>
                           {item.quantity > 1 && (
-                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">
+                            <p className="text-[8px] sm:text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">
                               {formatPrice(item.product.price)} each
                             </p>
                           )}
