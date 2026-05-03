@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, ShoppingBag, Menu, X, User, Heart, Wallet, Settings, LogOut, Gift, MessageCircle, ChevronRight } from 'lucide-react';
+import { Search, ShoppingBag, Menu, X, User, Heart, Wallet, Settings, LogOut, ChevronRight } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useUser } from '../context/UserContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -155,6 +155,7 @@ const Header: React.FC = () => {
           </div>
         </div>
       </div>
+
       {/* Mobile Drawer */}
       <div 
         className={`fixed inset-0 bg-black/50 z-[60] transition-opacity duration-300 lg:hidden ${
@@ -235,37 +236,11 @@ const Header: React.FC = () => {
             ))}
           </div>
 
-          {/* Shop For Section */}
-          <div className="py-4">
-
-            <div className="space-y-1">
-              {[
-                { label: 'Men', path: '/products?gender=men' },
-                { label: 'Kids', path: '/products?gender=kids' }
-              ].map((item) => (
-                <Link
-                  key={item.label}
-                  to={item.path}
-                  className="flex items-center justify-between p-4 bg-white rounded-xl shadow-[0_2px_4px_rgba(0,0,0,0.02)] border border-white hover:border-gray-100 transition-all active:scale-[0.98]"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <span className="text-sm font-semibold text-charcoal">{item.label}</span>
-                  <ChevronRight size={18} className="text-gray-300" />
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          {/* Utility Links */}
-          <div className="space-y-1 pb-8">
+          {/* Men & Kids Section */}
+          <div className="space-y-1">
             {[
-              { label: 'Jewellery Plans', path: '/plans' },
-              { label: 'Gift Card', path: '/gift-cards' },
-
-              { label: 'Offers & Contest Details', path: '/offers' },
-              { label: 'Cyber Security Policy', path: '/policy' },
-              { label: 'Get In Touch', path: '/contact' },
-              { label: 'Store Locator', path: '/stores' }
+              { label: 'Men', path: '/products?gender=men' },
+              { label: 'Kids', path: '/products?gender=kids' }
             ].map((item) => (
               <Link
                 key={item.label}
@@ -273,7 +248,30 @@ const Header: React.FC = () => {
                 className="flex items-center justify-between p-4 bg-white rounded-xl shadow-[0_2px_4px_rgba(0,0,0,0.02)] border border-white hover:border-gray-100 transition-all active:scale-[0.98]"
                 onClick={() => setIsMenuOpen(false)}
               >
-                <span className="text-sm font-medium text-gray-600">{item.label}</span>
+                <span className="text-sm font-semibold text-charcoal">{item.label}</span>
+                <ChevronRight size={18} className="text-gray-300" />
+              </Link>
+            ))}
+          </div>
+
+          {/* Jewellery Categories Section */}
+          <div className="space-y-1 pb-8">
+            <h4 className="text-[11px] font-bold text-[#8B2323] uppercase tracking-[0.15em] px-4 mb-3 mt-4">Categories</h4>
+            {[
+              { label: 'Necklaces', path: '/products?category=necklaces' },
+              { label: 'Earrings', path: '/products?category=earrings' },
+              { label: 'Rings', path: '/products?category=rings' },
+              { label: 'Pendants', path: '/products?category=pendants' },
+              { label: 'Mangalsutra', path: '/products?category=mangalsutra' },
+              { label: 'Bangles', path: '/products?category=bangles' }
+            ].map((item) => (
+              <Link
+                key={item.label}
+                to={item.path}
+                className="flex items-center justify-between p-4 bg-white rounded-xl shadow-[0_2px_4px_rgba(0,0,0,0.02)] border border-white hover:border-gray-100 transition-all active:scale-[0.98]"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <span className="text-sm font-semibold text-charcoal">{item.label}</span>
                 <ChevronRight size={18} className="text-gray-300" />
               </Link>
             ))}
@@ -281,7 +279,7 @@ const Header: React.FC = () => {
             {isLoggedIn && (
               <button
                 onClick={() => { logout(); setIsMenuOpen(false); }}
-                className="w-full flex items-center p-4 bg-white rounded-xl shadow-[0_2px_4px_rgba(0,0,0,0.02)] border border-white text-red-500 font-semibold text-sm active:scale-[0.98]"
+                className="w-full flex items-center p-4 bg-white rounded-xl shadow-[0_2px_4px_rgba(0,0,0,0.02)] border border-white text-red-500 font-semibold text-sm active:scale-[0.98] mt-4"
               >
                 Logout
               </button>
