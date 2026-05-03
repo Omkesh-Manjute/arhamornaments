@@ -155,7 +155,6 @@ const Header: React.FC = () => {
           </div>
         </div>
       </div>
-
       {/* Mobile Drawer */}
       <div 
         className={`fixed inset-0 bg-black/50 z-[60] transition-opacity duration-300 lg:hidden ${
@@ -164,101 +163,129 @@ const Header: React.FC = () => {
         onClick={() => setIsMenuOpen(false)}
       />
       <div 
-        className={`fixed top-0 left-0 bottom-0 w-[80%] max-w-sm bg-white z-[70] transition-transform duration-300 lg:hidden ${
+        className={`fixed top-0 left-0 bottom-0 w-[85%] max-w-[360px] bg-[#f8f8f8] z-[70] transition-transform duration-300 lg:hidden flex flex-col ${
           isMenuOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-12">
-            <div className="flex flex-col">
-              <h2 className="text-xl font-bold font-heading tracking-widest">ARHAM</h2>
-              <span className="text-[8px] tracking-[0.3em] text-gold">ORNAMENTS</span>
+        {/* Profile Header */}
+        <div className="bg-white p-5 border-b shadow-sm relative overflow-hidden">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-full bg-[#fdf2f2] flex items-center justify-center border border-[#f5e1e1] overflow-hidden">
+                {isLoggedIn && user?.avatar ? (
+                  <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-[#8B2323]">
+                    <User size={32} />
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-col">
+                <h3 className="text-xl font-bold text-charcoal">Hi {isLoggedIn ? user?.name.split(' ')[0] : 'Guest'}!</h3>
+                <p className="text-[11px] font-semibold text-[#8B2323] tracking-wide mt-0.5">
+                  NeuCoins - <span className="font-bold">0</span>
+                </p>
+              </div>
             </div>
-            <button onClick={() => setIsMenuOpen(false)}>
-              <X size={24} />
+            <button 
+              onClick={() => setIsMenuOpen(false)}
+              className="w-9 h-9 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center text-[#8B2323] transition-transform hover:scale-105"
+            >
+              <Menu size={20} className="rotate-90" />
             </button>
           </div>
-          <nav className="flex flex-col gap-8">
-            {navLinks.map((link) => (
+
+          <div className="flex items-center gap-4 mt-6">
+            {/* Currency Toggle */}
+            <div className="flex bg-[#f5f5f5] rounded-lg p-1.5 border border-gray-100">
+              <button className="px-4 py-1.5 rounded-md bg-white shadow-sm text-[#8B2323] font-bold text-sm">₹</button>
+              <button className="px-4 py-1.5 rounded-md text-gray-400 font-bold text-sm">$</button>
+            </div>
+
+            {/* Redeem Badge */}
+            <div className="ml-auto relative">
+              <div className="w-20 h-20 rounded-full border-2 border-dashed border-[#8B2323] flex items-center justify-center">
+                <div className="text-center leading-tight">
+                  <p className="text-[10px] font-bold text-[#8B2323]">Redeem<br/>points</p>
+                </div>
+              </div>
+              <div className="absolute top-1 right-1 w-2.5 h-2.5 bg-[#8B2323] rounded-full border-2 border-white shadow-sm" />
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation Links */}
+        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2">
+          {/* Main Categories */}
+          <div className="space-y-1">
+            {[
+              { label: 'All Jewellery', path: '/products' },
+              { label: 'Metal', path: '/products?filter=metal' },
+              { label: 'Collections', path: '/products?filter=collections' }
+            ].map((item) => (
               <Link
-                key={link.name}
-                to={link.path}
-                className="text-sm uppercase tracking-[0.2em] font-medium"
+                key={item.label}
+                to={item.path}
+                className="flex items-center justify-between p-4 bg-white rounded-xl shadow-[0_2px_4px_rgba(0,0,0,0.02)] border border-white hover:border-gray-100 transition-all active:scale-[0.98]"
                 onClick={() => setIsMenuOpen(false)}
               >
-                {link.name}
+                <span className="text-sm font-semibold text-charcoal">{item.label}</span>
+                <Menu size={16} className="text-[#8B2323] -rotate-90" />
               </Link>
             ))}
-            <Link
-              to="/wishlist"
-              className="text-sm uppercase tracking-[0.2em] font-medium flex items-center justify-between group"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Wishlist
-              {wishlist.length > 0 && (
-                <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full">
-                  {wishlist.length}
-                </span>
-              )}
-            </Link>
-            <Link
-              to="/profile"
-              className="text-sm uppercase tracking-[0.2em] font-medium"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Profile
-            </Link>
-            <Link
-              to="/admin"
-              className="text-sm uppercase tracking-[0.2em] font-medium"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Admin
-            </Link>
-            
-            {/* New Special Mobile Actions */}
-            <div className="pt-4 space-y-4">
-              <button
-                onClick={() => {
-                  window.dispatchEvent(new CustomEvent('open-lucky-wheel'));
-                  setIsMenuOpen(false);
-                }}
-                className="w-full flex items-center justify-between p-4 bg-gold/5 rounded-2xl border border-gold/10 text-gold group"
-              >
-                <div className="flex items-center gap-3">
-                  <Gift size={20} />
-                  <span className="text-xs font-bold uppercase tracking-widest">Spin & Win</span>
-                </div>
-                <div className="w-6 h-6 bg-gold text-white rounded-full flex items-center justify-center text-[10px] animate-pulse">!</div>
-              </button>
+          </div>
 
-              <button
-                onClick={() => {
-                  const message = encodeURIComponent('Hi! I\'m interested in your jewellery collection. Please share more details.');
-                  window.open(`https://wa.me/919371504182?text=${message}`, '_blank');
-                  setIsMenuOpen(false);
-                }}
-                className="w-full flex items-center gap-3 p-4 bg-green-50 rounded-2xl border border-green-100 text-green-600"
-              >
-                <MessageCircle size={20} />
-                <span className="text-xs font-bold uppercase tracking-widest">WhatsApp Support</span>
-              </button>
+          {/* Shop For Section */}
+          <div className="py-4">
+            <h4 className="text-[11px] font-bold text-[#8B2323] uppercase tracking-[0.15em] px-4 mb-3">Shop For</h4>
+            <div className="space-y-1">
+              {[
+                { label: 'Men', path: '/products?gender=men' },
+                { label: 'Kids', path: '/products?gender=kids' }
+              ].map((item) => (
+                <Link
+                  key={item.label}
+                  to={item.path}
+                  className="flex items-center justify-between p-4 bg-white rounded-xl shadow-[0_2px_4px_rgba(0,0,0,0.02)] border border-white hover:border-gray-100 transition-all active:scale-[0.98]"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <span className="text-sm font-semibold text-charcoal">{item.label}</span>
+                  <Menu size={16} className="text-[#8B2323] -rotate-90" />
+                </Link>
+              ))}
             </div>
+          </div>
+
+          {/* Utility Links */}
+          <div className="space-y-1 pb-8">
+            {[
+              { label: 'Jewellery Plans', path: '/plans' },
+              { label: 'Gift Card', path: '/gift-cards' },
+              { label: 'Gold Rate', path: '/gold-rate' },
+              { label: 'Offers & Contest Details', path: '/offers' },
+              { label: 'Cyber Security Policy', path: '/policy' },
+              { label: 'Get In Touch', path: '/contact' },
+              { label: 'Store Locator', path: '/stores' }
+            ].map((item) => (
+              <Link
+                key={item.label}
+                to={item.path}
+                className="flex items-center justify-between p-4 bg-white rounded-xl shadow-[0_2px_4px_rgba(0,0,0,0.02)] border border-white hover:border-gray-100 transition-all active:scale-[0.98]"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <span className="text-sm font-medium text-gray-600">{item.label}</span>
+                {item.label === 'Get In Touch' && <Menu size={16} className="text-[#8B2323] -rotate-90" />}
+              </Link>
+            ))}
 
             {isLoggedIn && (
               <button
                 onClick={() => { logout(); setIsMenuOpen(false); }}
-                className="text-sm uppercase tracking-[0.2em] font-medium text-red-500 text-left"
+                className="w-full flex items-center p-4 bg-white rounded-xl shadow-[0_2px_4px_rgba(0,0,0,0.02)] border border-white text-red-500 font-semibold text-sm active:scale-[0.98]"
               >
                 Logout
               </button>
             )}
-          </nav>
-          
-          <div className="mt-24 border-t pt-8">
-            <p className="text-[10px] uppercase tracking-widest text-gray-400 mb-4">Contact Us</p>
-            <p className="text-lg font-medium">+91 93715 04182</p>
-            <p className="text-sm text-gray-500">info@arhamornaments.com</p>
           </div>
         </div>
       </div>
