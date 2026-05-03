@@ -208,29 +208,6 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Newsletter - Stunning Glassmorphism */}
-      <section className="px-4 md:px-8 py-24 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-full">
-           <img src="/images/newsletter_bg.png" className="w-full h-full object-cover" alt="Newsletter" />
-           <div className="absolute inset-0 bg-black/60" />
-        </div>
-        <div className="max-w-4xl mx-auto relative z-10">
-           <div className="glass-dark rounded-[4rem] p-12 md:p-20 text-center space-y-8 border border-white/20 shadow-[0_0_100px_rgba(0,0,0,0.5)]">
-              <h2 className="text-4xl md:text-6xl font-heading font-bold text-white">Join the <span className="text-gradient-gold italic">Inner Circle</span></h2>
-              <p className="text-gray-300 text-lg max-w-lg mx-auto">Be the first to experience our seasonal drops and receive exclusive artisanal stories.</p>
-              <div className="w-full max-w-md mx-auto flex flex-col md:flex-row bg-white/10 backdrop-blur-xl rounded-[2rem] md:rounded-full p-2 border border-white/20">
-                <input 
-                  type="email" 
-                  placeholder="Your Royal Email" 
-                  className="flex-1 bg-transparent border-none focus:ring-0 px-8 py-4 text-white placeholder:text-gray-400 font-medium" 
-                />
-                <button className="bg-gold text-white px-10 py-4 rounded-full font-bold hover:bg-gold-dark transition shadow-xl uppercase tracking-widest text-[10px]">
-                  Subscribe
-                </button>
-              </div>
-           </div>
-        </div>
-      </section>
     </div>
   );
 };

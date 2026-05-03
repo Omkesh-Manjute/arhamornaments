@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { HashRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
 import { UserProvider } from './context/UserContext';
 import Header from './components/Header';
@@ -68,9 +68,9 @@ function App() {
       <UserProvider>
         <CartProvider>
           <WishlistProvider>
-            <BrowserRouter>
+            <HashRouter>
               <AppContent />
-            </BrowserRouter>
+            </HashRouter>
           </WishlistProvider>
         </CartProvider>
       </UserProvider>
