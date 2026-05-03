@@ -53,6 +53,7 @@ const Footer: React.FC = () => {
                 <li><Link to="/academy" className="hover:text-gold transition-colors flex items-center gap-2 group"><span className="w-1 h-1 rounded-full bg-gold/40 group-hover:bg-gold transition-colors"></span>Arham Academy</Link></li>
                 <li><Link to="/blog" className="hover:text-gold transition-colors flex items-center gap-2 group"><span className="w-1 h-1 rounded-full bg-gold/40 group-hover:bg-gold transition-colors"></span>Blog</Link></li>
                 <li><Link to="/support" className="hover:text-gold transition-colors flex items-center gap-2 group"><span className="w-1 h-1 rounded-full bg-gold/40 group-hover:bg-gold transition-colors"></span>Support</Link></li>
+                <li><Link to="/faq" className="hover:text-gold transition-colors flex items-center gap-2 group"><span className="w-1 h-1 rounded-full bg-gold/40 group-hover:bg-gold transition-colors"></span>FAQ</Link></li>
               </ul>
             </div>
 

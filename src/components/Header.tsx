@@ -38,7 +38,6 @@ const Header: React.FC = () => {
     { name: 'Pendants', path: '/products?category=pendants' },
     { name: 'Bangles', path: '/products?category=bangles' },
     { name: 'About Us', path: '/about' },
-    { name: 'FAQ', path: '/faq' },
   ];
 
   const isHomePage = location.pathname === '/';

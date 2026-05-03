@@ -14,14 +14,18 @@ const LivePriceTicker: React.FC = () => {
 
   return (
     <div className="w-full h-9 bg-[#0D4449] text-white overflow-hidden border-b border-gold/20 fixed top-0 left-0 z-[100] shadow-lg flex items-center">
-      <div className="flex whitespace-nowrap animate-ticker relative w-full">
+      {/* Fixed Market Live Badge */}
+      <div className="absolute left-0 top-0 bottom-0 px-4 bg-[#0D4449] z-20 flex items-center border-r border-gold/20 shadow-[4px_0_10px_rgba(0,0,0,0.3)]">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
+          <span className="text-[10px] font-black text-gold uppercase tracking-[0.2em] whitespace-nowrap">Market Live</span>
+        </div>
+      </div>
+
+      <div className="flex whitespace-nowrap animate-ticker relative w-full pl-32">
         {/* We duplicate the content to ensure seamless infinite scroll */}
         {[...Array(4)].map((_, i) => (
           <div key={i} className="flex items-center gap-12 px-6">
-            <div className="flex items-center gap-2 pr-4 border-r border-gold/10">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-              <span className="text-[10px] font-black text-gold uppercase tracking-[0.2em] whitespace-nowrap">Market Live</span>
-            </div>
             {prices.map((item, idx) => (
               <div key={idx} className="flex items-center gap-4">
                 <div className="flex flex-col">
