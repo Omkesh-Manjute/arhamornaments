@@ -133,7 +133,7 @@ const CartPage: React.FC = () => {
 
                         {/* Price */}
                         <div className="text-right">
-                          <p className="text-2xl font-heading font-black text-charcoal">
+                          <p className="text-2xl font-black text-charcoal">
                             {formatPrice(item.product.price * item.quantity)}
                           </p>
                           {item.quantity > 1 && (
@@ -207,7 +207,7 @@ const CartPage: React.FC = () => {
                   <span className="text-white/50 text-[10px] font-black uppercase tracking-[0.2em]">Total Value</span>
                   <span className="text-[10px] text-gold/60 font-bold mt-1 uppercase tracking-tighter">VAT & GST Inclusive</span>
                 </div>
-                <span className="text-4xl font-heading font-black text-white">{formatPrice(grandTotal)}</span>
+                <span className="text-4xl font-black text-white">{formatPrice(grandTotal)}</span>
               </div>
 
               {/* Checkout Buttons */}

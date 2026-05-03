@@ -4,7 +4,7 @@ import { CartItem, Product, GiftOptions } from '../types';
 interface CartContextType {
   items: CartItem[];
   giftOptions: GiftOptions;
-  addToCart: (product: Product) => void;
+  addToCart: (product: Product, quantity?: number, metadata?: { selectedPurity?: string, selectedQuality?: string }) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   updateGiftOptions: (options: Partial<GiftOptions>) => void;
@@ -38,18 +38,28 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.setItem('giftOptions', JSON.stringify(options));
   }, []);
 
-  const addToCart = useCallback((product: Product) => {
+  const addToCart = useCallback((product: Product, quantity: number = 1, metadata?: { selectedPurity?: string, selectedQuality?: string }) => {
     setItems(prev => {
-      const existing = prev.find(item => item.product.id === product.id);
+      const existingIndex = prev.findIndex(item => 
+        item.product.id === product.id && 
+        item.selectedPurity === metadata?.selectedPurity &&
+        item.selectedDiamondQuality === metadata?.selectedQuality
+      );
+
       let newItems;
-      if (existing) {
-        newItems = prev.map(item =>
-          item.product.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
+      if (existingIndex > -1) {
+        newItems = [...prev];
+        newItems[existingIndex] = {
+          ...newItems[existingIndex],
+          quantity: newItems[existingIndex].quantity + quantity
+        };
       } else {
-        newItems = [...prev, { product, quantity: 1 }];
+        newItems = [...prev, { 
+          product, 
+          quantity,
+          selectedPurity: metadata?.selectedPurity,
+          selectedDiamondQuality: metadata?.selectedQuality
+        }];
       }
       saveToStorage(newItems, giftOptions);
       return newItems;

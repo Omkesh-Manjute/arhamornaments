@@ -51,7 +51,10 @@ export const PriceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   const calculateProductPrice = (product: any, selectedPurity?: string) => {
-    let price = product.price; // Start with base price (mostly for diamonds/labor)
+    let price = product.price || 0;
+
+    const weight = product.netWeight || product.metalWeight || 0;
+    const laborPercentage = product.laborCharges || 0;
 
     if (product.material === 'gold') {
       const purity = selectedPurity || product.purity || '22K';
@@ -59,18 +62,36 @@ export const PriceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                    purity === '22K' ? rates.gold22K : 
                    purity === '18K' ? rates.gold18K : rates.gold14K;
       
-      if (product.metalWeight) {
-        const metalCost = product.metalWeight * rate;
-        const makingCost = (product.makingCharges || 0) * (product.makingChargesPerGram ? product.metalWeight : 1);
-        price = metalCost + makingCost;
+      if (weight > 0) {
+        const metalCost = weight * rate;
+        const laborCost = metalCost * (laborPercentage / 100);
+        price = metalCost + laborCost;
       }
-    } else if (product.material === 'silver' && product.metalWeight) {
-      price = (product.metalWeight * rates.silver) + (product.makingCharges || 0);
-    } else if (product.material === 'platinum' && product.metalWeight) {
-      price = (product.metalWeight * rates.platinum) + (product.makingCharges || 0);
+    } else if (product.material === 'silver' && weight > 0) {
+      const metalCost = weight * rates.silver;
+      const laborCost = metalCost * (laborPercentage / 100);
+      price = metalCost + laborCost;
+    } else if (product.material === 'platinum' && weight > 0) {
+      const metalCost = weight * rates.platinum;
+      const laborCost = metalCost * (laborPercentage / 100);
+      price = metalCost + laborCost;
+    } else if (product.material === 'diamond') {
+      // For diamonds, we use the base price + any metal cost if weight is provided
+      if (weight > 0) {
+        const purity = selectedPurity || product.purity || '18K';
+        const rate = purity === '24K' ? rates.gold24K : 
+                     purity === '22K' ? rates.gold22K : 
+                     purity === '18K' ? rates.gold18K : rates.gold14K;
+        const metalCost = weight * rate;
+        const laborCost = metalCost * (laborPercentage / 100);
+        price = (product.price || 0) + metalCost + laborCost;
+      }
     }
 
-    return Math.round(price);
+    // Add GST (3% standard for jewelry in India)
+    const finalPrice = price * 1.03;
+
+    return Math.round(finalPrice);
   };
 
   return (

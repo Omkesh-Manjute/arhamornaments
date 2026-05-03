@@ -5,6 +5,9 @@ interface User {
   email: string;
   phone: string;
   walletBalance: number;
+  tier: 'silver' | 'gold' | 'platinum';
+  points: number;
+  joinedDate: string;
 }
 
 interface UserContextType {
@@ -28,7 +31,15 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = (name: string, email: string, phone: string) => {
-    const newUser = { name, email, phone, walletBalance: 0 };
+    const newUser: User = { 
+      name, 
+      email, 
+      phone, 
+      walletBalance: 0,
+      tier: 'silver',
+      points: 450, // Welcome points
+      joinedDate: new Date().toISOString()
+    };
     setUser(newUser);
     localStorage.setItem('arham_user', JSON.stringify(newUser));
   };

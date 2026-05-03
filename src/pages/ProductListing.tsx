@@ -1,17 +1,24 @@
-import React, { useState, useMemo } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
-import { Filter, X, ChevronDown, Grid, List, SlidersHorizontal } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useSearchParams, Link, useLocation, useParams } from 'react-router-dom';
+import { Filter, X, ChevronDown, Grid, List, SlidersHorizontal, ChevronLeft } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 import { products, categories, materials, occasions } from '../data/products';
 
 const ProductListing: React.FC = () => {
+  const { category: pathCategory } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState('featured');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const { pathname, search } = useLocation();
+
+  // Scroll to top on navigation or filter change
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname, search]);
 
   // Get filter values from URL
-  const selectedCategory = searchParams.get('category') || '';
+  const selectedCategory = pathCategory || searchParams.get('category') || '';
   const selectedMaterial = searchParams.get('material') || '';
   const selectedOccasion = searchParams.get('occasion') || '';
   const searchQuery = searchParams.get('search') || '';
@@ -93,25 +100,65 @@ const ProductListing: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-            <Link to="/" className="hover:text-amber-600">Home</Link>
+      {/* Mobile Top Bar */}
+      <div className="bg-[#1a1a1a] text-white py-6 px-4 flex items-center justify-between lg:hidden sticky top-0 z-40">
+        <Link to="/" className="p-2 hover:text-gold transition-colors">
+          <ChevronLeft size={24} />
+        </Link>
+        <h1 className="text-sm font-heading font-black uppercase tracking-[0.4em] flex-1 text-center pr-8">
+          {selectedCategory ? categories.find(c => c.id === selectedCategory)?.name : 'All Products'}
+        </h1>
+      </div>
+
+      {/* Sort & Filter Bar (Mobile) */}
+      <div className="grid grid-cols-2 border-b border-gray-100 bg-white lg:hidden sticky top-[72px] z-30">
+        <div className="relative border-r border-gray-100">
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="w-full h-14 bg-transparent appearance-none flex items-center justify-center text-center text-[10px] font-black uppercase tracking-[0.2em] text-charcoal outline-none cursor-pointer"
+          >
+            <option value="featured">Sort</option>
+            <option value="price-low">Price: Low</option>
+            <option value="price-high">Price: High</option>
+            <option value="rating">Rating</option>
+          </select>
+          <div className="absolute left-1/4 top-1/2 -translate-y-1/2 pointer-events-none flex items-center gap-2">
+             <SlidersHorizontal size={14} className="rotate-90 text-gray-400" />
+          </div>
+        </div>
+        <button 
+          onClick={() => setShowFilters(true)}
+          className="h-14 flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-charcoal hover:bg-gray-50 transition-colors"
+        >
+          <Filter size={14} className="text-gray-400" />
+          Filter
+        </button>
+      </div>
+
+      {/* Desktop Header */}
+      <div className="hidden lg:block bg-white border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-8 py-10">
+          <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6">
+            <Link to="/" className="hover:text-gold">Home</Link>
             <span>/</span>
-            <span className="text-gray-900">
+            <span className="text-gold">
               {selectedCategory ? categories.find(c => c.id === selectedCategory)?.name : 'All Products'}
             </span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            {searchQuery 
-              ? `Search results for "${searchQuery}"`
-              : selectedCategory 
-                ? categories.find(c => c.id === selectedCategory)?.name 
-                : 'All Jewellery'
-            }
-          </h1>
-          <p className="text-gray-500 mt-1">{filteredProducts.length} products found</p>
+          <div className="flex items-end justify-between">
+            <div className="space-y-2">
+              <h1 className="text-5xl font-heading font-bold text-charcoal">
+                {searchQuery 
+                  ? `Search results for "${searchQuery}"`
+                  : selectedCategory 
+                    ? categories.find(c => c.id === selectedCategory)?.name 
+                    : 'All Collections'
+                }
+              </h1>
+              <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">{filteredProducts.length} curated pieces</p>
+            </div>
+          </div>
         </div>
       </div>
 

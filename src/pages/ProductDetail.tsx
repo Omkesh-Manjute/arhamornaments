@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Heart, Share2, ChevronLeft, ChevronRight, Star, Truck, Shield, RotateCcw, MessageCircle, ShoppingCart, Minus, Plus, Gem, Award, Check } from 'lucide-react';
+import { Heart, Share2, ChevronLeft, ChevronRight, Star, Truck, Shield, RotateCcw, MessageCircle, ShoppingCart, Minus, Plus, Gem, Award, Check, Phone, PhoneCall } from 'lucide-react';
 import { products } from '../data/products';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -23,11 +23,12 @@ const ProductDetail: React.FC = () => {
   const product = products.find(p => p.id === id);
 
   // Initialize selections when product loads
-  useMemo(() => {
+  React.useEffect(() => {
     if (product) {
       setSelectedPurity(product.purity || (product.material === 'gold' ? '22K' : ''));
       setSelectedQuality(product.diamondQuality || 'VS');
     }
+    window.scrollTo(0, 0);
   }, [product]);
 
   if (!product) {
@@ -71,9 +72,9 @@ const ProductDetail: React.FC = () => {
   };
 
   const handleAddToCart = () => {
-    addToCart({ 
-      ...product, 
-      price: currentPrice,
+    addToCart(product, quantity, {
+      selectedPurity,
+      selectedQuality
     });
   };
 
@@ -155,98 +156,140 @@ const ProductDetail: React.FC = () => {
               </p>
             </div>
 
-            {/* Selection Options */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-8 border-y border-gray-100">
-              {product.material === 'gold' && (
-                <div className="space-y-4">
-                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-charcoal">
-                    Select Gold Purity
-                  </label>
-                  <div className="flex gap-3">
-                    {['14K', '18K', '22K', '24K'].map((purity) => (
-                      <button
-                        key={purity}
-                        onClick={() => setSelectedPurity(purity)}
-                        className={`flex-1 py-3 rounded-xl border-2 text-xs font-bold transition-all ${
-                          selectedPurity === purity 
-                            ? 'border-gold bg-gold/5 text-gold' 
-                            : 'border-gray-100 text-gray-400 hover:border-gray-200'
-                        }`}
-                      >
-                        {purity}
-                      </button>
-                    ))}
-                  </div>
+            {/* Utility Bar */}
+            <div className="grid grid-cols-4 gap-4 py-6 border-y border-gray-100">
+              <a href="tel:+919876543210" className="flex flex-col items-center gap-2 group">
+                <div className="w-12 h-12 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition-all">
+                  <Phone size={20} />
                 </div>
-              )}
+                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Call</span>
+              </a>
+              <button 
+                onClick={() => toggleWishlist(product)}
+                className="flex flex-col items-center gap-2 group"
+              >
+                <div className={`w-12 h-12 rounded-full border border-gray-100 shadow-sm flex items-center justify-center transition-all ${isFavorite ? 'bg-red-500 text-white border-red-500' : 'bg-white text-gray-400 group-hover:bg-red-50 group-hover:text-red-500'}`}>
+                  <Heart size={20} className={isFavorite ? 'fill-current' : ''} />
+                </div>
+                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Favorite</span>
+              </button>
+              <button 
+                onClick={handleWhatsAppEnquiry}
+                className="flex flex-col items-center gap-2 group"
+              >
+                <div className="w-12 h-12 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center text-green-600 group-hover:bg-green-600 group-hover:text-white transition-all">
+                  <MessageCircle size={20} />
+                </div>
+                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Whatsapp</span>
+              </button>
+              <button className="flex flex-col items-center gap-2 group">
+                <div className="w-12 h-12 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                  <Share2 size={20} />
+                </div>
+                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Share</span>
+              </button>
+            </div>
 
-              {product.material === 'diamond' && (
-                <div className="space-y-4">
-                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-charcoal">
-                    Diamond Quality
-                  </label>
-                  <div className="flex gap-3">
-                    {['SI', 'VS', 'VVS'].map((quality) => (
-                      <button
-                        key={quality}
-                        onClick={() => setSelectedQuality(quality)}
-                        className={`flex-1 py-3 rounded-xl border-2 text-xs font-bold transition-all ${
-                          selectedQuality === quality 
-                            ? 'border-gold bg-gold/5 text-gold' 
-                            : 'border-gray-100 text-gray-400 hover:border-gray-200'
-                        }`}
-                      >
-                        {quality}
-                      </button>
-                    ))}
+            {/* Spec Table */}
+            <div className="space-y-4 py-6">
+              <div className="grid grid-cols-3 gap-2 text-sm">
+                <span className="text-gray-400 font-medium">Design No.</span>
+                <span className="text-gray-400 font-medium text-center">:</span>
+                <span className="text-charcoal font-black uppercase">{product.designNo || 'N/A'}</span>
+
+                <span className="text-gray-400 font-medium">Size</span>
+                <span className="text-gray-400 font-medium text-center">:</span>
+                <span className="text-charcoal font-black">{product.size || '-:-'}</span>
+
+                <span className="text-gray-400 font-medium">Purity</span>
+                <span className="text-gray-400 font-medium text-center">:</span>
+                <div className="flex gap-2">
+                   {['18K', '22K', '24K'].map(p => (
+                     <button 
+                        key={p}
+                        onClick={() => setSelectedPurity(p)}
+                        className={`px-2 py-0.5 rounded text-[10px] font-black border transition-all ${selectedPurity === p ? 'bg-gold text-white border-gold' : 'border-gray-200 text-gray-400'}`}
+                     >
+                       {p}
+                     </button>
+                   ))}
+                </div>
+
+                <span className="text-gray-400 font-medium">Gross Weight</span>
+                <span className="text-gray-400 font-medium text-center">:</span>
+                <span className="text-charcoal font-black">{product.grossWeight?.toFixed(3) || '0.000'}</span>
+
+                <span className="text-gray-400 font-medium">Net Weight</span>
+                <span className="text-gray-400 font-medium text-center">:</span>
+                <span className="text-charcoal font-black">{product.netWeight?.toFixed(3) || '0.000'}</span>
+
+                <span className="text-gray-400 font-medium">Lbr %</span>
+                <span className="text-gray-400 font-medium text-center">:</span>
+                <span className="text-charcoal font-black">{product.laborCharges || '0'} %</span>
+
+                <span className="text-gray-400 font-medium">Total Amount</span>
+                <span className="text-gray-400 font-medium text-center">:</span>
+                <span className="text-gold font-black text-lg">{formatPrice(currentPrice * quantity)}</span>
+
+                <span className="text-gray-400 font-medium">Order Pcs</span>
+                <span className="text-gray-400 font-medium text-center">:</span>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden h-10">
+                    <button 
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      className="px-3 hover:bg-gray-50 transition-colors text-gray-400"
+                    >
+                      <Minus size={14} />
+                    </button>
+                    <span className="px-4 font-black text-sm border-x border-gray-200 min-w-[3rem] text-center">
+                      {quantity}
+                    </span>
+                    <button 
+                      onClick={() => setQuantity(quantity + 1)}
+                      className="px-3 hover:bg-gray-50 transition-colors text-gray-400"
+                    >
+                      <Plus size={14} />
+                    </button>
                   </div>
                 </div>
-              )}
+              </div>
+
+              {/* Description Input */}
+              <div className="pt-4">
+                <div className="relative">
+                  <textarea 
+                    placeholder="Description"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-gold focus:ring-1 focus:ring-gold outline-none transition-all text-sm resize-none h-12"
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Price & Action */}
-            <div className="space-y-8">
-              <div className="flex flex-col">
-                <div className="flex items-baseline gap-4">
-                  <span className="text-5xl font-heading font-black text-charcoal">
-                    {formatPrice(currentPrice)}
-                  </span>
-                  {product.originalPrice && (
-                    <span className="text-xl text-gray-300 line-through decoration-gold/30">
-                      {formatPrice(product.originalPrice)}
-                    </span>
-                  )}
-                </div>
-                <p className="text-[10px] text-green-600 font-bold uppercase tracking-widest mt-2 flex items-center gap-2">
-                  <Check size={12} /> Price includes current market rates & GST
-                </p>
-              </div>
-
+            <div className="space-y-6">
               <div className="flex flex-col sm:flex-row gap-4">
                 <button
-                  onClick={handleAddToCart}
-                  className="flex-[2] py-6 bg-charcoal text-white rounded-full font-black uppercase tracking-[0.3em] text-[10px] hover:bg-gold transition-all shadow-2xl flex items-center justify-center gap-4 group active:scale-95"
+                  onClick={handleWhatsAppEnquiry}
+                  className="flex-1 py-5 bg-white border border-gray-200 text-charcoal rounded-xl font-black uppercase tracking-widest text-[11px] hover:border-gold hover:text-gold transition-all shadow-sm active:scale-95"
                 >
-                  <ShoppingCart size={18} />
-                  Add to Collection
+                  Get Quote
                 </button>
                 <button
-                  onClick={handleWhatsAppEnquiry}
-                  className="flex-1 py-6 border-2 border-charcoal text-charcoal rounded-full font-black uppercase tracking-[0.3em] text-[10px] hover:bg-charcoal hover:text-white transition-all flex items-center justify-center gap-4 active:scale-95"
+                  onClick={handleAddToCart}
+                  className="flex-1 py-5 bg-charcoal text-white rounded-xl font-black uppercase tracking-widest text-[11px] hover:bg-gold transition-all shadow-xl active:scale-95"
                 >
-                  <MessageCircle size={18} />
-                  Enquiry
+                  Add to Cart
                 </button>
               </div>
 
               {/* Loyalty Preview */}
-              <div className="bg-gold/5 p-6 rounded-[2rem] border border-gold/10 flex items-center gap-4">
-                <div className="w-12 h-12 bg-gold text-white rounded-full flex items-center justify-center shadow-lg">
-                  <Award size={24} />
+              <div className="bg-gold/5 p-4 rounded-2xl border border-gold/10 flex items-center gap-4">
+                <div className="w-10 h-10 bg-gold text-white rounded-full flex items-center justify-center shadow-md">
+                  <Award size={20} />
                 </div>
                 <div>
-                  <h4 className="text-[10px] font-black uppercase tracking-widest text-gold">Arham Elite Benefit</h4>
-                  <p className="text-[11px] text-charcoal/70 mt-0.5">Earn <b>{Math.round(currentPrice/100)}</b> points with this purchase.</p>
+                  <h4 className="text-[9px] font-black uppercase tracking-widest text-gold">Elite Rewards</h4>
+                  <p className="text-[10px] text-charcoal/70 mt-0.5">Earn <b>{Math.round((currentPrice * quantity)/100)}</b> points</p>
                 </div>
               </div>
             </div>
@@ -283,7 +326,7 @@ const ProductDetail: React.FC = () => {
               ))}
             </div>
           </div>
-        </div>
+        )}
 
         {/* Related Products */}
         <div className="mt-32 space-y-12">

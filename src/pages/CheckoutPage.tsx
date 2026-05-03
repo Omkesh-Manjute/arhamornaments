@@ -386,7 +386,7 @@ const CheckoutPage: React.FC = () => {
                   <div className="flex justify-between items-end pt-4 border-t border-white/10">
                     <div className="space-y-1">
                       <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gold">Final Investment</p>
-                      <h4 className="text-4xl font-heading font-bold">{formatPrice(grandTotal)}</h4>
+                      <h4 className="text-4xl font-bold">{formatPrice(grandTotal)}</h4>
                     </div>
                   </div>
                 </div>

@@ -34,7 +34,7 @@ const LivePriceTicker: React.FC = () => {
                   <span className="text-[8px] px-1.5 py-0.5 bg-gold/10 text-gold rounded-md border border-gold/20">{item.carat}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-black text-white font-heading">{item.price}</span>
+                  <span className="text-sm font-black text-white tracking-wider">{item.price}</span>
                   <div className={`flex items-center text-[9px] font-bold ${item.up ? 'text-green-400' : 'text-red-400'}`}>
                     {item.up ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
                     {item.change}
@@ -62,7 +62,7 @@ const LivePriceTicker: React.FC = () => {
               {prices.map((item, idx) => (
                 <div key={idx} className="flex items-center gap-3">
                   <span className="text-[10px] font-bold text-gray-400">{item.name} ({item.carat})</span>
-                  <span className="text-sm font-black text-white font-heading tracking-wide">{item.price}</span>
+                  <span className="text-sm font-black text-white tracking-wide">{item.price}</span>
                   <span className={`text-[10px] font-bold ${item.up ? 'text-green-400' : 'text-red-400'}`}>
                     {item.change}
                   </span>

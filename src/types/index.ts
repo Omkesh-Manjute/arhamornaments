@@ -1,12 +1,20 @@
 export interface Product {
   id: string;
   name: string;
-  price: number; // Base price for display if no weight is given
+  price: number; // Base price or calculated price
   originalPrice?: number;
   category: 'rings' | 'necklaces' | 'earrings' | 'coins' | 'bangles' | 'pendants';
   material: 'gold' | 'silver' | 'diamond' | 'platinum';
-  metalWeight?: number; // In grams
-  makingCharges?: number; // Per gram or fixed
+  
+  // Jewelry specific details
+  designNo?: string;
+  grossWeight?: number; // Gwt
+  netWeight?: number;   // Nwt
+  laborCharges?: number; // Lbr % (Making charges)
+  size?: string;
+
+  metalWeight?: number; // Keep for backward compatibility
+  makingCharges?: number; // Keep for backward compatibility
   purity?: '14K' | '18K' | '22K' | '24K';
   diamondWeight?: number; // In carats
   diamondQuality?: 'SI' | 'VS' | 'VVS';

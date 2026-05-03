@@ -8,6 +8,7 @@ import { useWishlist } from '../context/WishlistContext';
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   const { totalItems } = useCart();
   const { user, isLoggedIn, logout } = useUser();
   const { wishlist } = useWishlist();
@@ -18,8 +19,15 @@ const Header: React.FC = () => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleResize);
+    };
   }, []);
 
   const navLinks = [
@@ -38,14 +46,14 @@ const Header: React.FC = () => {
   return (
     <header 
       className={`fixed top-0 lg:top-0 left-0 right-0 z-50 transition-all duration-500 mt-[36px] lg:mt-0 ${
-        isScrolled || !isHomePage ? 'bg-white shadow-md py-2' : 'bg-transparent py-6'
-      }`}
+        isScrolled || !isHomePage ? 'bg-white shadow-md py-2' : 'bg-white lg:bg-transparent py-2 lg:py-6'
+      } ${!isHomePage || isScrolled ? 'border-b border-gray-100' : ''}`}
     >
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         <div className="flex items-center justify-between">
           {/* Mobile Menu Button */}
           <button 
-            className={`lg:hidden p-2 transition-colors ${isScrolled || !isHomePage ? 'text-charcoal' : 'text-white'}`}
+            className={`lg:hidden p-2 transition-colors ${isScrolled || !isHomePage || isMobile ? 'text-charcoal' : 'text-white'}`}
             onClick={() => setIsMenuOpen(true)}
           >
             <Menu size={24} />
@@ -53,7 +61,7 @@ const Header: React.FC = () => {
 
           {/* Logo */}
           <Link to="/" className="flex flex-col items-center">
-            <h1 className={`text-xl md:text-2xl font-bold tracking-[0.2em] font-heading leading-tight transition-colors ${isScrolled || !isHomePage ? 'text-charcoal' : 'text-white'}`}>
+            <h1 className={`text-xl md:text-2xl font-bold tracking-[0.2em] font-heading leading-tight transition-colors ${isScrolled || !isHomePage || isMobile ? 'text-charcoal' : 'text-white'}`}>
               ARHAM
             </h1>
             <span className="text-[10px] tracking-[0.4em] text-gold uppercase -mt-1">ORNAMENTS</span>
@@ -79,20 +87,20 @@ const Header: React.FC = () => {
           {/* Actions */}
           <div className="flex items-center gap-2 md:gap-4">
             {isLoggedIn && (
-              <div className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gold/10 border border-gold/20 ${isScrolled || !isHomePage ? 'text-charcoal' : 'text-white'}`}>
+              <div className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gold/10 border border-gold/20 ${isScrolled || !isHomePage || isMobile ? 'text-charcoal' : 'text-white'}`}>
                 <Wallet size={16} className="text-gold" />
-                <span className="text-xs font-bold font-heading">₹{user?.walletBalance}</span>
+                <span className="text-xs font-bold">₹{user?.walletBalance}</span>
               </div>
             )}
-            <button className={`p-2 transition-colors hover:text-gold ${isScrolled || !isHomePage ? 'text-charcoal' : 'text-white'}`}>
+            <button className={`p-2 transition-colors hover:text-gold ${isScrolled || !isHomePage || isMobile ? 'text-charcoal' : 'text-white'}`}>
               <Search size={20} />
             </button>
             
             {/* User Dropdown */}
             <div className="relative group">
               <button 
-                onClick={() => isLoggedIn ? null : navigate('/admin')}
-                className={`p-2 transition-colors hover:text-gold flex items-center gap-1 ${isScrolled || !isHomePage ? 'text-charcoal' : 'text-white'}`}
+                onClick={() => isLoggedIn ? navigate('/profile') : navigate('/admin')}
+                className={`p-2 transition-colors hover:text-gold flex items-center gap-1 ${isScrolled || !isHomePage || isMobile ? 'text-charcoal' : 'text-white'}`}
               >
                 <User size={20} />
                 {isLoggedIn && <span className="text-[10px] hidden md:block">{user?.name.split(' ')[0]}</span>}
@@ -127,7 +135,7 @@ const Header: React.FC = () => {
 
             <Link 
               to="/wishlist"
-              className={`hidden sm:block p-2 relative transition-colors hover:text-gold ${isScrolled || !isHomePage ? 'text-charcoal' : 'text-white'}`}
+              className={`hidden sm:block p-2 relative transition-colors hover:text-gold ${isScrolled || !isHomePage || isMobile ? 'text-charcoal' : 'text-white'}`}
             >
               <Heart size={20} />
               {wishlist.length > 0 && (
@@ -136,7 +144,7 @@ const Header: React.FC = () => {
                 </span>
               )}
             </Link>
-            <Link to="/cart" className={`relative p-2 transition-colors hover:text-gold ${isScrolled || !isHomePage ? 'text-charcoal' : 'text-white'}`}>
+            <Link to="/cart" className={`relative p-2 transition-colors hover:text-gold ${isScrolled || !isHomePage || isMobile ? 'text-charcoal' : 'text-white'}`}>
               <ShoppingBag size={20} />
               {totalItems > 0 && (
                 <span className="absolute top-1 right-1 bg-gold text-white text-[9px] w-4 h-4 flex items-center justify-center rounded-full animate-bounce-in">

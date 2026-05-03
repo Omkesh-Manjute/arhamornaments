@@ -39,7 +39,11 @@ const ProfilePage: React.FC = () => {
   };
 
   const currentTier = tiers[user.tier || 'silver'];
-  const progress = Math.min((user.points / currentTier.pointsNeeded) * 100, 100);
+  const userPoints = user.points || 0;
+  const progress = currentTier.pointsNeeded > 0 
+    ? Math.min((userPoints / currentTier.pointsNeeded) * 100, 100)
+    : 100;
+  const joinedDate = user.joinedDate || new Date().toISOString();
 
   return (
     <div className="min-h-screen bg-[#FCFBF7] py-24 px-4 md:px-8">
@@ -73,7 +77,7 @@ const ProfilePage: React.FC = () => {
                   Arham Elite {currentTier.name} Member
                 </p>
                 <div className="w-1 h-1 bg-gray-200 rounded-full" />
-                <p className="text-gray-400 font-bold text-[10px]">Since {new Date(user.joinedDate).getFullYear()}</p>
+                <p className="text-gray-400 font-bold text-[10px]">Since {new Date(joinedDate).getFullYear()}</p>
               </div>
             </div>
             
@@ -84,7 +88,7 @@ const ProfilePage: React.FC = () => {
               </div>
               <div className="text-left p-4 bg-gray-50 rounded-2xl">
                 <p className="text-[9px] uppercase tracking-widest text-gray-400 font-black mb-1">Elite Points</p>
-                <p className="font-black text-gold text-lg">{user.points.toLocaleString()}</p>
+                <p className="font-black text-gold text-lg">{userPoints.toLocaleString()}</p>
               </div>
             </div>
 
@@ -156,7 +160,7 @@ const ProfilePage: React.FC = () => {
                       <h4 className="text-xl font-bold">Road to {currentTier.next} Status</h4>
                     </div>
                     <p className="text-gold font-black text-sm">
-                      {user.points.toLocaleString()} <span className="text-white/30 text-xs">/ {currentTier.pointsNeeded.toLocaleString()}</span>
+                      {userPoints.toLocaleString()} <span className="text-white/30 text-xs">/ {currentTier.pointsNeeded.toLocaleString()}</span>
                     </p>
                   </div>
                   <div className="h-4 w-full bg-white/5 rounded-full overflow-hidden border border-white/10">
@@ -166,7 +170,7 @@ const ProfilePage: React.FC = () => {
                     />
                   </div>
                   <p className="text-white/40 text-xs italic">
-                    Earn {(currentTier.pointsNeeded - user.points).toLocaleString()} more points to unlock {currentTier.next} benefits.
+                    Earn {Math.max(0, currentTier.pointsNeeded - userPoints).toLocaleString()} more points to unlock {currentTier.next} benefits.
                   </p>
                 </div>
               )}

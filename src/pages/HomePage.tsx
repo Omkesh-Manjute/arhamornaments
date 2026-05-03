@@ -4,6 +4,10 @@ import { ChevronRight, ArrowRight, Star, ShieldCheck, Truck, Gem } from 'lucide-
 import ProductCard from '../components/ProductCard';
 import HeritageHero from '../components/HeritageHero';
 import { products } from '../data/products';
+import MobileSearchBar from '../components/MobileSearchBar';
+import CategorySlider from '../components/CategorySlider';
+import MobileHeroSlider from '../components/MobileHeroSlider';
+import CollectionSlider from '../components/CollectionSlider';
 
 const HomePage: React.FC = () => {
   const featuredProducts = products.filter(p => p.featured).slice(0, 4);
@@ -13,6 +17,12 @@ const HomePage: React.FC = () => {
     setIsVisible(true);
   }, []);
   
+  const earringCollection = [
+    { id: '1', name: 'Jhumkas', image: '/images/products/earrings.png', path: '/products?category=earrings&type=jhumka' },
+    { id: '2', name: 'Drops', image: '/images/products/drops_earrings.png', path: '/products?category=earrings&type=drop' },
+    { id: '3', name: 'Studs', image: '/images/products/antique_floral.png', path: '/products?category=earrings&type=stud' },
+  ];
+
   const categories = [
     { name: 'Cluster Rings', image: '/images/products/cluster_rings.png', path: '/products?category=rings' },
     { name: 'Bangles', image: '/images/products/temple_gold_kangan.png', path: '/products?category=bangles' },
@@ -22,8 +32,25 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="min-h-screen overflow-x-hidden">
-      {/* Heritage Hero Section */}
-      <HeritageHero />
+      {/* Mobile-Only Top Section - Reduced Gap */}
+      <div className="lg:hidden pt-[100px] bg-white">
+        <MobileSearchBar />
+        <CategorySlider />
+        <MobileHeroSlider />
+      </div>
+
+      {/* Heritage Hero Section - Desktop Only */}
+      <div className="hidden lg:block">
+        <HeritageHero />
+      </div>
+
+      {/* Collection Slider - New */}
+      <CollectionSlider 
+        title="Stunning Every Ear"
+        subtitle="Look at our brand new earring collection just for you"
+        bannerImage="https://images.unsplash.com/photo-1635767798638-3e25273a8236?w=1200"
+        items={earringCollection}
+      />
 
       {/* Categories Grid - Enhanced */}
       <section className="px-4 md:px-8 py-24 bg-white">
