@@ -36,6 +36,7 @@ const Header: React.FC = () => {
     { name: 'Earrings', path: '/products?category=earrings' },
     { name: 'Rings', path: '/products?category=rings' },
     { name: 'Pendants', path: '/products?category=pendants' },
+    { name: 'Mangalsutra', path: '/products?category=mangalsutra' },
     { name: 'Bangles', path: '/products?category=bangles' },
     { name: 'About Us', path: '/about' },
   ];

@@ -588,6 +588,77 @@ export const products: Product[] = [
     inStock: true,
     rating: 4.8,
     reviews: 124
+  },
+  // Mangalsutra
+  {
+    id: '30',
+    name: 'Traditional Gold Mangalsutra',
+    designNo: 'MS-3001-22K',
+    grossWeight: 12.500,
+    netWeight: 11.800,
+    laborCharges: 12,
+    price: 85999,
+    category: 'mangalsutra',
+    material: 'gold',
+    occasion: 'daily',
+    images: ['/images/products/mangalsutra/ms1.jpg'],
+    description: 'Beautiful 22K gold mangalsutra with traditional black beads and an elegant pendant.',
+    inStock: true,
+    featured: true,
+    rating: 4.9,
+    reviews: 45
+  },
+  {
+    id: '31',
+    name: 'Modern Diamond Mangalsutra',
+    designNo: 'MS-3102-DMD',
+    grossWeight: 8.200,
+    netWeight: 7.500,
+    laborCharges: 18,
+    price: 125999,
+    category: 'mangalsutra',
+    material: 'diamond',
+    occasion: 'party',
+    images: ['/images/products/mangalsutra/ms2.jpg'],
+    description: 'Chic modern mangalsutra featuring a delicate diamond-studded pendant for a contemporary look.',
+    inStock: true,
+    rating: 4.8,
+    reviews: 32
+  },
+  {
+    id: '32',
+    name: 'Designer Gold Mangalsutra',
+    designNo: 'MS-3203-22K',
+    grossWeight: 15.400,
+    netWeight: 14.200,
+    laborCharges: 15,
+    price: 105999,
+    category: 'mangalsutra',
+    material: 'gold',
+    occasion: 'bridal',
+    images: ['/images/products/mangalsutra/ms3.jpg'],
+    description: 'Intricately designed designer mangalsutra, perfect for festive occasions and bridal wear.',
+    inStock: true,
+    trending: true,
+    rating: 4.7,
+    reviews: 28
+  },
+  {
+    id: '33',
+    name: 'Simple Daily Wear Mangalsutra',
+    designNo: 'MS-3304-22K',
+    grossWeight: 6.800,
+    netWeight: 6.800,
+    laborCharges: 10,
+    price: 48999,
+    category: 'mangalsutra',
+    material: 'gold',
+    occasion: 'daily',
+    images: ['/images/products/mangalsutra/ms4.jpg'],
+    description: 'Lightweight and durable 22K gold mangalsutra designed for comfortable daily wear.',
+    inStock: true,
+    rating: 4.6,
+    reviews: 64
   }
 ];
 
@@ -621,7 +692,8 @@ export const categories: Category[] = [
   { id: 'earrings', name: 'Earrings', icon: '✨', count: 32 },
   { id: 'coins', name: 'Coins', icon: '🪙', count: 4 },
   { id: 'bangles', name: 'Bangles', icon: '⭕', count: 15 },
-  { id: 'pendants', name: 'Pendants', icon: '💎', count: 21 }
+  { id: 'pendants', name: 'Pendants', icon: '💎', count: 21 },
+  { id: 'mangalsutra', name: 'Mangalsutra', icon: '📿', count: 4 }
 ];
 
 export const materials = [
