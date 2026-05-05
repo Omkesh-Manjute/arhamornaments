@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, ShoppingBag, Menu, User, Heart, Wallet, Settings, LogOut, ChevronRight, Gift } from 'lucide-react';
+import { Search, ShoppingBag, Menu, User, Heart, Wallet, Settings, LogOut, ChevronRight, Gift, Bell } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useUser } from '../context/UserContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -99,11 +99,11 @@ const Header: React.FC = () => {
             {/* User Dropdown */}
             <div className="relative group">
               <button 
-                onClick={() => isLoggedIn ? navigate('/profile') : navigate('/admin')}
+                onClick={() => navigate('/profile')}
                 className={`p-2 transition-colors hover:text-gold flex items-center gap-1 ${isScrolled || !isHomePage || isMobile ? 'text-charcoal' : 'text-white'}`}
               >
                 <User size={20} />
-                {isLoggedIn && <span className="text-[10px] hidden md:block">{user?.name.split(' ')[0]}</span>}
+                {isLoggedIn && <span className="text-[10px] hidden md:block">{user?.name?.split(' ')[0]}</span>}
               </button>
               
               {isLoggedIn && (
@@ -133,6 +133,25 @@ const Header: React.FC = () => {
               )}
             </div>
 
+            {isLoggedIn && (
+              <Link 
+                to="/profile#notifications"
+                className={`p-2 relative transition-colors hover:text-gold ${isScrolled || !isHomePage || isMobile ? 'text-charcoal' : 'text-white'}`}
+                onClick={(e) => {
+                  if (location.pathname === '/profile') {
+                    e.preventDefault();
+                    document.getElementById('notifications')?.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+              >
+                <Bell size={20} />
+                {user?.notifications?.some(n => !n.isRead) && (
+                  <span className="absolute top-1 right-1 bg-red-500 text-white text-[9px] w-4 h-4 flex items-center justify-center rounded-full">
+                    {user.notifications?.filter(n => !n.isRead).length || 0}
+                  </span>
+                )}
+              </Link>
+            )}
             <Link 
               to="/wishlist"
               className={`hidden sm:block p-2 relative transition-colors hover:text-gold ${isScrolled || !isHomePage || isMobile ? 'text-charcoal' : 'text-white'}`}
@@ -182,7 +201,7 @@ const Header: React.FC = () => {
                 )}
               </div>
               <div className="flex flex-col">
-                <h3 className="text-xl font-bold text-charcoal">Hi {isLoggedIn ? user?.name.split(' ')[0] : 'Guest'}!</h3>
+                <h3 className="text-xl font-bold text-charcoal">Hi {isLoggedIn ? user?.name?.split(' ')[0] : 'Guest'}!</h3>
               </div>
             </div>
             <button 

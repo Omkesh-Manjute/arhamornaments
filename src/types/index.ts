@@ -28,6 +28,15 @@ export interface Product {
   reviews: number;
 }
 
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: 'offer' | 'order' | 'system';
+  date: string;
+  isRead: boolean;
+}
+
 export interface User {
   id: string;
   name: string;
@@ -38,6 +47,11 @@ export interface User {
   points: number;
   joinedDate: string;
   avatar?: string;
+  referralCode: string;
+  referredBy?: string;
+  referralCount: number;
+  lastSpinDate?: string;
+  notifications: Notification[];
 }
 
 export interface GiftOptions {

@@ -19,7 +19,6 @@ import FAQPage from './pages/FAQPage';
 import ReturnsPage from './pages/ReturnsPage';
 import EducationPage from './pages/EducationPage';
 import LuckyWheel from './components/LuckyWheel';
-import LivePriceTicker from './components/LivePriceTicker';
 import { WishlistProvider } from './context/WishlistContext';
 import { PriceProvider } from './context/PriceContext';
 
@@ -29,7 +28,6 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {!isAdminPage && <LivePriceTicker />}
       {!isAdminPage && <Header />}
       
       <main className={`flex-1 ${!isAdminPage ? 'pt-[36px] lg:pt-0' : ''}`}>

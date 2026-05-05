@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MessageCircle, Check, MapPin, User, Gift, Sparkles, ShieldCheck, ChevronLeft, CreditCard } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useUser } from '../context/UserContext';
 import { formatPrice, generateCartOrderMessage, openWhatsApp } from '../utils/whatsapp';
 
 interface FormData {
@@ -16,6 +17,7 @@ interface FormData {
 
 const CheckoutPage: React.FC = () => {
   const { items, totalPrice, clearCart, giftOptions } = useCart();
+  const { user, addNotification } = useUser();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
@@ -106,6 +108,13 @@ const CheckoutPage: React.FC = () => {
     setTimeout(() => {
       setIsSubmitting(false);
       setOrderPlaced(true);
+      if (user) {
+        addNotification({
+          title: 'Order Inquiry Received',
+          message: `Your inquiry for items worth ${formatPrice(grandTotal)} has been received. Our team will contact you soon.`,
+          type: 'order'
+        });
+      }
     }, 1500);
   };
 
