@@ -241,8 +241,8 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
       </div>
 
       <div className="relative w-[260px] h-[260px] sm:w-80 sm:h-80 md:w-96 md:h-96 flex items-center justify-center z-10 shrink-0">
-        {/* Outer Ring with Lights */}
-        <div className="absolute inset-0 rounded-full border-[8px] sm:border-[12px] border-[#0D4449] shadow-[0_0_60px_rgba(13,68,73,0.3)] bg-[#0D4449]/5" />
+        {/* Outer Ring with Premium Glow */}
+        <div className="absolute inset-0 rounded-full border-[10px] sm:border-[15px] border-charcoal shadow-[0_0_40px_rgba(0,0,0,0.3)] bg-charcoal/5" />
 
         {[...Array(24)].map((_, i) => (
           <div
@@ -268,13 +268,13 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
 
         {/* The Spinning Wheel */}
         <div
-          className="w-[86%] h-[86%] rounded-full z-10 shadow-[0_0_50px_rgba(0,0,0,0.4)] relative overflow-hidden border-4 border-gold/30 bg-white"
+          className="w-[88%] h-[88%] rounded-full z-10 shadow-2xl relative overflow-hidden border-[6px] border-gold/40 bg-white"
           style={{
             transform: `rotate(${rotation}deg)`,
             transition: isSpinning ? 'transform 5s cubic-bezier(0.15,0,0.1,1)' : 'none',
             backgroundImage: 'url(/images/wheel-bg.png)',
-            backgroundSize: '160% auto',
-            backgroundPosition: 'center 35%',
+            backgroundSize: '110% auto',
+            backgroundPosition: 'center center',
             backgroundRepeat: 'no-repeat'
           }}
         >
@@ -300,22 +300,24 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
             );
           })}
 
-          {/* Center Hub Overlay */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 sm:w-24 sm:h-24 bg-white rounded-full border-[6px] border-gold z-20 flex items-center justify-center shadow-2xl overflow-hidden">
-            <div 
-              className="w-full h-full"
-              style={{
-                backgroundImage: 'url(/images/wheel-bg.png)',
-                backgroundSize: '400% auto',
-                backgroundPosition: 'center 46%',
-                backgroundRepeat: 'no-repeat'
-              }}
-            />
-            <div className="absolute inset-0 flex items-center justify-center bg-white/10 backdrop-blur-[2px]">
-              <span className="text-[10px] font-black text-charcoal uppercase tracking-tighter mt-1 bg-white/80 px-2 py-0.5 rounded-full shadow-sm">SPIN</span>
-            </div>
         </div>
-      </div>
+
+        {/* Center Hub (Static - Outside rotating div) */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 sm:w-28 sm:h-28 bg-white rounded-full border-[8px] border-gold z-30 flex items-center justify-center shadow-[0_0_30px_rgba(0,0,0,0.3)] overflow-hidden">
+          <div 
+            className="w-full h-full"
+            style={{
+              backgroundImage: 'url(/images/wheel-bg.png)',
+              backgroundSize: '300% auto',
+              backgroundPosition: 'center center',
+              backgroundRepeat: 'no-repeat'
+            }}
+          />
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-white/20 to-black/20 backdrop-blur-[1px]">
+            <span className="text-[12px] sm:text-sm font-black text-white drop-shadow-lg uppercase tracking-tighter">SPIN</span>
+            <div className="w-6 h-1 bg-gold rounded-full mt-1 shadow-sm" />
+          </div>
+        </div>
     </div>
   </div>
 );
