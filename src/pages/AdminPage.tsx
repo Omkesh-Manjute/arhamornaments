@@ -616,6 +616,29 @@ const AdminPage: React.FC = () => {
     }
   };
 
+  const handleSyncWithStorage = async () => {
+    setLoading(true);
+    setBulkStatus("Scanning Storage 'products' folder... This may take a moment.");
+    try {
+      const addedCount = await productService.syncStorageWithFirestore();
+      await adminService.createAuditLog({
+        adminId: auth.currentUser?.uid || 'unknown',
+        adminEmail: auth.currentUser?.email || 'unknown',
+        action: 'STORAGE_SYNC',
+        details: `Synchronized Storage with Firestore. Found and added ${addedCount} new products.`
+      });
+      const all = await productService.getAllProducts();
+      setProducts(all);
+      setBulkStatus(`✅ Sync Complete! Added ${addedCount} new products.`);
+      setTimeout(() => setBulkStatus(''), 5000);
+    } catch (error: any) {
+      console.error("Sync Error:", error);
+      setBulkStatus("❌ Sync Failed: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDeleteAllProducts = async () => {
     if (!window.confirm("⚠️ DANGER: This will delete ALL product records from the database. This action cannot be undone. Are you absolutely sure?")) {
       return;
@@ -1122,6 +1145,9 @@ const AdminPage: React.FC = () => {
                             onChange={handleFolderUpload} 
                           />
                         </label>
+                        <button onClick={handleSyncWithStorage} className="px-4 py-2 bg-purple-500/10 border border-purple-500/20 text-purple-400 rounded-xl text-xs font-bold hover:bg-purple-500/20 transition-colors flex items-center gap-2">
+                          <FolderSync size={14} /> Sync from Storage
+                        </button>
                         <button className="px-4 py-2 bg-white/5 border border-white/10 text-gray-300 rounded-xl text-xs font-bold hover:bg-white/10 transition-colors">Download Template</button>
                       </div>
                     </div>

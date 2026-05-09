@@ -11,7 +11,7 @@ import {
   setDoc,
   writeBatch
 } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL, deleteObject, listAll } from 'firebase/storage';
 import { Product } from '../types';
 
 /**
@@ -106,6 +106,56 @@ export const productService = {
     });
     
     await batch.commit();
+  },
+
+  /**
+   * Scans Storage 'products' folder and creates Firestore records for missing items.
+   */
+  async syncStorageWithFirestore(): Promise<number> {
+    const rootRef = ref(storage, 'products');
+    let count = 0;
+
+    const processFolder = async (folderRef: any) => {
+      const res = await listAll(folderRef);
+      
+      const imageFiles = res.items.filter(item => 
+        item.name.match(/\.(jpg|jpeg|png|webp)$/i)
+      );
+
+      if (imageFiles.length > 0) {
+        const productCode = folderRef.name;
+        const productsRef = collection(db, 'products');
+        const querySnapshot = await getDocs(productsRef);
+        const exists = querySnapshot.docs.some(doc => doc.data().designNo === productCode || doc.id === productCode);
+
+        if (!exists) {
+          const imageUrls = await Promise.all(imageFiles.map(item => getDownloadURL(item)));
+          const productData: any = {
+            name: productCode,
+            designNo: productCode,
+            price: 0,
+            category: 'rings',
+            material: 'gold',
+            description: `Imported from Storage: ${productCode}`,
+            images: imageUrls,
+            inStock: true,
+            occasion: 'daily',
+            rating: 4.5,
+            reviews: 0,
+            createdAt: new Date().toISOString()
+          };
+          await setDoc(doc(db, 'products', productCode), productData);
+          count++;
+        }
+      }
+
+      for (const subfolder of res.prefixes) {
+        await processFolder(subfolder);
+      }
+    };
+
+    await processFolder(rootRef);
+    return count;
   }
 };
 
