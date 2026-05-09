@@ -77,7 +77,6 @@ const AdminPage: React.FC = () => {
   // Audit Logs State
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [logsLoading, setLogsLoading] = useState(false);
-  const [syncGranular, setSyncGranular] = useState(false);
 
   // Notification States
   const [notifTarget, setNotifTarget] = useState<'all' | string>('all');
