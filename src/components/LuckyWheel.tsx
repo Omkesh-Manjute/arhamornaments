@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { X, Gift, Check, Sparkles, Phone, Lock, ArrowRight, Loader2 } from 'lucide-react';
+import { X, Gift, Check, Sparkles, Phone, Lock, ArrowRight, Loader2, Tag, Info, ShoppingBag, Calendar } from 'lucide-react';
 import { useUser } from '../context/UserContext';
-import { auth } from '../lib/firebase';
+import { auth, db } from '../lib/firebase';
 import { RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 
 interface LuckyWheelProps {
   isEmbedded?: boolean;
@@ -282,15 +283,20 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
           {/* Dynamic Labels */}
           {segments.map((s, i) => {
             const angle = (i * 360) / segments.length + (360 / segments.length / 2);
+            // Flip text if it's in the bottom half to keep it readable
+            const shouldFlip = angle > 90 && angle < 270;
             return (
               <div
                 key={i}
                 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full pointer-events-none"
                 style={{ transform: `translate(-50%, -50%) rotate(${angle}deg)` }}
               >
-                <div className="pt-4 sm:pt-6 flex flex-col items-center">
-                  <span className="text-[12px] sm:text-lg font-black text-white drop-shadow-md whitespace-nowrap">
-                    ₹{s.value}
+                <div 
+                  className="pt-6 sm:pt-10 flex flex-col items-center"
+                  style={{ transform: shouldFlip ? 'rotate(180deg)' : 'none' }}
+                >
+                  <span className="text-[12px] sm:text-lg font-black text-white drop-shadow-lg whitespace-nowrap">
+                    {s.label || `₹${s.value}`}
                   </span>
                 </div>
               </div>
@@ -298,8 +304,11 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
           })}
 
           {/* Center Hub */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 sm:w-16 sm:h-16 bg-[#0D4449] rounded-full border-4 border-gold z-20 flex items-center justify-center shadow-2xl">
-             <div className="w-full h-full rounded-full bg-[url('/images/lucky-mascot-new.png')] bg-cover bg-center opacity-80" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 sm:w-24 sm:h-24 bg-white rounded-full border-[6px] border-gold z-20 flex items-center justify-center shadow-2xl">
+             <div className="flex flex-col items-center justify-center">
+               <Gift className="text-gold animate-pulse" size={24} />
+               <span className="text-[8px] font-black text-charcoal uppercase tracking-widest mt-1">SPIN</span>
+             </div>
           </div>
         </div>
       </div>
