@@ -266,21 +266,18 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
           </div>
         </div>
 
-        {/* The Spinning Wheel (Now Dynamic) */}
-        <div
-          className="w-[86%] h-[86%] rounded-full z-10 shadow-[0_0_50px_rgba(0,0,0,0.3)] relative overflow-hidden border-4 border-white/20"
+        {/* The Spinning Whee        <div
+          className="w-[86%] h-[86%] rounded-full z-10 shadow-[0_0_50px_rgba(0,0,0,0.4)] relative overflow-hidden border-4 border-gold/30 bg-white"
           style={{
             transform: `rotate(${rotation}deg)`,
             transition: isSpinning ? 'transform 5s cubic-bezier(0.15,0,0.1,1)' : 'none',
-            background: `conic-gradient(from 0deg, ${segments.map((s, i) => {
-              const colors = ['#0D4449', '#c5a059', '#155e63', '#d4af37'];
-              const start = (i * 360) / segments.length;
-              const end = ((i + 1) * 360) / segments.length;
-              return `${colors[i % colors.length]} ${start}deg ${end}deg`;
-            }).join(', ')})`
+            backgroundImage: 'url(/images/wheel-bg.png)',
+            backgroundSize: '160% auto',
+            backgroundPosition: 'center 35%',
+            backgroundRepeat: 'no-repeat'
           }}
         >
-          {/* Dynamic Labels */}
+          {/* Dynamic Labels - Overlay on top of image labels */}
           {segments.map((s, i) => {
             const angle = (i * 360) / segments.length + (360 / segments.length / 2);
             const shouldFlip = angle > 90 && angle < 270;
@@ -294,7 +291,7 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
                   className="flex flex-col items-center pt-5 sm:pt-8"
                   style={{ transform: shouldFlip ? 'rotate(180deg)' : 'none' }}
                 >
-                  <span className="text-[11px] sm:text-base font-black text-white drop-shadow-xl whitespace-nowrap">
+                  <span className="text-[11px] sm:text-base font-black text-charcoal/80 drop-shadow-sm whitespace-nowrap">
                     {s.label || `₹${s.value}`}
                   </span>
                 </div>
@@ -302,12 +299,21 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
             );
           })}
 
-          {/* Center Hub */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 sm:w-24 sm:h-24 bg-white rounded-full border-[6px] border-gold z-20 flex items-center justify-center shadow-2xl">
-            <div className="flex flex-col items-center justify-center">
-              <Gift className="text-gold animate-pulse" size={24} />
-              <span className="text-[8px] font-black text-charcoal uppercase tracking-widest mt-1">SPIN</span>
+          {/* Center Hub Overlay */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 sm:w-24 sm:h-24 bg-white rounded-full border-[6px] border-gold z-20 flex items-center justify-center shadow-2xl overflow-hidden">
+            <div 
+              className="w-full h-full"
+              style={{
+                backgroundImage: 'url(/images/wheel-bg.png)',
+                backgroundSize: '400% auto',
+                backgroundPosition: 'center 46%',
+                backgroundRepeat: 'no-repeat'
+              }}
+            />
+            <div className="absolute inset-0 flex items-center justify-center bg-white/10 backdrop-blur-[2px]">
+              <span className="text-[10px] font-black text-charcoal uppercase tracking-tighter mt-1 bg-white/80 px-2 py-0.5 rounded-full shadow-sm">SPIN</span>
             </div>
+          </div>
           </div>
         </div>
       </div>
