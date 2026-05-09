@@ -314,10 +314,11 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
             <div className="absolute inset-0 flex items-center justify-center bg-white/10 backdrop-blur-[2px]">
               <span className="text-[10px] font-black text-charcoal uppercase tracking-tighter mt-1 bg-white/80 px-2 py-0.5 rounded-full shadow-sm">SPIN</span>
             </div>
-          </div>
+        </div>
       </div>
     </div>
-  );
+  </div>
+);
 
   const rightPanel = () => {
     if (showResult && winningSegment) {
