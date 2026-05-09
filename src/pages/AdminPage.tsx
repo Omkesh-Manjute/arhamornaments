@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Package, Plus, Edit, Trash2, Search, ShoppingCart, TrendingUp, DollarSign, Eye, X, Save, Upload, Image, Percent, Gem, Settings, Users, Wallet, Crown, Bell, Phone, Mail, Calendar, BadgeCheck, Loader2, Gift, LogOut, MapPin, History, Send, Shield, Info } from 'lucide-react';
+import { Package, Plus, Edit, Trash2, Search, ShoppingCart, TrendingUp, DollarSign, Eye, X, Save, Upload, Image, Percent, Gem, Settings, Users, Wallet, Crown, Bell, Phone, Mail, Calendar, BadgeCheck, Loader2, Gift, LogOut, MapPin, History, Send, Shield, Info, Folder, FolderSync, CheckCircle, AlertCircle } from 'lucide-react';
 import { categories } from '../data/products';
 import { Product, User } from '../types';
 import { formatPrice } from '../utils/whatsapp';
@@ -86,6 +86,8 @@ const AdminPage: React.FC = () => {
   const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
   const [bulkProcessingProgress, setBulkProcessingProgress] = useState(0);
   const [duplicateConflict, setDuplicateConflict] = useState<Product[]>([]);
+  const [folderImportData, setFolderImportData] = useState<{name: string, files: File[]}[]>([]);
+  const [showFolderPreview, setShowFolderPreview] = useState(false);
 
   const [promoSettings, setPromoSettings] = useState({
     newUserBonus: 100,
@@ -506,6 +508,111 @@ const AdminPage: React.FC = () => {
       alert("Failed to save product: " + (error.message || "Unknown error"));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleFolderUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    const groups: { [key: string]: File[] } = {};
+    files.forEach(file => {
+      const path = (file as any).webkitRelativePath || '';
+      const parts = path.split('/');
+      if (parts.length >= 2) {
+        // Folder structure: Root/ProductName/image.jpg
+        const folderName = parts[1]; 
+        if (!groups[folderName]) groups[folderName] = [];
+        if (file.type.startsWith('image/')) {
+          groups[folderName].push(file);
+        }
+      }
+    });
+
+    const formattedGroups = Object.entries(groups)
+      .filter(([_, groupFiles]) => groupFiles.length > 0)
+      .map(([name, files]) => ({ name, files }));
+
+    if (formattedGroups.length === 0) {
+      alert("No valid product folders detected. Please ensure you select a folder containing subfolders with images.");
+      return;
+    }
+
+    setFolderImportData(formattedGroups);
+    setShowFolderPreview(true);
+  };
+
+  const processFolderImport = async () => {
+    const confirmed = confirm(`Are you sure you want to import ${folderImportData.length} products? Existing products with matching codes will be updated.`);
+    if (!confirmed) return;
+
+    setShowFolderPreview(false);
+    setLoading(true);
+    setBulkStatus(`Starting import of ${folderImportData.length} products...`);
+    setBulkProcessingProgress(1);
+
+    try {
+      let count = 0;
+      for (const group of folderImportData) {
+        const productCode = group.name;
+        const existing = products.find(p => p.designNo === productCode || p.name === productCode);
+        
+        setBulkStatus(`Uploading images for: ${productCode} (${count + 1}/${folderImportData.length})`);
+        
+        const imageUrls: string[] = [];
+        for (const file of group.files) {
+          try {
+            const url = await handleCompressedUpload(file);
+            if (url) imageUrls.push(url);
+          } catch (err) {
+            console.error(`Failed to upload image for ${productCode}:`, err);
+          }
+        }
+
+        if (imageUrls.length === 0 && !existing) {
+          console.warn(`Skipping ${productCode} - no images and no existing record.`);
+          continue;
+        }
+
+        const productData: Product = {
+          id: existing?.id || Date.now().toString() + Math.random().toString(36).substr(2, 5),
+          name: existing?.name || productCode,
+          designNo: existing?.designNo || productCode,
+          price: existing?.price || 0,
+          category: (existing?.category || 'rings') as any,
+          material: (existing?.material || 'gold') as any,
+          description: existing?.description || `Imported product: ${productCode}`,
+          images: imageUrls.length > 0 ? imageUrls : (existing?.images || []),
+          inStock: true,
+          occasion: existing?.occasion || 'daily',
+          rating: existing?.rating || 4.5,
+          reviews: existing?.reviews || 0
+        };
+
+        await productService.saveProduct(productData);
+        
+        await adminService.createAuditLog({
+          adminId: auth.currentUser?.uid || 'unknown',
+          adminEmail: auth.currentUser?.email || 'unknown',
+          action: existing ? 'UPDATE_PRODUCT_FOLDER' : 'IMPORT_PRODUCT_FOLDER',
+          details: `${existing ? 'Updated' : 'Imported'} product ${productCode} from folder import.`
+        });
+
+        count++;
+        setBulkProcessingProgress(Math.round((count / folderImportData.length) * 100));
+      }
+
+      const all = await productService.getAllProducts();
+      setProducts(all);
+      setBulkStatus(`✅ Successfully processed ${count} products!`);
+      setTimeout(() => setBulkStatus(''), 10000);
+    } catch (error) {
+      console.error("Folder Import Error:", error);
+      setBulkStatus('❌ Error during folder import');
+    } finally {
+      setLoading(false);
+      setBulkProcessingProgress(0);
+      setFolderImportData([]);
     }
   };
 
@@ -976,9 +1083,19 @@ const AdminPage: React.FC = () => {
                       </div>
 
                       <div className="flex gap-2">
-                        <label className="px-4 py-2 bg-white/5 border border-white/10 text-gray-300 rounded-xl text-xs font-bold hover:bg-white/10 transition-colors cursor-pointer flex items-center gap-2">
+                        <label className="px-4 py-2 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-xl text-xs font-bold hover:bg-blue-500/20 transition-colors cursor-pointer flex items-center gap-2">
                           <Plus size={14} /> Import CSV
                           <input type="file" accept=".csv" className="hidden" onChange={handleCSVUpload} />
+                        </label>
+                        <label className="px-4 py-2 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-xl text-xs font-bold hover:bg-amber-500/20 transition-colors cursor-pointer flex items-center gap-2">
+                          <Folder size={14} /> Import Folders
+                          <input 
+                            type="file" 
+                            {...({ webkitdirectory: "", directory: "" } as any)} 
+                            multiple 
+                            className="hidden" 
+                            onChange={handleFolderUpload} 
+                          />
                         </label>
                         <button className="px-4 py-2 bg-white/5 border border-white/10 text-gray-300 rounded-xl text-xs font-bold hover:bg-white/10 transition-colors">Download Template</button>
                       </div>
@@ -1945,6 +2062,69 @@ const AdminPage: React.FC = () => {
                       </div>
                     )}
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* FOLDER IMPORT PREVIEW MODAL */}
+        {showFolderPreview && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+            <div className="bg-[#161616] rounded-2xl shadow-2xl w-full max-w-3xl max-h-[92vh] flex flex-col border border-[#333333]">
+              <div className="sticky top-0 bg-[#161616] border-b border-[#222222] px-6 py-4 flex items-center justify-between rounded-t-2xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-500">
+                    <FolderSync size={20} />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-white">Folder Import Preview</h3>
+                    <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Detected {folderImportData.length} Products</p>
+                  </div>
+                </div>
+                <button onClick={() => setShowFolderPreview(false)} className="p-2 hover:bg-white/5 text-gray-400 rounded-xl transition"><X size={18} /></button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-6">
+                <div className="grid grid-cols-1 gap-3">
+                  {folderImportData.map((group, idx) => {
+                    const isExisting = products.some(p => p.designNo === group.name || p.name === group.name);
+                    return (
+                      <div key={idx} className="bg-[#0D0D0D] border border-[#222222] rounded-xl p-4 flex items-center justify-between group hover:border-[#333333] transition-colors">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 bg-white/5 rounded-lg flex items-center justify-center relative">
+                            <Image size={20} className="text-gray-600" />
+                            <span className="absolute -top-2 -right-2 bg-[#3B82F6] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{group.files.length}</span>
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-gray-200">{group.name}</p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              {isExisting ? (
+                                <span className="flex items-center gap-1 text-[10px] text-amber-400 font-bold uppercase"><AlertCircle size={10} /> Update Existing</span>
+                              ) : (
+                                <span className="flex items-center gap-1 text-[10px] text-green-400 font-bold uppercase"><CheckCircle size={10} /> New Product</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[10px] text-gray-500 uppercase font-bold tracking-tighter">Ready for upload</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="p-6 bg-[#0D0D0D] border-t border-[#222222] rounded-b-2xl flex items-center justify-between">
+                <div className="text-xs text-gray-500 flex items-center gap-2">
+                  <Info size={14} />
+                  Images will be auto-compressed and uploaded to Storage.
+                </div>
+                <div className="flex gap-3">
+                  <button onClick={() => setShowFolderPreview(false)} className="px-6 py-2.5 text-gray-400 font-bold hover:bg-white/5 rounded-xl transition">Cancel</button>
+                  <button onClick={processFolderImport} className="px-8 py-2.5 bg-amber-500 text-white font-bold rounded-xl shadow-lg shadow-amber-500/20 hover:bg-amber-600 transition flex items-center gap-2">
+                    <FolderSync size={18} /> Start Bulk Import
+                  </button>
                 </div>
               </div>
             </div>
