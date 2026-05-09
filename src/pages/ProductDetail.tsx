@@ -32,12 +32,10 @@ const ProductDetail: React.FC = () => {
       setLoading(true);
       
       try {
-        // 1. Try database first (source of truth)
         const dbProduct = await productService.getProductById(id);
         if (dbProduct) {
           setProduct(dbProduct);
         } else {
-          // 2. Fallback to static data
           const staticP = staticProducts.find(p => p.id === id);
           setProduct(staticP || null);
         }
@@ -60,6 +58,47 @@ const ProductDetail: React.FC = () => {
       setSelectedQuality(product.diamondQuality || 'VS');
     }
   }, [product]);
+
+  // AI Recommendations logic moved to top (safe access)
+  const completeTheLook = useMemo(() => {
+    if (!product) return [];
+    return staticProducts
+      .filter(p => 
+        p.id !== product.id && 
+        p.material === product.material && 
+        p.category === product.category &&
+        (p.occasion === product.occasion || p.featured)
+      )
+      .slice(0, 4);
+  }, [product?.id, product?.category]);
+
+  const relatedProducts = useMemo(() => {
+    if (!product) return [];
+    let related = staticProducts.filter(p => p.category === product.category && p.id !== product.id);
+    if (related.length === 0) {
+      related = staticProducts.filter(p => p.id !== product.id && (p.trending || p.featured));
+    }
+    return related.slice(0, 4);
+  }, [product?.id, product?.category]);
+
+  // Recently Viewed Logic moved to top
+  const [recentlyViewed, setRecentlyViewed] = useState<any[]>([]);
+
+  React.useEffect(() => {
+    if (product) {
+      const stored = localStorage.getItem('recentlyViewed');
+      let viewedIds: string[] = stored ? JSON.parse(stored) : [];
+      viewedIds = viewedIds.filter(vId => vId !== product.id);
+      const viewedProducts = viewedIds
+        .map(vId => staticProducts.find(p => p.id === vId))
+        .filter((p): p is any => !!p)
+        .slice(0, 4);
+      setRecentlyViewed(viewedProducts);
+      viewedIds.unshift(product.id);
+      const limitedIds = viewedIds.slice(0, 10);
+      localStorage.setItem('recentlyViewed', JSON.stringify(limitedIds));
+    }
+  }, [product?.id]);
 
   if (loading) {
     return (
@@ -88,32 +127,7 @@ const ProductDetail: React.FC = () => {
   }
 
   const currentPrice = calculateProductPrice(product, selectedPurity);
-  
-  const discount = product.originalPrice 
-    ? calculateDiscount(product.originalPrice, currentPrice) 
-    : 0;
-
-  // AI Recommendations: "Complete the Look"
-  // Logic: Same material, different category, similar occasion
-  const completeTheLook = staticProducts
-    .filter(p => 
-      p.id !== product.id && 
-      p.material === product.material && 
-      p.category === product.category &&
-      (p.occasion === product.occasion || p.featured)
-    )
-    .slice(0, 4);
-
-  const relatedProducts = useMemo(() => {
-    let related = staticProducts.filter(p => p.category === product.category && p.id !== product.id);
-    
-    // Fallback: If no similar products in same category, show trending/featured items from other categories
-    if (related.length === 0) {
-      related = staticProducts.filter(p => p.id !== product.id && (p.trending || p.featured));
-    }
-    
-    return related.slice(0, 4);
-  }, [product?.id, product?.category]);
+  const discount = product.originalPrice ? calculateDiscount(product.originalPrice, currentPrice) : 0;
 
   const handleWhatsAppEnquiry = () => {
     const message = generateProductEnquiryMessage({ ...product, price: currentPrice });
@@ -126,33 +140,6 @@ const ProductDetail: React.FC = () => {
       selectedQuality
     });
   };
-
-  // Recently Viewed Logic
-  const [recentlyViewed, setRecentlyViewed] = useState<any[]>([]);
-
-  React.useEffect(() => {
-    if (product) {
-      // 1. Get existing from local storage
-      const stored = localStorage.getItem('recentlyViewed');
-      let viewedIds: string[] = stored ? JSON.parse(stored) : [];
-
-      // 2. Filter out current and ensure uniqueness
-      viewedIds = viewedIds.filter(id => id !== product.id);
-      
-      // 3. Update state with what was already there (before adding current)
-      const viewedProducts = viewedIds
-        .map(id => staticProducts.find(p => p.id === id))
-        .filter((p): p is any => !!p)
-        .slice(0, 4);
-      
-      setRecentlyViewed(viewedProducts);
-
-      // 4. Add current ID to the front for NEXT page visit
-      viewedIds.unshift(product.id);
-      const limitedIds = viewedIds.slice(0, 10);
-      localStorage.setItem('recentlyViewed', JSON.stringify(limitedIds));
-    }
-  }, [product?.id]);
 
   return (
     <div className="min-h-screen bg-[#FCFBF7]">
