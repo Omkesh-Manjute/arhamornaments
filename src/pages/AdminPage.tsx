@@ -616,6 +616,31 @@ const AdminPage: React.FC = () => {
     }
   };
 
+  const handleDeleteAllProducts = async () => {
+    if (!window.confirm("⚠️ DANGER: This will delete ALL product records from the database. This action cannot be undone. Are you absolutely sure?")) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await productService.deleteAllProducts();
+      await adminService.createAuditLog({
+        adminId: auth.currentUser?.uid || 'unknown',
+        adminEmail: auth.currentUser?.email || 'unknown',
+        action: 'DELETE_ALL_PRODUCTS',
+        details: 'Admin deleted all products from the system.'
+      });
+      const all = await productService.getAllProducts();
+      setProducts(all);
+      alert("All products have been successfully deleted.");
+    } catch (error: any) {
+      console.error("Delete All Error:", error);
+      alert("Failed to delete all products: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCSVUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -1518,6 +1543,14 @@ const AdminPage: React.FC = () => {
                     <button onClick={openAdd} className="flex items-center gap-2 px-5 py-2 bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition shadow-[0_0_15px_rgba(245,158,11,0.3)] font-medium text-sm">
                       <Plus size={18} /> Add Product
                     </button>
+                    {products.length > 0 && (
+                      <button 
+                        onClick={handleDeleteAllProducts} 
+                        className="flex items-center gap-2 px-5 py-2 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl hover:bg-red-500 hover:text-white transition font-medium text-sm"
+                      >
+                        <Trash2 size={18} /> Clear All
+                      </button>
+                    )}
                   </div>
                   <div className="bg-[#161616] rounded-2xl border border-[#222222] shadow-sm overflow-hidden">
                     <div className="overflow-x-auto">

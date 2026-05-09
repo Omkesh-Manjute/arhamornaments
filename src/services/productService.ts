@@ -91,6 +91,21 @@ export const productService = {
   async deleteProduct(id: string): Promise<void> {
     const productDocRef = doc(db, 'products', id);
     await deleteDoc(productDocRef);
+  },
+
+  /**
+   * Deletes all products from Firestore.
+   */
+  async deleteAllProducts(): Promise<void> {
+    const productsRef = collection(db, 'products');
+    const querySnapshot = await getDocs(productsRef);
+    
+    const batch = writeBatch(db);
+    querySnapshot.docs.forEach((doc) => {
+      batch.delete(doc.ref);
+    });
+    
+    await batch.commit();
   }
 };
 
