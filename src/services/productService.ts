@@ -110,8 +110,9 @@ export const productService = {
 
   /**
    * Scans Storage 'products' folder and creates Firestore records for missing items.
+   * @param granular If true, treats each image as a separate product.
    */
-  async syncStorageWithFirestore(): Promise<number> {
+  async syncStorageWithFirestore(granular: boolean = false): Promise<number> {
     const rootRef = ref(storage, 'products');
     let count = 0;
 
@@ -123,29 +124,60 @@ export const productService = {
       );
 
       if (imageFiles.length > 0) {
-        const productCode = folderRef.name;
-        const productsRef = collection(db, 'products');
-        const querySnapshot = await getDocs(productsRef);
-        const exists = querySnapshot.docs.some(doc => doc.data().designNo === productCode || doc.id === productCode);
+        if (granular) {
+          // Treat each image as a separate product
+          for (const item of imageFiles) {
+            const productCode = item.name.split('.')[0]; // Use filename as code
+            const productsRef = collection(db, 'products');
+            const querySnapshot = await getDocs(productsRef);
+            const exists = querySnapshot.docs.some(doc => doc.data().designNo === productCode || doc.id === productCode);
 
-        if (!exists) {
-          const imageUrls = await Promise.all(imageFiles.map(item => getDownloadURL(item)));
-          const productData: any = {
-            name: productCode,
-            designNo: productCode,
-            price: 0,
-            category: 'rings',
-            material: 'gold',
-            description: `Imported from Storage: ${productCode}`,
-            images: imageUrls,
-            inStock: true,
-            occasion: 'daily',
-            rating: 4.5,
-            reviews: 0,
-            createdAt: new Date().toISOString()
-          };
-          await setDoc(doc(db, 'products', productCode), productData);
-          count++;
+            if (!exists) {
+              const url = await getDownloadURL(item);
+              const productData: any = {
+                name: productCode,
+                designNo: productCode,
+                price: 0,
+                category: 'rings',
+                material: 'gold',
+                description: `Imported from Storage: ${productCode}`,
+                images: [url],
+                inStock: true,
+                occasion: 'daily',
+                rating: 4.5,
+                reviews: 0,
+                createdAt: new Date().toISOString()
+              };
+              await setDoc(doc(db, 'products', productCode), productData);
+              count++;
+            }
+          }
+        } else {
+          // Group all images in folder as one product
+          const productCode = folderRef.name;
+          const productsRef = collection(db, 'products');
+          const querySnapshot = await getDocs(productsRef);
+          const exists = querySnapshot.docs.some(doc => doc.data().designNo === productCode || doc.id === productCode);
+
+          if (!exists) {
+            const imageUrls = await Promise.all(imageFiles.map(item => getDownloadURL(item)));
+            const productData: any = {
+              name: productCode,
+              designNo: productCode,
+              price: 0,
+              category: 'rings',
+              material: 'gold',
+              description: `Imported from Storage: ${productCode}`,
+              images: imageUrls,
+              inStock: true,
+              occasion: 'daily',
+              rating: 4.5,
+              reviews: 0,
+              createdAt: new Date().toISOString()
+            };
+            await setDoc(doc(db, 'products', productCode), productData);
+            count++;
+          }
         }
       }
 
