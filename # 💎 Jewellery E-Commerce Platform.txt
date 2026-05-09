@@ -50,7 +50,7 @@ Platform fast, secure aur scalable hoga using Google Firebase backend.
 * Featured jewellery
 * Trending products (image/video)
 * Offers & banners
-
+* refer & Earn 
 ### 🔍 Product Listing
 
 * Categories:

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MessageCircle, Check, MapPin, User, Gift, Sparkles, ShieldCheck, ChevronLeft, CreditCard } from 'lucide-react';
 import { useCart } from '../context/CartContext';
@@ -16,7 +16,7 @@ interface FormData {
 }
 
 const CheckoutPage: React.FC = () => {
-  const { items, totalPrice, clearCart, giftOptions } = useCart();
+  const { items, totalPrice, clearCart, giftOptions, walletRedemption } = useCart();
   const { user, addNotification } = useUser();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -32,12 +32,32 @@ const CheckoutPage: React.FC = () => {
     notes: ''
   });
 
+  // Auto-fill form data from user profile
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        name: user.name || prev.name,
+        phone: user.phone || prev.phone,
+        email: user.email || prev.email,
+        address: user.streetAddress || user.address || prev.address,
+        city: user.city || prev.city,
+        pincode: user.pincode || prev.pincode,
+      }));
+    }
+  }, [user]);
+
   const [errors, setErrors] = useState<Partial<FormData>>({});
 
   // Calculate Grand Total including Gift Surcharges
   const giftSurcharge = giftOptions.wrapType === 'luxury' ? 500 : 0;
-  const shippingCost = totalPrice >= 50000 ? 0 : 500;
-  const grandTotal = totalPrice + shippingCost + giftSurcharge;
+  const shippingCost = 0; // Removed as requested
+  
+  const availableWalletBalance = user?.walletBalance || 0;
+  const subtotalBeforeRedeem = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0) + giftSurcharge;
+  const redeemedAmount = walletRedemption.isRedeemed ? Math.min(subtotalBeforeRedeem, availableWalletBalance) : 0;
+  
+  const grandTotal = subtotalBeforeRedeem - redeemedAmount;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -84,7 +104,7 @@ const CheckoutPage: React.FC = () => {
       name: formData.name,
       phone: formData.phone,
       address: fullAddress
-    });
+    }, redeemedAmount);
 
     // Add Gift Personalization to Message
     if (giftOptions.isGift) {
@@ -94,7 +114,7 @@ const CheckoutPage: React.FC = () => {
       if (giftOptions.videoMessageUrl) message += `\nVideo Message QR: ${giftOptions.videoMessageUrl}`;
     }
 
-    message += `\n\n💰 *FINAL TOTAL:* ${formatPrice(grandTotal)}`;
+
 
     // Add notes if any
     const finalMessage = formData.notes 
@@ -390,8 +410,14 @@ const CheckoutPage: React.FC = () => {
                   )}
                   <div className="flex justify-between text-white/60 text-sm">
                     <span>Delivery</span>
-                    <span>{shippingCost === 0 ? <span className="text-gold uppercase text-[10px] font-black">Complimentary</span> : formatPrice(shippingCost)}</span>
+                    <span className="text-gold uppercase text-[10px] font-black tracking-widest">Complimentary</span>
                   </div>
+                  {walletRedemption.isRedeemed && redeemedAmount > 0 && (
+                    <div className="flex justify-between text-green-400 text-sm">
+                      <span>Wallet Discount</span>
+                      <span>-{formatPrice(redeemedAmount)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between items-end pt-4 border-t border-white/10">
                     <div className="space-y-1">
                       <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gold">Final Investment</p>

@@ -9,8 +9,9 @@ interface CartContextType {
   updateQuantity: (productId: string, quantity: number) => void;
   updateGiftOptions: (options: Partial<GiftOptions>) => void;
   clearCart: () => void;
-  totalItems: number;
   totalPrice: number;
+  walletRedemption: { isRedeemed: boolean };
+  toggleWalletRedemption: () => void;
 }
 
 const defaultGiftOptions: GiftOptions = {
@@ -32,6 +33,8 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const saved = localStorage.getItem('giftOptions');
     return saved ? JSON.parse(saved) : defaultGiftOptions;
   });
+
+  const [walletRedemption, setWalletRedemption] = useState({ isRedeemed: false });
 
   const saveToStorage = useCallback((cartItems: CartItem[], options: GiftOptions) => {
     localStorage.setItem('cart', JSON.stringify(cartItems));
@@ -99,8 +102,13 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const clearCart = useCallback(() => {
     setItems([]);
     setGiftOptions(defaultGiftOptions);
+    setWalletRedemption({ isRedeemed: false });
     localStorage.removeItem('cart');
     localStorage.removeItem('giftOptions');
+  }, []);
+
+  const toggleWalletRedemption = useCallback(() => {
+    setWalletRedemption(prev => ({ isRedeemed: !prev.isRedeemed }));
   }, []);
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -117,7 +125,9 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       updateGiftOptions,
       clearCart,
       totalItems,
-      totalPrice
+      totalPrice,
+      walletRedemption,
+      toggleWalletRedemption
     }}>
       {children}
     </CartContext.Provider>

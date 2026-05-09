@@ -2,11 +2,14 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, MessageCircle, ArrowLeft, ShieldCheck, Truck, Sparkles } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useUser } from '../context/UserContext';
 import { formatPrice, generateCartOrderMessage, openWhatsApp } from '../utils/whatsapp';
 import GiftPersonalization from '../components/GiftPersonalization';
+import WalletRedemption from '../components/WalletRedemption';
 
 const CartPage: React.FC = () => {
-  const { items, removeFromCart, updateQuantity, giftOptions, clearCart } = useCart();
+  const { items, removeFromCart, updateQuantity, giftOptions, clearCart, walletRedemption } = useCart();
+  const { user } = useUser();
   const navigate = useNavigate();
 
   const handleWhatsAppOrder = () => {
@@ -40,9 +43,13 @@ const CartPage: React.FC = () => {
   }
 
   const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
-  const shippingCost = subtotal >= 50000 ? 0 : 500;
+  const shippingCost = 0; // Removed shipping charges as requested
   const giftCharge = giftOptions.isGift && giftOptions.wrapType === 'luxury' ? 499 : 0;
-  const grandTotal = subtotal + shippingCost + giftCharge;
+
+  const availableWalletBalance = user?.walletBalance || 0;
+  const redeemedAmount = walletRedemption.isRedeemed ? Math.min(subtotal + giftCharge, availableWalletBalance) : 0;
+
+  const grandTotal = subtotal + shippingCost + giftCharge - redeemedAmount;
 
   return (
     <div className="min-h-screen bg-[#FCFBF7] pb-24">
@@ -86,10 +93,10 @@ const CartPage: React.FC = () => {
                           className="w-full h-full object-cover"
                         />
                       </Link>
-                      
+
                       {/* Mobile Title Area (Shown only on mobile to save space) */}
                       <div className="sm:hidden flex-1 py-1">
-                        <Link 
+                        <Link
                           to={`/product/${item.product.id}`}
                           className="text-base font-bold text-charcoal hover:text-gold transition-colors line-clamp-2"
                         >
@@ -104,7 +111,7 @@ const CartPage: React.FC = () => {
                           </span>
                         </div>
                       </div>
-                      
+
                       <button
                         onClick={() => removeFromCart(item.product.id)}
                         className="sm:hidden w-8 h-8 flex items-center justify-center text-gray-300 hover:text-red-500 transition-all self-start"
@@ -118,7 +125,7 @@ const CartPage: React.FC = () => {
                       {/* Desktop Title & Delete */}
                       <div className="hidden sm:flex justify-between items-start">
                         <div>
-                          <Link 
+                          <Link
                             to={`/product/${item.product.id}`}
                             className="text-xl font-bold text-charcoal hover:text-gold transition-colors block"
                           >
@@ -178,6 +185,7 @@ const CartPage: React.FC = () => {
             </div>
 
             <GiftPersonalization />
+            <WalletRedemption />
 
             <Link
               to="/products"
@@ -192,7 +200,7 @@ const CartPage: React.FC = () => {
             <div className="bg-charcoal text-white rounded-[3rem] p-10 sticky top-24 shadow-2xl overflow-hidden relative">
               {/* Luxury Accent */}
               <div className="absolute top-0 right-0 w-40 h-40 bg-gold opacity-10 rounded-full -mr-20 -mt-20 blur-3xl"></div>
-              
+
               <h3 className="text-2xl font-heading font-bold mb-8 flex items-center gap-3">
                 <Sparkles size={24} className="text-gold" />
                 Treasury Summary
@@ -203,13 +211,18 @@ const CartPage: React.FC = () => {
                   <span className="text-white/50 text-[10px] font-black uppercase tracking-[0.2em]">Merchandise</span>
                   <span className="font-bold">{formatPrice(subtotal)}</span>
                 </div>
-                
+
                 <div className="flex justify-between items-center">
                   <span className="text-white/50 text-[10px] font-black uppercase tracking-[0.2em]">Concierge & Ship</span>
-                  <span className="font-bold">
-                    {shippingCost === 0 ? <span className="text-gold">Complimentary</span> : formatPrice(shippingCost)}
-                  </span>
+                  <span className="text-gold font-bold uppercase text-[10px] tracking-widest">Complimentary</span>
                 </div>
+
+                {walletRedemption.isRedeemed && redeemedAmount > 0 && (
+                  <div className="flex justify-between items-center text-green-400 animate-in fade-in slide-in-from-right-4 duration-300">
+                    <span className="text-green-400/70 text-[10px] font-black uppercase tracking-[0.2em]">Wallet Redeemed</span>
+                    <span className="font-bold">-{formatPrice(redeemedAmount)}</span>
+                  </div>
+                )}
 
                 {giftOptions.isGift && (
                   <div className="flex justify-between items-center animate-in fade-in zoom-in duration-300">
@@ -219,12 +232,11 @@ const CartPage: React.FC = () => {
                     </span>
                   </div>
                 )}
-                
-                {shippingCost > 0 && (
+
+                {subtotal < 50000 && (
                   <div className="bg-white/5 p-4 rounded-2xl">
-                    <p className="text-[9px] text-gold font-black uppercase tracking-widest leading-relaxed">
-                      Complimentary white-glove delivery on orders above {formatPrice(50000)}. 
-                      <Link to="/products" className="underline ml-1">Add {formatPrice(50000 - subtotal)} more</Link>
+                    <p className="text-[9px] text-white/40 font-bold uppercase tracking-widest leading-relaxed">
+                      All orders include Arham's signature white-glove delivery experience.
                     </p>
                   </div>
                 )}

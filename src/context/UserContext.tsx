@@ -1,101 +1,123 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Notification } from '../types';
+import { auth, db } from '../lib/firebase';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { doc, getDoc, setDoc, updateDoc, onSnapshot, arrayUnion, increment, serverTimestamp } from 'firebase/firestore';
+import { referralService } from '../services/referralService';
 
 
 interface UserContextType {
   user: User | null;
   isLoggedIn: boolean;
-  login: (name: string, email: string, phone: string, referralCode?: string) => void;
-  logout: () => void;
-  addWinnings: (amount: number) => void;
+  loading: boolean;
+  login: (name: string, email: string, phone: string, address: string, referralCode?: string) => Promise<void>;
+  logout: () => Promise<void>;
+  addWinnings: (amount: number) => Promise<void>;
   canSpin: () => boolean;
-  recordSpin: (amount: number) => void;
-  addNotification: (notification: Omit<Notification, 'id' | 'date' | 'isRead'>) => void;
-  markNotificationsRead: () => void;
+  recordSpin: (amount: number) => Promise<void>;
+  addNotification: (notification: Omit<Notification, 'id' | 'date' | 'isRead'>) => Promise<void>;
+  markNotificationsRead: () => Promise<void>;
+  updateProfile: (data: Partial<User>) => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const generateReferralCode = (name: string) => {
     const safeName = name || 'User';
     return (safeName.substring(0, 3).toUpperCase() + Math.random().toString(36).substring(2, 6).toUpperCase());
   };
 
-  // Data version — bump this to force-clear stale localStorage on next load
-  const DATA_VERSION = 'v2';
-
   useEffect(() => {
-    // Check version — clear old data if stale
-    const storedVersion = localStorage.getItem('arham_data_version');
-    if (storedVersion !== DATA_VERSION) {
-      localStorage.removeItem('arham_user');
-      localStorage.setItem('arham_data_version', DATA_VERSION);
-    }
+    const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        // User is signed in, fetch profile from Firestore
+        const userDocRef = doc(db, 'users', firebaseUser.uid);
+        
+        // Listen for real-time updates to the user profile
+        const unsubscribeDoc = onSnapshot(userDocRef, (docSnap) => {
+          if (docSnap.exists()) {
+            setUser({ id: firebaseUser.uid, ...docSnap.data() } as User);
+          } else {
+            // Document doesn't exist yet, but user is authenticated
+            // This case is handled during the login/signup flow
+            setUser(null);
+          }
+          setLoading(false);
+        });
 
-    const savedUser = localStorage.getItem('arham_user');
-    if (savedUser) {
-      try {
-        const parsed = JSON.parse(savedUser);
-        if (parsed && typeof parsed === 'object' && parsed.id && parsed.name && parsed.phone) {
-          // Sanitize all fields with safe defaults
-          const safeUser: User = {
-            ...parsed,
-            name: parsed.name || 'Guest',
-            email: parsed.email || '',
-            phone: parsed.phone || '',
-            walletBalance: typeof parsed.walletBalance === 'number' ? parsed.walletBalance : 0,
-            points: typeof parsed.points === 'number' ? parsed.points : 0,
-            tier: parsed.tier || 'silver',
-            referralCode: parsed.referralCode || generateReferralCode(parsed.name || 'User'),
-            referralCount: typeof parsed.referralCount === 'number' ? parsed.referralCount : 0,
-            joinedDate: parsed.joinedDate || new Date().toISOString(),
-            // Sanitize notifications — ensure each has a valid 'type' field
-            notifications: Array.isArray(parsed.notifications)
-              ? parsed.notifications.map((n: any) => ({
-                  id: n.id || Date.now().toString(),
-                  title: n.title || 'Notification',
-                  message: n.message || '',
-                  type: n.type || 'system',
-                  date: n.date || new Date().toISOString(),
-                  isRead: typeof n.isRead === 'boolean' ? n.isRead : false,
-                }))
-              : [],
-          };
-          setUser(safeUser);
-          // Write back the sanitized version
-          localStorage.setItem('arham_user', JSON.stringify(safeUser));
-        } else {
-          localStorage.removeItem('arham_user');
-        }
-      } catch (e) {
-        console.error('Safe parse failed', e);
-        localStorage.removeItem('arham_user');
+        return () => unsubscribeDoc();
+      } else {
+        setUser(null);
+        setLoading(false);
       }
-    }
+    });
+
+    return () => unsubscribeAuth();
   }, []);
 
-  const login = (name: string, email: string, phone: string, referralCode?: string) => {
+  const login = async (name: string, email: string, phone: string, address: string, referralCode?: string) => {
+    // Wait for auth to be ready
+    if (!auth.currentUser) {
+      let attempts = 0;
+      while (!auth.currentUser && attempts < 20) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+      }
+    }
+
+    const firebaseUser = auth.currentUser;
+    if (!firebaseUser) throw new Error("No authenticated user found. Please try again.");
+
+    const uid = firebaseUser.uid;
+
+    // Check if document already exists to avoid overwriting existing data (like wallet balance)
+    const userDocRef = doc(db, 'users', uid);
+    const userDoc = await getDoc(userDocRef);
+
+    if (userDoc.exists()) {
+      // User already exists, just update name/email/phone if they changed
+      await updateDoc(userDocRef, {
+        name,
+        email,
+        phone,
+        address
+      });
+      return;
+    }
+
+    // New user setup
     const hasReferral = !!(referralCode && referralCode.trim());
-    const newUser: User = {
-      id: Date.now().toString(),
+    let referrerUid: string | null = null;
+    if (hasReferral) {
+      try {
+        referrerUid = await referralService.validateCode(referralCode!);
+      } catch (err) {
+        console.warn("Referral validation failed:", err);
+      }
+    }
+
+    const userData = {
       name,
       email,
       phone,
-      walletBalance: hasReferral ? 100 : 0,
+      address,
+      walletBalance: referrerUid ? 100 : 0,
       tier: 'silver',
       points: 450,
       joinedDate: new Date().toISOString(),
+      createdAt: serverTimestamp(),
       referralCode: generateReferralCode(name),
-      referredBy: hasReferral ? referralCode : undefined,
+      referredBy: referrerUid || null,
       referralCount: 0,
       notifications: [
         {
           id: Date.now().toString(),
           title: 'Welcome to Arham Ornaments! 🎉',
-          message: hasReferral
+          message: referrerUid
             ? `You joined with a referral code. ₹100 has been added to your wallet as a welcome bonus!`
             : `Welcome! Explore exclusive rewards, spin the wheel daily, and refer friends to earn more.`,
           type: 'system',
@@ -104,29 +126,32 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       ]
     };
-    setUser(newUser);
-    localStorage.setItem('arham_user', JSON.stringify(newUser));
-    // Also persist to global customers list for admin view
-    try {
-      const all = JSON.parse(localStorage.getItem('arham_all_users') || '[]');
-      const exists = all.find((u: any) => u.id === newUser.id);
-      if (!exists) localStorage.setItem('arham_all_users', JSON.stringify([...all, newUser]));
-    } catch {}
+
+    await setDoc(userDocRef, userData, { merge: true });
+
+    // Credit the referrer
+    if (referrerUid) {
+      try {
+        await referralService.creditReferrer(referrerUid, name);
+      } catch (err) {
+        console.error("Failed to credit referrer:", err);
+      }
+    }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('arham_user');
+
+  const logout = async () => {
+    await signOut(auth);
   };
 
-  const addWinnings = (amount: number) => {
-    setUser(prev => {
-      if (!prev) return null;
-      const updatedUser = { ...prev, walletBalance: prev.walletBalance + amount };
-      localStorage.setItem('arham_user', JSON.stringify(updatedUser));
-      return updatedUser;
+  const addWinnings = async (amount: number) => {
+    if (!user) return;
+    const userDocRef = doc(db, 'users', user.id);
+    await updateDoc(userDocRef, {
+      walletBalance: increment(amount)
     });
   };
+
 
   const canSpin = () => {
     if (!user) return false;
@@ -137,68 +162,69 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return lastSpin.toDateString() !== today.toDateString();
   };
 
-  const recordSpin = (amount: number) => {
-    setUser(prev => {
-      if (!prev) return null;
-      const updatedUser: User = { 
-        ...prev, 
-        walletBalance: prev.walletBalance + amount,
-        lastSpinDate: new Date().toISOString(),
-        notifications: [
-          {
-            id: Date.now().toString(),
-            title: 'Lucky Spin Reward',
-            message: `You won ₹${amount} from your daily spin!`,
-            type: 'offer',
-            date: new Date().toISOString(),
-            isRead: false
-          },
-          ...(prev.notifications || [])
-        ]
-      };
-      localStorage.setItem('arham_user', JSON.stringify(updatedUser));
-      return updatedUser;
+  const recordSpin = async (amount: number) => {
+    if (!user) return;
+    const userDocRef = doc(db, 'users', user.id);
+    
+    const newNotif: Notification = {
+      id: Date.now().toString(),
+      title: 'Lucky Spin Reward',
+      message: `You won ₹${amount} from your daily spin!`,
+      type: 'offer',
+      date: new Date().toISOString(),
+      isRead: false
+    };
+
+    await updateDoc(userDocRef, {
+      walletBalance: increment(amount),
+      lastSpinDate: new Date().toISOString(),
+      notifications: arrayUnion(newNotif)
     });
   };
 
-  const addNotification = (notif: Omit<Notification, 'id' | 'date' | 'isRead'>) => {
-    setUser(prev => {
-      if (!prev) return null;
-      const newNotif: Notification = {
-        ...notif,
-        id: Date.now().toString(),
-        date: new Date().toISOString(),
-        isRead: false
-      };
-      const updatedUser = { ...prev, notifications: [newNotif, ...(prev.notifications || [])] };
-      localStorage.setItem('arham_user', JSON.stringify(updatedUser));
-      return updatedUser;
+
+  const addNotification = async (notif: Omit<Notification, 'id' | 'date' | 'isRead'>) => {
+    if (!user) return;
+    const userDocRef = doc(db, 'users', user.id);
+    const newNotif: Notification = {
+      ...notif,
+      id: Date.now().toString(),
+      date: new Date().toISOString(),
+      isRead: false
+    };
+    await updateDoc(userDocRef, {
+      notifications: arrayUnion(newNotif)
     });
   };
 
-  const markNotificationsRead = () => {
-    setUser(prev => {
-      if (!prev) return null;
-      const updatedUser = { 
-        ...prev, 
-        notifications: (prev.notifications || []).map(n => ({ ...n, isRead: true })) 
-      };
-      localStorage.setItem('arham_user', JSON.stringify(updatedUser));
-      return updatedUser;
+  const markNotificationsRead = async () => {
+    if (!user) return;
+    const userDocRef = doc(db, 'users', user.id);
+    const updatedNotifications = user.notifications.map(n => ({ ...n, isRead: true }));
+    await updateDoc(userDocRef, {
+      notifications: updatedNotifications
     });
+  };
+  
+  const updateProfile = async (data: Partial<User>) => {
+    if (!user) return;
+    const userDocRef = doc(db, 'users', user.id);
+    await updateDoc(userDocRef, data);
   };
 
   return (
     <UserContext.Provider value={{ 
       user, 
       isLoggedIn: !!user, 
+      loading,
       login, 
       logout, 
       addWinnings,
       canSpin,
       recordSpin,
       addNotification,
-      markNotificationsRead
+      markNotificationsRead,
+      updateProfile
     }}>
       {children}
     </UserContext.Provider>
@@ -212,3 +238,4 @@ export const useUser = () => {
   }
   return context;
 };
+

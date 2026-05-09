@@ -22,7 +22,7 @@ export const generateCartOrderMessage = (items: CartItem[], customerDetails?: {
   name: string;
   phone: string;
   address: string;
-}): string => {
+}, discountAmount: number = 0): string => {
   const itemsList = items.map(item => 
     `• ${item.product.name} x${item.quantity} - ₹${(item.product.price * item.quantity).toLocaleString('en-IN')}`
   ).join('\n');
@@ -34,7 +34,15 @@ export const generateCartOrderMessage = (items: CartItem[], customerDetails?: {
 *Order Details:*
 ${itemsList}
 
-*Total: ₹${total.toLocaleString('en-IN')}*`;
+
+*Subtotal: ₹${total.toLocaleString('en-IN')}*`;
+
+  if (discountAmount > 0) {
+    message += `\n*Wallet Discount: -₹${discountAmount.toLocaleString('en-IN')}*`;
+    message += `\n*Final Total: ₹${(total - discountAmount).toLocaleString('en-IN')}*`;
+  } else {
+    message += `\n*Total: ₹${total.toLocaleString('en-IN')}*`;
+  }
 
   if (customerDetails) {
     message += `

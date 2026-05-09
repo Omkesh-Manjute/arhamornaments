@@ -26,6 +26,8 @@ const DEFAULT_MAKING: MakingCharges = {
   bangles: 8, pendants: 10, mangalsutra: 10, coins: 5
 };
 
+import { configService } from '../services/configService';
+
 export const PriceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [rates, setRatesState] = useState<MetalRates>(() => {
     try { const s = localStorage.getItem('arham_rates'); return s ? JSON.parse(s) : DEFAULT_RATES; } catch { return DEFAULT_RATES; }
@@ -34,6 +36,16 @@ export const PriceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try { const s = localStorage.getItem('arham_making'); return s ? JSON.parse(s) : DEFAULT_MAKING; } catch { return DEFAULT_MAKING; }
   });
   const [isLoading] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = configService.subscribeToRates((newRates) => {
+      if (newRates) {
+        setRatesState(newRates as MetalRates);
+        localStorage.setItem('arham_rates', JSON.stringify(newRates));
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   const setRates = (r: MetalRates) => { setRatesState(r); localStorage.setItem('arham_rates', JSON.stringify(r)); };
   const setMakingCharges = (m: MakingCharges) => { setMakingChargesState(m); localStorage.setItem('arham_making', JSON.stringify(m)); };

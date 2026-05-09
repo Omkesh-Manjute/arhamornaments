@@ -3,6 +3,10 @@ import { useSearchParams, Link, useLocation, useParams } from 'react-router-dom'
 import { Filter, X, ChevronDown, Grid, List, SlidersHorizontal, ChevronLeft } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 import { products, categories, materials, occasions } from '../data/products';
+import { Product } from '../types';
+import { productService } from '../services/productService';
+import { Loader2 } from 'lucide-react';
+
 
 const ProductListing: React.FC = () => {
   const { category: pathCategory } = useParams();
@@ -24,9 +28,31 @@ const ProductListing: React.FC = () => {
   const searchQuery = searchParams.get('search') || '';
   const priceRange = searchParams.get('price') || '';
 
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch products from Firestore
+  useEffect(() => {
+    const loadProducts = async () => {
+      setLoading(true);
+      try {
+        const fetched = await productService.getAllProducts();
+        // If Firestore is empty, we might want to fallback to local data for demo
+        // but for a real migration, we want cloud data.
+        setAllProducts(fetched.length > 0 ? fetched : products);
+      } catch (error) {
+        console.error("Failed to load products:", error);
+        setAllProducts(products); // Fallback
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProducts();
+  }, []);
+
   // Filter products
   const filteredProducts = useMemo(() => {
-    let result = [...products];
+    let result = [...allProducts];
 
     if (selectedCategory) {
       result = result.filter(p => p.category === selectedCategory);
@@ -39,7 +65,7 @@ const ProductListing: React.FC = () => {
     }
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      result = result.filter(p => 
+      result = result.filter(p =>
         p.name.toLowerCase().includes(query) ||
         p.description.toLowerCase().includes(query) ||
         p.category.toLowerCase().includes(query)
@@ -62,17 +88,18 @@ const ProductListing: React.FC = () => {
         result.sort((a, b) => b.price - a.price);
         break;
       case 'rating':
-        result.sort((a, b) => b.rating - a.rating);
+        result.sort((a, b) => (b.rating || 0) - (a.rating || 0));
         break;
       case 'newest':
-        result.sort((a, b) => parseInt(b.id) - parseInt(a.id));
+        result.sort((a, b) => b.id.localeCompare(a.id));
         break;
       default:
         result.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
     }
 
     return result;
-  }, [selectedCategory, selectedMaterial, selectedOccasion, searchQuery, priceRange, sortBy]);
+  }, [allProducts, selectedCategory, selectedMaterial, selectedOccasion, searchQuery, priceRange, sortBy]);
+
 
   const updateFilter = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams);
@@ -124,10 +151,10 @@ const ProductListing: React.FC = () => {
             <option value="rating">Rating</option>
           </select>
           <div className="absolute left-1/4 top-1/2 -translate-y-1/2 pointer-events-none flex items-center gap-2">
-             <SlidersHorizontal size={14} className="rotate-90 text-gray-400" />
+            <SlidersHorizontal size={14} className="rotate-90 text-gray-400" />
           </div>
         </div>
-        <button 
+        <button
           onClick={() => setShowFilters(true)}
           className="h-14 flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-charcoal hover:bg-gray-50 transition-colors"
         >
@@ -149,10 +176,10 @@ const ProductListing: React.FC = () => {
           <div className="flex items-end justify-between">
             <div className="space-y-2">
               <h1 className="text-5xl font-heading font-bold text-charcoal">
-                {searchQuery 
+                {searchQuery
                   ? `Search results for "${searchQuery}"`
-                  : selectedCategory 
-                    ? categories.find(c => c.id === selectedCategory)?.name 
+                  : selectedCategory
+                    ? categories.find(c => c.id === selectedCategory)?.name
                     : 'All Collections'
                 }
               </h1>
@@ -211,8 +238,8 @@ const ProductListing: React.FC = () => {
                         onChange={() => updateFilter('material', selectedMaterial === mat.id ? '' : mat.id)}
                         className="w-4 h-4 text-amber-600 focus:ring-amber-500"
                       />
-                      <span 
-                        className="w-3 h-3 rounded-full border" 
+                      <span
+                        className="w-3 h-3 rounded-full border"
                         style={{ backgroundColor: mat.color }}
                       />
                       <span className="text-sm text-gray-600">{mat.name}</span>
@@ -348,9 +375,14 @@ const ProductListing: React.FC = () => {
             )}
 
             {/* Products Grid */}
-            {filteredProducts.length > 0 ? (
-              <div className={viewMode === 'grid' 
-                ? 'grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6' 
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-24 space-y-4">
+                <Loader2 className="animate-spin text-amber-500" size={48} />
+                <p className="text-gray-400 font-medium uppercase tracking-widest text-xs">Curating Collection...</p>
+              </div>
+            ) : filteredProducts.length > 0 ? (
+              <div className={viewMode === 'grid'
+                ? 'grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6'
                 : 'flex flex-col gap-4'
               }>
                 {filteredProducts.map((product) => (
@@ -370,6 +402,7 @@ const ProductListing: React.FC = () => {
                 </button>
               </div>
             )}
+
           </div>
         </div>
       </div>

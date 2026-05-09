@@ -1,23 +1,48 @@
+export interface ProductVariant {
+  id: string;
+  name: string;
+  price: number;
+  netWeight?: number;
+  inStock: boolean;
+}
+
+export interface DiamondAttribute {
+  type: string;
+  weight: number;
+  clarity: string;
+  color: string;
+  count: number;
+}
+
 export interface Product {
   id: string;
   name: string;
-  price: number; // Base price or calculated price
+  price: number;
   originalPrice?: number;
   category: 'rings' | 'necklaces' | 'earrings' | 'coins' | 'bangles' | 'pendants' | 'mangalsutra';
   material: 'gold' | 'silver' | 'diamond' | 'platinum';
-  
+
   // Jewelry specific details
   designNo?: string;
-  grossWeight?: number; // Gwt
-  netWeight?: number;   // Nwt
-  laborCharges?: number; // Lbr % (Making charges)
+  grossWeight?: number;
+  netWeight?: number;
+  laborCharges?: number;
   size?: string;
+  purity?: string; // e.g., '14K', '18K', '22K', '24K', '925'
 
-  metalWeight?: number; // Keep for backward compatibility
-  makingCharges?: number; // Keep for backward compatibility
-  purity?: '14K' | '18K' | '22K' | '24K';
-  diamondWeight?: number; // In carats
-  diamondQuality?: 'SI' | 'VS' | 'VVS';
+  // Material Attributes
+  goldDetails?: {
+    purity: string;
+    weight: number;
+  };
+  silverDetails?: {
+    purity: string;
+    weight: number;
+  };
+  diamondDetails?: DiamondAttribute[];
+
+  variants?: ProductVariant[];
+
   occasion: 'bridal' | 'daily' | 'party' | 'gift';
   images: string[];
   description: string;
@@ -27,6 +52,7 @@ export interface Product {
   rating: number;
   reviews: number;
 }
+
 
 export interface Notification {
   id: string;
@@ -42,6 +68,10 @@ export interface User {
   name: string;
   email: string;
   phone: string;
+  address?: string; // Kept for backward compatibility if needed, but we'll use specific fields
+  streetAddress?: string;
+  city?: string;
+  pincode?: string;
   walletBalance: number;
   tier: 'silver' | 'gold' | 'platinum';
   points: number;
@@ -69,20 +99,36 @@ export interface CartItem {
   giftOptions?: GiftOptions;
 }
 
+export interface Coupon {
+  id: string;
+  code: string;
+  discountType: 'percentage' | 'fixed';
+  discountValue: number;
+  minOrderAmount: number;
+  expiryDate: string;
+  isActive: boolean;
+  usageLimit?: number;
+  usageCount: number;
+}
+
 export interface Banner {
   id: string;
   title: string;
   subtitle: string;
   image: string;
   link: string;
+  isActive: boolean;
+  order: number;
 }
 
 export interface Category {
   id: string;
   name: string;
   icon: string;
-  count: number;
+  image?: string;
+  order: number;
 }
+
 
 export interface Order {
   id: string;
@@ -94,5 +140,14 @@ export interface Order {
   status: 'pending' | 'confirmed' | 'shipped' | 'delivered';
   giftOptions?: GiftOptions;
   createdAt: Date;
+}
+
+export interface AuditLog {
+  id: string;
+  adminId: string;
+  adminEmail: string;
+  action: string;
+  details: string;
+  timestamp: string;
 }
 

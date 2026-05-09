@@ -22,12 +22,15 @@ import LuckyWheel from './components/LuckyWheel';
 import { WishlistProvider } from './context/WishlistContext';
 import { PriceProvider } from './context/PriceContext';
 
+import LivePriceTicker from './components/LivePriceTicker';
+
 const AppContent: React.FC = () => {
   const location = useLocation();
   const isAdminPage = location.pathname.startsWith('/admin');
 
   return (
     <div className="min-h-screen flex flex-col">
+      {!isAdminPage && <LivePriceTicker />}
       {!isAdminPage && <Header />}
       
       <main className={`flex-1 ${!isAdminPage ? 'pt-[36px] lg:pt-0' : ''}`}>

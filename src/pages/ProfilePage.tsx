@@ -11,13 +11,13 @@ import {
 } from 'lucide-react';
 
 const ProfilePage: React.FC = () => {
-  const { user, logout, markNotificationsRead } = useUser();
+  const { user, logout, markNotificationsRead, updateProfile } = useUser();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'overview' | 'profile' | 'notifications' | 'wallet'>('overview');
   const [isEditing, setIsEditing] = useState(false);
   const [copied, setCopied] = useState(false);
   const [editForm, setEditForm] = useState({
-    name: '', email: '', phone: '', address: '', city: '', pincode: ''
+    name: '', email: '', phone: '', streetAddress: '', city: '', pincode: ''
   });
 
   // ─── Not logged in ───────────────────────────────────────────────
@@ -63,17 +63,21 @@ const ProfilePage: React.FC = () => {
       name: user.name || '',
       email: user.email || '',
       phone: user.phone || '',
-      address: (user as any).address || '',
-      city: (user as any).city || '',
-      pincode: (user as any).pincode || '',
+      streetAddress: user.streetAddress || user.address || '',
+      city: user.city || '',
+      pincode: user.pincode || '',
     });
     setIsEditing(true);
   };
 
-  const handleEditSave = () => {
-    const updated = { ...user, ...editForm };
-    localStorage.setItem('arham_user', JSON.stringify(updated));
-    window.location.reload();
+  const handleEditSave = async () => {
+    try {
+      await updateProfile(editForm);
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Failed to update profile:", error);
+      alert("Failed to save changes. Please try again.");
+    }
   };
 
   const copyReferral = () => {
@@ -142,11 +146,10 @@ const ProfilePage: React.FC = () => {
               <button
                 key={tab.id}
                 onClick={() => { setActiveTab(tab.id); if (tab.id === 'notifications') markNotificationsRead(); }}
-                className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all font-bold text-sm ${
-                  activeTab === tab.id
-                    ? 'bg-charcoal text-white shadow-xl'
-                    : 'bg-white text-charcoal hover:bg-gray-50 border border-gray-100'
-                }`}
+                className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all font-bold text-sm ${activeTab === tab.id
+                  ? 'bg-charcoal text-white shadow-xl'
+                  : 'bg-white text-charcoal hover:bg-gray-50 border border-gray-100'
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   <tab.icon size={18} />
@@ -238,9 +241,9 @@ const ProfilePage: React.FC = () => {
                     { label: 'Full Name', key: 'name', icon: UserIcon, value: user.name, type: 'text' },
                     { label: 'Email Address', key: 'email', icon: Mail, value: user.email, type: 'email' },
                     { label: 'Phone Number', key: 'phone', icon: Phone, value: user.phone, type: 'tel' },
-                    { label: 'Street Address', key: 'address', icon: MapPin, value: (user as any).address || '', type: 'text' },
-                    { label: 'City', key: 'city', icon: MapPin, value: (user as any).city || '', type: 'text' },
-                    { label: 'PIN Code', key: 'pincode', icon: MapPin, value: (user as any).pincode || '', type: 'text' },
+                    { label: 'Street Address', key: 'streetAddress', icon: MapPin, value: user.streetAddress || user.address || '', type: 'text' },
+                    { label: 'City', key: 'city', icon: MapPin, value: user.city || '', type: 'text' },
+                    { label: 'PIN Code', key: 'pincode', icon: MapPin, value: user.pincode || '', type: 'text' },
                   ].map(field => (
                     <div key={field.key} className="space-y-2">
                       <label className="text-[10px] uppercase tracking-widest text-gray-400 font-black">{field.label}</label>
@@ -289,31 +292,31 @@ const ProfilePage: React.FC = () => {
               <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm">
                 <div className="flex items-center justify-between mb-8">
                   <h3 className="text-2xl font-heading font-bold text-charcoal">Notifications</h3>
-                  <Bell className="text-gray-200" size={28} />
+                  <Bell className="text-gold/30" size={28} />
                 </div>
                 <div className="space-y-4">
                   {(user.notifications || []).length > 0 ? (
                     [...(user.notifications || [])].reverse().map(notif => (
                       <div
                         key={notif.id}
-                        className={`flex items-start gap-5 p-5 rounded-2xl border transition-all ${
-                          notif.isRead ? 'bg-gray-50 border-gray-50 opacity-70' : 'bg-white border-gold/20 shadow-md shadow-gold/5'
-                        }`}
+                        className={`flex items-start gap-5 p-5 rounded-2xl border transition-all ${notif.isRead
+                          ? 'bg-gray-50/50 border-gray-100'
+                          : 'bg-white border-gold/30 shadow-lg shadow-gold/5'
+                          }`}
                       >
-                        <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${
-                          notif.type === 'offer' ? 'bg-orange-50 text-orange-500' :
-                          notif.type === 'order' ? 'bg-blue-50 text-blue-500' : 'bg-gold/10 text-gold'
-                        }`}>
+                        <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${notif.type === 'offer' ? 'bg-orange-50 text-orange-500' :
+                            notif.type === 'order' ? 'bg-blue-50 text-blue-500' : 'bg-gold/10 text-gold'
+                          }`}>
                           {notif.type === 'offer' ? <Tag size={18} /> :
-                           notif.type === 'order' ? <ShoppingBag size={18} /> : <Info size={18} />}
+                            notif.type === 'order' ? <ShoppingBag size={18} /> : <Info size={18} />}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2">
-                            <h4 className="font-bold text-sm text-charcoal">{notif.title}</h4>
+                            <h4 className={`font-bold text-sm ${notif.isRead ? 'text-charcoal/70' : 'text-charcoal'}`}>{notif.title}</h4>
                             {!notif.isRead && <span className="w-2 h-2 bg-red-500 rounded-full shrink-0 animate-pulse" />}
                           </div>
-                          <p className="text-xs text-gray-500 mt-1 leading-relaxed">{notif.message}</p>
-                          <p className="text-[10px] text-gray-300 font-bold mt-2 flex items-center gap-1">
+                          <p className={`text-xs mt-1 leading-relaxed ${notif.isRead ? 'text-gray-500' : 'text-charcoal/80 font-medium'}`}>{notif.message}</p>
+                          <p className={`text-[10px] font-bold mt-2 flex items-center gap-1 ${notif.isRead ? 'text-gray-400' : 'text-gray-500'}`}>
                             <Calendar size={10} />
                             {new Date(notif.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                           </p>
@@ -321,9 +324,9 @@ const ProfilePage: React.FC = () => {
                       </div>
                     ))
                   ) : (
-                    <div className="text-center py-16 text-gray-300 space-y-4">
-                      <Bell size={48} className="mx-auto opacity-20" />
-                      <p className="font-bold text-sm tracking-widest uppercase">No alerts at the moment</p>
+                    <div className="text-center py-16 space-y-4">
+                      <Bell size={48} className="mx-auto text-gray-200" />
+                      <p className="font-bold text-sm tracking-widest uppercase text-gray-400">No alerts at the moment</p>
                     </div>
                   )}
                 </div>

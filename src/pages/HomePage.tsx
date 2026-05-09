@@ -9,14 +9,32 @@ import MobileHeroSlider from '../components/MobileHeroSlider';
 import CollectionSlider from '../components/CollectionSlider';
 import BestSellerSection from '../components/BestSellerSection';
 
+import { Product } from '../types';
+import { productService } from '../services/productService';
+import { Loader2 } from 'lucide-react';
+
 const HomePage: React.FC = () => {
-  const featuredProducts = products.filter(p => p.featured).slice(0, 4);
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     setIsVisible(true);
+    const loadFeatured = async () => {
+      try {
+        const all = await productService.getAllProducts();
+        const featured = all.filter(p => p.featured).slice(0, 4);
+        setFeaturedProducts(featured.length > 0 ? featured : products.filter(p => p.featured).slice(0, 4));
+      } catch (error) {
+        console.error("Failed to load featured products:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadFeatured();
   }, []);
-  
+
+
   const earringCollection = [
     { id: '1', name: 'Jhumkas', image: '/images/products/earrings.png', path: '/products?category=earrings&type=jhumka' },
     { id: '2', name: 'Drops', image: '/images/products/drops_earrings.png', path: '/products?category=earrings&type=drop' },
@@ -45,7 +63,7 @@ const HomePage: React.FC = () => {
       </div>
 
       {/* Collection Slider - New */}
-      <CollectionSlider 
+      <CollectionSlider
         title="Stunning Every Ear"
         subtitle="Look at our brand new earring collection just for you"
         banners={[
@@ -66,9 +84,9 @@ const HomePage: React.FC = () => {
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {categories.map((cat, i) => (
-              <Link 
-                key={i} 
-                to={cat.path} 
+              <Link
+                key={i}
+                to={cat.path}
                 className={`group text-center luxury-card transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
                 style={{ transitionDelay: `${i * 150}ms` }}
               >
@@ -119,13 +137,21 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* Best Sellers Section - Tanishq Style */}
-      <BestSellerSection 
-        title="Gold Best Sellers"
-        subtitle="Look at our gold collection curated just for you"
-        bannerImage="/images/products/necklaces_category.png"
-        bannerLink="/products?category=gold"
-        products={featuredProducts}
-      />
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-20">
+          <Loader2 className="animate-spin text-gold" size={40} />
+          <p className="text-gray-400 text-xs uppercase tracking-widest mt-4">Fetching Best Sellers...</p>
+        </div>
+      ) : (
+        <BestSellerSection
+          title="Gold Best Sellers"
+          subtitle="Look at our gold collection curated just for you"
+          bannerImage="/images/products/necklaces_category.png"
+          bannerLink="/products?category=gold"
+          products={featuredProducts}
+        />
+      )}
+
 
       {/* Featured Spotlight (Floating Elements) */}
       <section className="px-4 md:px-8 py-24 bg-charcoal relative overflow-hidden">
@@ -136,15 +162,15 @@ const HomePage: React.FC = () => {
             ))}
           </div>
         </div>
-        
+
         <div className="max-w-7xl mx-auto relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
           <div className="relative">
             <div className="aspect-square rounded-[4rem] overflow-hidden border-2 border-gold/30 p-4 animate-float">
-               <img src="/images/products/lion_head.png" className="w-full h-full object-cover rounded-[3rem]" alt="Spotlight" />
+              <img src="/images/products/lion_head.png" className="w-full h-full object-cover rounded-[3rem]" alt="Spotlight" />
             </div>
             <div className="absolute -bottom-10 -right-10 bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-[2rem] shadow-2xl glass hidden md:block">
-               <p className="text-gold font-heading text-3xl font-bold mb-1">Masterpiece</p>
-               <p className="text-white/60 text-xs uppercase tracking-widest">Limited Edition 2024</p>
+              <p className="text-gold font-heading text-3xl font-bold mb-1">Masterpiece</p>
+              <p className="text-white/60 text-xs uppercase tracking-widest">Limited Edition 2024</p>
             </div>
           </div>
           <div className="space-y-8">

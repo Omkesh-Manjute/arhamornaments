@@ -99,38 +99,45 @@ const Header: React.FC = () => {
             {/* User Dropdown */}
             <div className="relative group">
               <button 
-                onClick={() => navigate('/profile')}
                 className={`p-2 transition-colors hover:text-gold flex items-center gap-1 ${isScrolled || !isHomePage || isMobile ? 'text-charcoal' : 'text-white'}`}
               >
                 <User size={20} />
                 {isLoggedIn && <span className="text-[10px] hidden md:block">{user?.name?.split(' ')[0]}</span>}
               </button>
               
-              {isLoggedIn && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top-right group-hover:translate-y-0 translate-y-2 z-[60]">
-                  <div className="p-4 border-b border-gray-50">
-                    <p className="text-xs font-bold text-charcoal truncate">{user?.name}</p>
-                    <p className="text-[10px] text-gray-400 truncate">{user?.email}</p>
-                  </div>
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top-right group-hover:translate-y-0 translate-y-2 z-[60]">
+                {isLoggedIn ? (
+                  <>
+                    <div className="p-4 border-b border-gray-50">
+                      <p className="text-xs font-bold text-charcoal truncate">{user?.name}</p>
+                      <p className="text-[10px] text-gray-400 truncate">{user?.email}</p>
+                    </div>
+                    <div className="p-2">
+                      <Link to="/profile" className="flex items-center gap-3 px-3 py-2 text-sm text-gray-600 hover:bg-offwhite rounded-xl transition">
+                        <User size={16} /> Profile
+                      </Link>
+                      <Link to="/admin" className="flex items-center gap-3 px-3 py-2 text-sm text-gray-600 hover:bg-offwhite rounded-xl transition">
+                        <Settings size={16} /> Admin Panel
+                      </Link>
+                      <button 
+                        onClick={() => logout()}
+                        className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-500 hover:bg-red-50 rounded-xl transition mt-1"
+                      >
+                        <LogOut size={16} /> Logout
+                      </button>
+                    </div>
+                  </>
+                ) : (
                   <div className="p-2">
                     <Link to="/profile" className="flex items-center gap-3 px-3 py-2 text-sm text-gray-600 hover:bg-offwhite rounded-xl transition">
-                      <User size={16} />
-                      Profile
+                      <User size={16} /> Login / Register
                     </Link>
                     <Link to="/admin" className="flex items-center gap-3 px-3 py-2 text-sm text-gray-600 hover:bg-offwhite rounded-xl transition">
-                      <Settings size={16} />
-                      Admin Panel
+                      <Settings size={16} /> Admin Panel
                     </Link>
-                    <button 
-                      onClick={() => logout()}
-                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-500 hover:bg-red-50 rounded-xl transition mt-1"
-                    >
-                      <LogOut size={16} />
-                      Logout
-                    </button>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
             {isLoggedIn && (
