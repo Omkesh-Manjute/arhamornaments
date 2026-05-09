@@ -49,7 +49,8 @@ const AdminPage: React.FC = () => {
     variants: [] as any[]
   });
   const [uploading, setUploading] = useState(false);
-  const [bulkInput, setBulkInput] = useState('');
+  const [syncGranular, setSyncGranular] = useState(false);
+  const [syncCategory, setSyncCategory] = useState<string>('rings');
   const [bulkStatus, setBulkStatus] = useState('');
 
 
@@ -619,9 +620,9 @@ const AdminPage: React.FC = () => {
 
   const handleSyncWithStorage = async () => {
     setLoading(true);
-    setBulkStatus(`Scanning Storage... Mode: ${syncGranular ? 'Individual Images' : 'Folders'}`);
+    setBulkStatus(`Scanning Storage... Category: ${syncCategory} | Mode: ${syncGranular ? 'Individual Images' : 'Folders'}`);
     try {
-      const addedCount = await productService.syncStorageWithFirestore(syncGranular);
+      const addedCount = await productService.syncStorageWithFirestore(syncGranular, syncCategory);
       await adminService.createAuditLog({
         adminId: auth.currentUser?.uid || 'unknown',
         adminEmail: auth.currentUser?.email || 'unknown',
@@ -1149,6 +1150,20 @@ const AdminPage: React.FC = () => {
                         <button onClick={handleSyncWithStorage} className="px-4 py-2 bg-purple-500/10 border border-purple-500/20 text-purple-400 rounded-xl text-xs font-bold hover:bg-purple-500/20 transition-colors flex items-center gap-2">
                           <FolderSync size={14} /> Sync from Storage
                         </button>
+                        
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-bold text-gray-500 uppercase">As Category:</span>
+                          <select 
+                            value={syncCategory} 
+                            onChange={(e) => setSyncCategory(e.target.value)}
+                            className="bg-[#0D0D0D] border border-[#222222] text-xs text-amber-500 font-bold px-2 py-1 rounded-lg outline-none focus:border-amber-500"
+                          >
+                            {['rings', 'necklaces', 'earrings', 'coins', 'bangles', 'pendants', 'mangalsutra'].map(c => (
+                              <option key={c} value={c}>{c.toUpperCase()}</option>
+                            ))}
+                          </select>
+                        </div>
+
                         <label className="flex items-center gap-2 cursor-pointer group">
                           <div className="relative">
                             <input 

@@ -111,8 +111,9 @@ export const productService = {
   /**
    * Scans Storage 'products' folder and creates Firestore records for missing items.
    * @param granular If true, treats each image as a separate product.
+   * @param defaultCategory The category to assign to new products.
    */
-  async syncStorageWithFirestore(granular: boolean = false): Promise<number> {
+  async syncStorageWithFirestore(granular: boolean = false, defaultCategory: string = 'rings'): Promise<number> {
     const rootRef = ref(storage, 'products');
     let count = 0;
 
@@ -138,7 +139,7 @@ export const productService = {
                 name: productCode,
                 designNo: productCode,
                 price: 0,
-                category: 'rings',
+                category: defaultCategory,
                 material: 'gold',
                 description: `Imported from Storage: ${productCode}`,
                 images: [url],
@@ -165,7 +166,7 @@ export const productService = {
               name: productCode,
               designNo: productCode,
               price: 0,
-              category: 'rings',
+              category: defaultCategory,
               material: 'gold',
               description: `Imported from Storage: ${productCode}`,
               images: imageUrls,
