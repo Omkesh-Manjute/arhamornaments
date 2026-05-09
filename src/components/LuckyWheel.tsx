@@ -283,7 +283,6 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
           {/* Dynamic Labels */}
           {segments.map((s, i) => {
             const angle = (i * 360) / segments.length + (360 / segments.length / 2);
-            // Flip text if it's in the bottom half to keep it readable
             const shouldFlip = angle > 90 && angle < 270;
             return (
               <div
@@ -292,10 +291,10 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
                 style={{ transform: `translate(-50%, -50%) rotate(${angle}deg)` }}
               >
                 <div 
-                  className="pt-6 sm:pt-10 flex flex-col items-center"
+                  className="flex flex-col items-center pt-5 sm:pt-8"
                   style={{ transform: shouldFlip ? 'rotate(180deg)' : 'none' }}
                 >
-                  <span className="text-[12px] sm:text-lg font-black text-white drop-shadow-lg whitespace-nowrap">
+                  <span className="text-[11px] sm:text-base font-black text-white drop-shadow-xl whitespace-nowrap">
                     {s.label || `₹${s.value}`}
                   </span>
                 </div>
@@ -305,10 +304,10 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
 
           {/* Center Hub */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 sm:w-24 sm:h-24 bg-white rounded-full border-[6px] border-gold z-20 flex items-center justify-center shadow-2xl">
-             <div className="flex flex-col items-center justify-center">
-               <Gift className="text-gold animate-pulse" size={24} />
-               <span className="text-[8px] font-black text-charcoal uppercase tracking-widest mt-1">SPIN</span>
-             </div>
+            <div className="flex flex-col items-center justify-center">
+              <Gift className="text-gold animate-pulse" size={24} />
+              <span className="text-[8px] font-black text-charcoal uppercase tracking-widest mt-1">SPIN</span>
+            </div>
           </div>
         </div>
       </div>
