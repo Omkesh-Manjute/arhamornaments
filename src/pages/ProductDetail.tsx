@@ -113,7 +113,7 @@ const ProductDetail: React.FC = () => {
     }
     
     return related.slice(0, 4);
-  }, [product.id, product.category]);
+  }, [product?.id, product?.category]);
 
   const handleWhatsAppEnquiry = () => {
     const message = generateProductEnquiryMessage({ ...product, price: currentPrice });
@@ -152,7 +152,7 @@ const ProductDetail: React.FC = () => {
       const limitedIds = viewedIds.slice(0, 10);
       localStorage.setItem('recentlyViewed', JSON.stringify(limitedIds));
     }
-  }, [product.id]);
+  }, [product?.id]);
 
   return (
     <div className="min-h-screen bg-[#FCFBF7]">
