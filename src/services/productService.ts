@@ -2,12 +2,14 @@ import { db, storage } from '../lib/firebase';
 import { 
   collection, 
   getDocs, 
+  getDoc,
   addDoc, 
   updateDoc, 
   deleteDoc, 
   doc, 
   query, 
   orderBy,
+  where,
   setDoc,
   writeBatch
 } from 'firebase/firestore';
@@ -36,13 +38,23 @@ export const productService = {
    * Fetches a single product by ID from Firestore.
    */
   async getProductById(id: string): Promise<Product | null> {
-    const productDocRef = doc(db, 'products', id);
-    const docSnap = await getDocs(query(collection(db, 'products')));
-    
-    // Check by ID or DesignNo
-    const found = docSnap.docs.find(d => d.id === id || d.data().designNo === id);
-    if (found) {
-      return { id: found.id, ...found.data() } as Product;
+    try {
+      // 1. Try by Document ID directly (Fastest)
+      const docRef = doc(db, 'products', id);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        return { id: docSnap.id, ...docSnap.data() } as Product;
+      }
+
+      // 2. Fallback: Query by designNo field
+      const q = query(collection(db, 'products'), where('designNo', '==', id));
+      const querySnap = await getDocs(q);
+      if (!querySnap.empty) {
+        const d = querySnap.docs[0];
+        return { id: d.id, ...d.data() } as Product;
+      }
+    } catch (error) {
+      console.error("Firestore getProductById error:", error);
     }
     return null;
   },
