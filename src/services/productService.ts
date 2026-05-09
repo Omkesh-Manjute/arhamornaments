@@ -33,6 +33,21 @@ export const productService = {
   },
 
   /**
+   * Fetches a single product by ID from Firestore.
+   */
+  async getProductById(id: string): Promise<Product | null> {
+    const productDocRef = doc(db, 'products', id);
+    const docSnap = await getDocs(query(collection(db, 'products')));
+    
+    // Check by ID or DesignNo
+    const found = docSnap.docs.find(d => d.id === id || d.data().designNo === id);
+    if (found) {
+      return { id: found.id, ...found.data() } as Product;
+    }
+    return null;
+  },
+
+  /**
    * Adds a new product or updates an existing one.
    */
   async saveProduct(product: Product): Promise<string> {

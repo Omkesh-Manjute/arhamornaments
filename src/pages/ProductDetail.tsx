@@ -1,15 +1,19 @@
 import React, { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Heart, Share2, Star, Truck, Shield, RotateCcw, MessageCircle, Minus, Plus, Award, Phone } from 'lucide-react';
-import { products } from '../data/products';
+import { products as staticProducts } from '../data/products';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { usePrice } from '../context/PriceContext';
 import { formatPrice, calculateDiscount, generateProductEnquiryMessage, openWhatsApp } from '../utils/whatsapp';
 import ProductCard from '../components/ProductCard';
+import { productService } from '../services/productService';
+import { Product } from '../types';
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
   const [currentImage, setCurrentImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [selectedPurity, setSelectedPurity] = useState<string>('');
@@ -20,7 +24,34 @@ const ProductDetail: React.FC = () => {
   const { calculateProductPrice } = usePrice();
   
   const isFavorite = id ? isInWishlist(id) : false;
-  const product = products.find(p => p.id === id);
+
+  // Fetch product from Firestore or Static
+  React.useEffect(() => {
+    const fetchProduct = async () => {
+      if (!id) return;
+      setLoading(true);
+      
+      try {
+        // 1. Try database first (source of truth)
+        const dbProduct = await productService.getProductById(id);
+        if (dbProduct) {
+          setProduct(dbProduct);
+        } else {
+          // 2. Fallback to static data
+          const staticP = staticProducts.find(p => p.id === id);
+          setProduct(staticP || null);
+        }
+      } catch (error) {
+        console.error("Error fetching product:", error);
+        const staticP = staticProducts.find(p => p.id === id);
+        setProduct(staticP || null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProduct();
+    window.scrollTo(0, 0);
+  }, [id]);
 
   // Initialize selections when product loads
   React.useEffect(() => {
@@ -28,16 +59,27 @@ const ProductDetail: React.FC = () => {
       setSelectedPurity(product.purity || (product.material === 'gold' ? '22K' : ''));
       setSelectedQuality(product.diamondQuality || 'VS');
     }
-    window.scrollTo(0, 0);
   }, [product]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#FCFBF7]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-gold border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gold font-bold animate-pulse uppercase tracking-widest text-[10px]">Loading Luxury...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!product) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <span className="text-6xl mb-4 block">😕</span>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Product Not Found</h2>
-          <Link to="/products" className="px-6 py-3 bg-amber-500 text-white rounded-full font-medium">
+      <div className="min-h-screen flex items-center justify-center bg-[#FCFBF7]">
+        <div className="text-center space-y-6">
+          <span className="text-8xl block animate-bounce">😕</span>
+          <h2 className="text-3xl font-heading font-bold text-charcoal">Product Not Found</h2>
+          <p className="text-gray-500 max-w-xs mx-auto">The item you're looking for might have been moved or is no longer available.</p>
+          <Link to="/products" className="inline-block px-10 py-4 bg-gold text-white rounded-full font-black uppercase tracking-widest text-xs shadow-xl hover:scale-105 transition-transform">
             Browse All Products
           </Link>
         </div>
@@ -53,21 +95,21 @@ const ProductDetail: React.FC = () => {
 
   // AI Recommendations: "Complete the Look"
   // Logic: Same material, different category, similar occasion
-  const completeTheLook = products
+  const completeTheLook = staticProducts
     .filter(p => 
       p.id !== product.id && 
       p.material === product.material && 
-      p.category !== product.category &&
+      p.category === product.category &&
       (p.occasion === product.occasion || p.featured)
     )
     .slice(0, 4);
 
   const relatedProducts = useMemo(() => {
-    let related = products.filter(p => p.category === product.category && p.id !== product.id);
+    let related = staticProducts.filter(p => p.category === product.category && p.id !== product.id);
     
     // Fallback: If no similar products in same category, show trending/featured items from other categories
     if (related.length === 0) {
-      related = products.filter(p => p.id !== product.id && (p.trending || p.featured));
+      related = staticProducts.filter(p => p.id !== product.id && (p.trending || p.featured));
     }
     
     return related.slice(0, 4);
@@ -99,7 +141,7 @@ const ProductDetail: React.FC = () => {
       
       // 3. Update state with what was already there (before adding current)
       const viewedProducts = viewedIds
-        .map(id => products.find(p => p.id === id))
+        .map(id => staticProducts.find(p => p.id === id))
         .filter((p): p is any => !!p)
         .slice(0, 4);
       
