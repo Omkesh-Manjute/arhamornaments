@@ -49,6 +49,7 @@ const AdminPage: React.FC = () => {
     variants: [] as any[]
   });
   const [uploading, setUploading] = useState(false);
+  const [bulkInput, setBulkInput] = useState('');
   const [syncGranular, setSyncGranular] = useState(false);
   const [syncCategory, setSyncCategory] = useState<string>('rings');
   const [bulkStatus, setBulkStatus] = useState('');
