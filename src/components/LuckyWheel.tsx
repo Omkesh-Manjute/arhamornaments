@@ -266,7 +266,8 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
           </div>
         </div>
 
-        {/* The Spinning Whee        <div
+        {/* The Spinning Wheel */}
+        <div
           className="w-[86%] h-[86%] rounded-full z-10 shadow-[0_0_50px_rgba(0,0,0,0.4)] relative overflow-hidden border-4 border-gold/30 bg-white"
           style={{
             transform: `rotate(${rotation}deg)`,
@@ -314,8 +315,6 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
               <span className="text-[10px] font-black text-charcoal uppercase tracking-tighter mt-1 bg-white/80 px-2 py-0.5 rounded-full shadow-sm">SPIN</span>
             </div>
           </div>
-          </div>
-        </div>
       </div>
     </div>
   );
