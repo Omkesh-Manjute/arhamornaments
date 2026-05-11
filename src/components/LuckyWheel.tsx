@@ -30,11 +30,31 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
   useEffect(() => {
     if (isEmbedded) { setIsOpen(true); }
 
-    // Check for referral code in URL
-    const params = new URLSearchParams(window.location.search);
-    const refCode = params.get('ref');
+    // Check for referral code in URL (handle both standard and hash router)
+    const getRefFromUrl = () => {
+      const searchParams = new URLSearchParams(window.location.search);
+      let ref = searchParams.get('ref');
+      
+      // Handle HashRouter params if not found in main search
+      if (!ref && window.location.hash.includes('?')) {
+        const hashSearch = window.location.hash.split('?')[1];
+        const hashParams = new URLSearchParams(hashSearch);
+        ref = hashParams.get('ref');
+      }
+      return ref;
+    };
+
+    const refCode = getRefFromUrl();
     if (refCode) {
-      setFormData(prev => ({ ...prev, referralCode: refCode.toUpperCase() }));
+      const formattedCode = refCode.toUpperCase();
+      localStorage.setItem('pending_referral', formattedCode);
+      setFormData(prev => ({ ...prev, referralCode: formattedCode }));
+    } else {
+      // Check localStorage if not in URL
+      const savedRef = localStorage.getItem('pending_referral');
+      if (savedRef) {
+        setFormData(prev => ({ ...prev, referralCode: savedRef }));
+      }
     }
 
     const handleOpen = () => setIsOpen(true);

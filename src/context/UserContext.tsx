@@ -40,7 +40,13 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Listen for real-time updates to the user profile
         const unsubscribeDoc = onSnapshot(userDocRef, (docSnap) => {
           if (docSnap.exists()) {
-            setUser({ id: firebaseUser.uid, ...docSnap.data() } as User);
+            const userData = { id: firebaseUser.uid, ...docSnap.data() } as User;
+            setUser(userData);
+            
+            // Check for and process any pending referral credits for this user
+            referralService.processPendingReferrals(firebaseUser.uid, (amount) => {
+              console.log(`Referral credit of ₹${amount} processed!`);
+            });
           } else {
             // Document doesn't exist yet, but user is authenticated
             // This case is handled during the login/signup flow
@@ -137,6 +143,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error("Failed to credit referrer:", err);
       }
     }
+
+    // Clear pending referral after successful registration
+    localStorage.removeItem('pending_referral');
   };
 
 
