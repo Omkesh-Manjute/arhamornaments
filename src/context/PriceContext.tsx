@@ -7,6 +7,9 @@ interface MetalRates {
 interface MakingCharges {
   rings: number; necklaces: number; earrings: number;
   bangles: number; pendants: number; mangalsutra: number; coins: number;
+  bracelets: number; 'chain-sets': number; chains: number; kadas: number;
+  'necklace-sets': number; 'nose-jewelry': number; 'pendant-sets': number;
+  'temple-necklaces': number; thushi: number;
 }
 interface PriceContextType {
   rates: MetalRates; setRates: (r: MetalRates) => void;
@@ -23,7 +26,10 @@ const DEFAULT_RATES: MetalRates = {
 };
 const DEFAULT_MAKING: MakingCharges = {
   rings: 12, necklaces: 10, earrings: 12,
-  bangles: 8, pendants: 10, mangalsutra: 10, coins: 5
+  bangles: 8, pendants: 10, mangalsutra: 10, coins: 5,
+  bracelets: 10, 'chain-sets': 10, chains: 10, kadas: 10,
+  'necklace-sets': 10, 'nose-jewelry': 10, 'pendant-sets': 10,
+  'temple-necklaces': 10, thushi: 10
 };
 
 import { configService } from '../services/configService';
@@ -38,32 +44,57 @@ export const PriceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [isLoading] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = configService.subscribeToRates((newRates) => {
+    const unsubRates = configService.subscribeToRates((newRates) => {
       if (newRates) {
         setRatesState(newRates as MetalRates);
         localStorage.setItem('arham_rates', JSON.stringify(newRates));
       }
     });
-    return () => unsubscribe();
+
+    const unsubMaking = configService.subscribeToMakingCharges((newMaking) => {
+      if (newMaking) {
+        // Ensure newMaking has all required keys by merging with default
+        const mergedMaking = { ...DEFAULT_MAKING, ...newMaking };
+        setMakingChargesState(mergedMaking as MakingCharges);
+        localStorage.setItem('arham_making', JSON.stringify(mergedMaking));
+      }
+    });
+
+    return () => {
+      unsubRates();
+      unsubMaking();
+    };
   }, []);
 
   const setRates = (r: MetalRates) => { setRatesState(r); localStorage.setItem('arham_rates', JSON.stringify(r)); };
   const setMakingCharges = (m: MakingCharges) => { setMakingChargesState(m); localStorage.setItem('arham_making', JSON.stringify(m)); };
 
   const calculateProductPrice = (product: any, selectedPurity?: string) => {
-    const weight = product.netWeight || product.metalWeight || 0;
-    const categoryMaking = makingCharges[product.category as keyof MakingCharges] || 10;
+    if (!product) return 0;
+    
+    const weight = parseFloat(product.netWeight || product.metalWeight) || 0;
+    const categoryKey = (product.category || '').toLowerCase().trim();
+    const categoryMaking = (makingCharges as any)[categoryKey] || 
+                          (makingCharges as any)[categoryKey.replace(/\s+/g, '-')] || 10;
+    
     const laborPct = product.laborCharges ?? categoryMaking;
     let price = product.price || 0;
+
     if (product.material === 'gold') {
       const purity = selectedPurity || product.purity || '22K';
-      const rate = purity === '24K' ? rates.gold24K : purity === '22K' ? rates.gold22K : purity === '18K' ? rates.gold18K : rates.gold14K;
-      if (weight > 0) { const m = weight * rate; price = m + m * (laborPct / 100); }
+      const rate = rates[`gold${purity}` as keyof MetalRates] || rates.gold22K;
+      if (weight > 0) {
+        const base = weight * rate;
+        price = base + base * (laborPct / 100);
+      }
     } else if (product.material === 'silver' && weight > 0) {
-      const m = weight * rates.silver; price = m + m * (laborPct / 100);
+      const base = weight * rates.silver;
+      price = base + base * (laborPct / 100);
     } else if (product.material === 'platinum' && weight > 0) {
-      const m = weight * rates.platinum; price = m + m * (laborPct / 100);
+      const base = weight * rates.platinum;
+      price = base + base * (laborPct / 100);
     }
+
     return Math.round(price * 1.03);
   };
 

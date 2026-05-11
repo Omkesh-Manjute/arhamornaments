@@ -26,10 +26,28 @@ export const configService = {
   },
 
   /**
+   * Updates global making charges.
+   */
+  async updateMakingCharges(making: any) {
+    const docRef = doc(db, 'metadata', 'making');
+    await setDoc(docRef, making, { merge: true });
+  },
+
+  /**
    * Listens for real-time rate updates.
    */
   subscribeToRates(callback: (rates: any) => void) {
     const docRef = doc(db, 'metadata', 'rates');
+    return onSnapshot(docRef, (doc) => {
+      if (doc.exists()) callback(doc.data());
+    });
+  },
+
+  /**
+   * Listens for real-time making charges updates.
+   */
+  subscribeToMakingCharges(callback: (making: any) => void) {
+    const docRef = doc(db, 'metadata', 'making');
     return onSnapshot(docRef, (doc) => {
       if (doc.exists()) callback(doc.data());
     });

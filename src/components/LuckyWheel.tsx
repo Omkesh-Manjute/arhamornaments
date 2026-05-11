@@ -17,18 +17,19 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
   const [winningSegment, setWinningSegment] = useState<any>(null);
 
   // Auth States
-  const [formData, setFormData] = useState({ name: '', email: '', phone: '', address: '', referralCode: '', agreed: false });
+  const [formData, setFormData] = useState({ name: '', email: '', phone: '', referralCode: '', agreed: false });
   const [otp, setOtp] = useState('');
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [shouldAutoSpin, setShouldAutoSpin] = useState(false);
 
   const { isLoggedIn, login, recordSpin, canSpin, user } = useUser();
 
   useEffect(() => {
     if (isEmbedded) { setIsOpen(true); }
-    
+
     // Check for referral code in URL
     const params = new URLSearchParams(window.location.search);
     const refCode = params.get('ref');
@@ -40,6 +41,15 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
     window.addEventListener('open-lucky-wheel', handleOpen);
     return () => window.removeEventListener('open-lucky-wheel', handleOpen);
   }, [isEmbedded]);
+
+  useEffect(() => {
+    if (isLoggedIn && shouldAutoSpin && canSpin() && !isSpinning) {
+      setShouldAutoSpin(false);
+      // Small delay to ensure the UI transition is visible
+      setTimeout(() => spinWheel(), 500);
+    }
+  }, [isLoggedIn, shouldAutoSpin, canSpin, isSpinning]);
+
 
   const setupRecaptcha = () => {
     // Clear stale verifier on re-init
@@ -113,9 +123,13 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
           formData.name,
           formData.email,
           formData.phone,
-          formData.address,
+          '',
           formData.referralCode
         );
+        
+        setShouldAutoSpin(true);
+
+
       } catch (loginErr: any) {
         console.error('Login save error:', loginErr);
         // Show actual error for debugging
@@ -141,14 +155,14 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
   };
 
   const [segments, setSegments] = useState([
+    { label: '₹250', sub: 'Cash', value: 250, type: 'cash', weight: 'Medium' },
+    { label: '₹300', sub: 'Cash', value: 300, type: 'cash', weight: 'Medium' },
+    { label: '₹350', sub: 'Cash', value: 350, type: 'cash', weight: 'Medium' },
+    { label: '₹400', sub: 'Cash', value: 400, type: 'cash', weight: 'Medium' },
     { label: '₹450', sub: 'Cash', value: 450, type: 'cash', weight: 'Medium' },
-    { id: 2, label: '₹100', sub: 'Cash', value: 100, type: 'cash', weight: 'High Risk' },
-    { id: 3, label: '₹150', sub: 'Cash', value: 150, type: 'cash', weight: 'Medium' },
-    { id: 4, label: '₹200', sub: 'Cash', value: 200, type: 'cash', weight: 'Medium' },
-    { id: 5, label: '₹250', sub: 'Cash', value: 250, type: 'cash', weight: 'Medium' },
-    { id: 6, label: '₹300', sub: 'Cash', value: 300, type: 'cash', weight: 'Medium' },
-    { id: 7, label: '₹350', sub: 'Cash', value: 350, type: 'cash', weight: 'Medium' },
-    { id: 8, label: '₹400', sub: 'Cash', value: 400, type: 'cash', weight: 'Medium' },
+    { label: '₹100', sub: 'Cash', value: 100, type: 'cash', weight: 'High Risk' },
+    { label: '₹150', sub: 'Cash', value: 150, type: 'cash', weight: 'Medium' },
+    { label: '₹200', sub: 'Cash', value: 200, type: 'cash', weight: 'Medium' },
   ]);
 
   useEffect(() => {
@@ -200,12 +214,10 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
     const winner = segments[winningIndex];
     setIsSpinning(true);
 
-    // 2. Calculate rotation to land on that segment
-    // Segment 0 is at top. To land on winningIndex, we need 
-    // ((360 - (targetRotation % 360)) % 360) / (360/8) = winningIndex
-    // targetRotation % 360 = 360 - (winningIndex * 45) - 22.5 (for center)
     const segmentSize = 360 / segments.length;
-    const targetBaseRotation = 360 - (winningIndex * segmentSize) - (segmentSize / 2);
+    // The visual wheel has ₹250 (Index 0) at the very top (0 degrees).
+    // To land on winningIndex, we need to rotate it back so that index center is at 0.
+    const targetBaseRotation = (360 - (winningIndex * segmentSize)) % 360;
 
     // Add multiple full spins (5-8 spins) for effect
     const fullSpins = 5 + Math.floor(Math.random() * 3);
@@ -279,40 +291,18 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
           className="w-[88%] h-[88%] rounded-full z-10 shadow-2xl relative overflow-hidden border-[6px] border-gold/40 bg-white"
           style={{
             transform: `rotate(${rotation}deg)`,
-            transition: isSpinning ? 'transform 5s cubic-bezier(0.15,0,0.1,1)' : 'none',
+            transition: isSpinning ? 'transform 5s cubic-bezier(0.15, 0, 0.1, 1)' : 'none',
             backgroundImage: 'url(/images/wheel-bg.png)',
             backgroundSize: '110% auto',
             backgroundPosition: 'center center',
             backgroundRepeat: 'no-repeat'
           }}
         >
-          {/* Dynamic Labels - Overlay on top of image labels */}
-          {segments.map((s, i) => {
-            const angle = (i * 360) / segments.length + (360 / segments.length / 2);
-            const shouldFlip = angle > 90 && angle < 270;
-            return (
-              <div
-                key={i}
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full pointer-events-none"
-                style={{ transform: `translate(-50%, -50%) rotate(${angle}deg)` }}
-              >
-                <div 
-                  className="flex flex-col items-center pt-5 sm:pt-8"
-                  style={{ transform: shouldFlip ? 'rotate(180deg)' : 'none' }}
-                >
-                  <span className="text-[11px] sm:text-base font-black text-charcoal/80 drop-shadow-sm whitespace-nowrap">
-                    {s.label || `₹${s.value}`}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-
         </div>
 
         {/* Center Hub (Static - Outside rotating div) */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 sm:w-28 sm:h-28 bg-white rounded-full border-[8px] border-gold z-30 flex items-center justify-center shadow-[0_0_30px_rgba(0,0,0,0.3)] overflow-hidden">
-          <div 
+          <div
             className="w-full h-full"
             style={{
               backgroundImage: 'url(/images/wheel-bg.png)',
@@ -321,14 +311,10 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
               backgroundRepeat: 'no-repeat'
             }}
           />
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-white/20 to-black/20 backdrop-blur-[1px]">
-            <span className="text-[12px] sm:text-sm font-black text-white drop-shadow-lg uppercase tracking-tighter">SPIN</span>
-            <div className="w-6 h-1 bg-gold rounded-full mt-1 shadow-sm" />
-          </div>
         </div>
+      </div>
     </div>
-  </div>
-);
+  );
 
   const rightPanel = () => {
     if (showResult && winningSegment) {
@@ -455,12 +441,7 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
                   onChange={e => setFormData({ ...formData, phone: e.target.value })}
                 />
               </div>
-              <input
-                type="text" placeholder="Full Address (Area, City, Pincode)" required
-                className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-[#40C0CB] outline-none transition-all text-sm font-bold"
-                value={formData.address}
-                onChange={e => setFormData({ ...formData, address: e.target.value })}
-              />
+
               <input
                 type="text" placeholder="Referral Code (Optional — get ₹100 bonus)"
                 className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-[#40C0CB] outline-none transition-all text-sm font-bold"
@@ -523,6 +504,7 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
 
           <div className="space-y-4">
             <button
+              id="spin-now-button"
               onClick={spinWheel}
               disabled={isSpinning || !canSpin()}
               className={`w-full py-5 sm:py-6 rounded-[2rem] font-black uppercase tracking-[0.25em] transition-all shadow-2xl text-base sm:text-lg relative overflow-hidden group ${isSpinning || !canSpin()

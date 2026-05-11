@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Package, Plus, Edit, Trash2, Search, ShoppingCart, TrendingUp, DollarSign, Eye, X, Save, Upload, Image, Percent, Gem, Settings, Users, Wallet, Crown, Bell, Phone, Mail, Calendar, BadgeCheck, Loader2, Gift, LogOut, MapPin, History, Send, Shield, Info, Folder, FolderSync, CheckCircle, AlertCircle, ChevronRight, ChevronLeft, HardDrive, FileImage, RefreshCw } from 'lucide-react';
+import { Package, Plus, Edit, Trash2, Search, ShoppingCart, TrendingUp, DollarSign, Eye, X, Save, Upload, Image, Percent, Gem, Settings, Users, Wallet, Crown, Bell, Phone, Mail, Calendar, BadgeCheck, Loader2, Gift, LogOut, MapPin, History, Send, Shield, Info, Folder, FolderSync, CheckCircle, AlertCircle, ChevronRight, ChevronLeft, HardDrive, FileImage, RefreshCw, Layers } from 'lucide-react';
 import { categories } from '../data/products';
 import { Product, User } from '../types';
 import { formatPrice } from '../utils/whatsapp';
@@ -28,8 +28,8 @@ type TabType = 'dashboard' | 'products' | 'bulk' | 'banners' | 'coupons' | 'rate
 
 
 const CATEGORIES = [
-  'bangles', 'bracelets', 'chain-sets', 'chains', 'earrings', 'kadas', 
-  'necklace-sets', 'nose-jewelry', 'pendant-sets', 'pendants', 'rings', 
+  'bangles', 'bracelets', 'chain-sets', 'chains', 'earrings', 'kadas',
+  'necklace-sets', 'nose-jewelry', 'pendant-sets', 'pendants', 'rings',
   'temple-necklaces', 'thushi', 'necklaces', 'mangalsutra', 'coins'
 ] as const;
 
@@ -118,7 +118,7 @@ const AdminPage: React.FC = () => {
   const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
   const [bulkProcessingProgress, setBulkProcessingProgress] = useState(0);
   const [duplicateConflict, setDuplicateConflict] = useState<Product[]>([]);
-  const [folderImportData, setFolderImportData] = useState<{name: string, files: File[]}[]>([]);
+  const [folderImportData, setFolderImportData] = useState<{ name: string, files: File[] }[]>([]);
   const [showFolderPreview, setShowFolderPreview] = useState(false);
   const [multiProductMode, setMultiProductMode] = useState(false);
 
@@ -416,10 +416,15 @@ const AdminPage: React.FC = () => {
   };
 
 
-  const filtered = products.filter(p =>
-    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filtered = products.filter(p => {
+    const search = searchQuery.toLowerCase();
+    return (
+      (p.name || '').toLowerCase().includes(search) ||
+      (p.category || '').toLowerCase().includes(search) ||
+      (p.designNo || '').toLowerCase().includes(search) ||
+      (p.batchNo || '').toLowerCase().includes(search)
+    );
+  });
 
   const stats = {
     total: products.length,
@@ -442,13 +447,25 @@ const AdminPage: React.FC = () => {
 
 
   const openAdd = () => { resetForm(); setShowModal(true); };
-  
+
   const handleCreateProductFromFolder = () => {
     const folderName = currentPath.split('/').pop() || '';
     resetForm();
+
+    // Attempt to detect category from folder name or parent path
+    let detectedCategory = 'rings';
+    const pathParts = currentPath.toLowerCase().split('/');
+    for (const cat of CATEGORIES) {
+      if (pathParts.includes(cat) || folderName.toLowerCase().includes(cat)) {
+        detectedCategory = cat;
+        break;
+      }
+    }
+
     setFormData(prev => ({
       ...prev,
       name: folderName,
+      category: detectedCategory,
       images: mediaItems.files.map(f => f.url)
     }));
     if (mediaItems.files.length > 0) {
@@ -490,7 +507,7 @@ const AdminPage: React.FC = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
-    
+
     // Auto-select category based on name keywords
     if (name === 'name') {
       const lowerVal = value.toLowerCase();
@@ -501,8 +518,11 @@ const AdminPage: React.FC = () => {
       if (typeMatch && typeMatch.name !== 'Other') {
         detectedCategory = typeMatch.category;
       } else {
-        // 2. Fuzzy matching / Keywords
-        if (lowerVal.includes('nath') || lowerVal.includes('nose')) detectedCategory = 'nose-jewelry';
+        // 2. Fuzzy matching / Keywords (order matters: specific first)
+        if (lowerVal.includes('nath') || lowerVal.includes('nose pin') || lowerVal.includes('nose')) detectedCategory = 'nose-jewelry';
+        else if (lowerVal.includes('couple ring')) detectedCategory = 'rings';
+        else if (lowerVal.includes('ladies ring')) detectedCategory = 'rings';
+        else if (lowerVal.includes('gents ring')) detectedCategory = 'rings';
         else if (lowerVal.includes('ring')) detectedCategory = 'rings';
         else if (lowerVal.includes('bali') || lowerVal.includes('top') || lowerVal.includes('earring')) detectedCategory = 'earrings';
         else if (lowerVal.includes('bracelet')) detectedCategory = 'bracelets';
@@ -512,17 +532,19 @@ const AdminPage: React.FC = () => {
         else if (lowerVal.includes('bangle')) detectedCategory = 'bangles';
         else if (lowerVal.includes('kada')) detectedCategory = 'kadas';
         else if (lowerVal.includes('chain set')) detectedCategory = 'chain-sets';
+        else if (lowerVal.includes('chains')) detectedCategory = 'chains';
         else if (lowerVal.includes('temple necklace')) detectedCategory = 'temple-necklaces';
         else if (lowerVal.includes('necklace set')) detectedCategory = 'necklace-sets';
         else if (lowerVal.includes('thushi')) detectedCategory = 'thushi';
         else if (lowerVal.includes('coin')) detectedCategory = 'coins';
-        else if (lowerVal.includes('necklace') || lowerVal.includes('chain')) detectedCategory = 'necklaces';
+        else if (lowerVal.includes('necklace')) detectedCategory = 'necklaces';
+        else if (lowerVal.includes('chain')) detectedCategory = 'chains';
       }
 
       if (detectedCategory) {
-        setFormData(prev => ({ 
-          ...prev, 
-          name: value, 
+        setFormData(prev => ({
+          ...prev,
+          name: value,
           category: detectedCategory as any
         }));
         return;
@@ -625,7 +647,7 @@ const AdminPage: React.FC = () => {
           const slugify = (text: string) => text.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
           const baseName = formData.name;
           const productId = `${slugify(baseName)}-${idx + 1}-${Date.now().toString().slice(-4)}`;
-          
+
           return {
             id: productId,
             name: idx === 0 ? baseName : `${baseName} (${idx + 1})`,
@@ -651,7 +673,7 @@ const AdminPage: React.FC = () => {
         });
 
         await productService.bulkUpload(productsToCreate);
-        
+
         await adminService.createAuditLog({
           adminId: auth.currentUser?.uid || 'unknown',
           adminEmail: auth.currentUser?.email || 'unknown',
@@ -745,7 +767,7 @@ const AdminPage: React.FC = () => {
   const handleBulkRename = async (newName: string) => {
     setLoading(true);
     try {
-      const productsToUpdate = selectedCategoryFolder 
+      const productsToUpdate = selectedCategoryFolder
         ? products.filter(p => p.category === selectedCategoryFolder)
         : products.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
@@ -758,10 +780,10 @@ const AdminPage: React.FC = () => {
         const suffixMatch = p.name.match(/-page-(\d+)$/) || p.name.match(/-(\d+)$/);
         const suffix = suffixMatch ? suffixMatch[0] : "";
         const finalName = suffix ? `${newName}${suffix}` : newName;
-        
+
         await productService.saveProduct({ ...p, name: finalName });
       }
-      
+
       const allProducts = await productService.getAllProducts();
       setProducts(allProducts);
       alert(`Successfully renamed ${productsToUpdate.length} products to "${newName}".`);
@@ -782,7 +804,7 @@ const AdminPage: React.FC = () => {
       const parts = path.split('/');
       if (parts.length >= 2) {
         // Folder structure: Root/ProductName/image.jpg
-        const folderName = parts[1]; 
+        const folderName = parts[1];
         if (!groups[folderName]) groups[folderName] = [];
         if (file.type.startsWith('image/')) {
           groups[folderName].push(file);
@@ -817,9 +839,9 @@ const AdminPage: React.FC = () => {
       for (const group of folderImportData) {
         const productCode = group.name;
         const existing = products.find(p => p.designNo === productCode || p.name === productCode);
-        
+
         setBulkStatus(`Uploading images for: ${productCode} (${count + 1}/${folderImportData.length})`);
-        
+
         const imageUrls: string[] = [];
         for (const file of group.files) {
           try {
@@ -851,7 +873,7 @@ const AdminPage: React.FC = () => {
         };
 
         await productService.saveProduct(productData);
-        
+
         await adminService.createAuditLog({
           adminId: auth.currentUser?.uid || 'unknown',
           adminEmail: auth.currentUser?.email || 'unknown',
@@ -1059,7 +1081,7 @@ const AdminPage: React.FC = () => {
 
   const handleSplitProduct = async (product: Product) => {
     if (!product.images || product.images.length <= 1) return;
-    
+
     if (!confirm(`This product has ${product.images.length} images. Split it into ${product.images.length} separate products?`)) {
       return;
     }
@@ -1074,7 +1096,7 @@ const AdminPage: React.FC = () => {
         const slugify = (text: string) => text.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
         const baseId = slugify(product.name);
         const uniqueId = `${baseId}-split-${idx + 1}-${Date.now().toString().slice(-4)}`;
-        
+
         return {
           ...product,
           id: uniqueId,
@@ -1453,22 +1475,22 @@ const AdminPage: React.FC = () => {
                         </label>
                         <label className="px-4 py-2 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-xl text-xs font-bold hover:bg-amber-500/20 transition-colors cursor-pointer flex items-center gap-2">
                           <Folder size={14} /> Import Folders
-                          <input 
-                            type="file" 
-                            {...({ webkitdirectory: "", directory: "" } as any)} 
-                            multiple 
-                            className="hidden" 
-                            onChange={handleFolderUpload} 
+                          <input
+                            type="file"
+                            {...({ webkitdirectory: "", directory: "" } as any)}
+                            multiple
+                            className="hidden"
+                            onChange={handleFolderUpload}
                           />
                         </label>
                         <button onClick={handleSyncWithStorage} className="px-4 py-2 bg-purple-500/10 border border-purple-500/20 text-purple-400 rounded-xl text-xs font-bold hover:bg-purple-500/20 transition-colors flex items-center gap-2">
                           <FolderSync size={14} /> Sync from Storage
                         </button>
-                        
+
                         <div className="flex items-center gap-2">
                           <span className="text-[10px] font-bold text-gray-500 uppercase">As Category:</span>
-                          <select 
-                            value={syncCategory} 
+                          <select
+                            value={syncCategory}
                             onChange={(e) => setSyncCategory(e.target.value)}
                             className="bg-[#0D0D0D] border border-[#222222] text-xs text-amber-500 font-bold px-2 py-1 rounded-lg outline-none focus:border-amber-500"
                           >
@@ -1480,11 +1502,11 @@ const AdminPage: React.FC = () => {
 
                         <label className="flex items-center gap-2 cursor-pointer group">
                           <div className="relative">
-                            <input 
-                              type="checkbox" 
-                              checked={syncGranular} 
+                            <input
+                              type="checkbox"
+                              checked={syncGranular}
                               onChange={(e) => setSyncGranular(e.target.checked)}
-                              className="sr-only" 
+                              className="sr-only"
                             />
                             <div className={`w-10 h-5 rounded-full transition-colors ${syncGranular ? 'bg-amber-500' : 'bg-white/10'}`}></div>
                             <div className={`absolute top-1 left-1 w-3 h-3 rounded-full bg-white transition-transform ${syncGranular ? 'translate-x-5' : ''}`}></div>
@@ -1637,105 +1659,105 @@ const AdminPage: React.FC = () => {
                       <div className="pt-6 border-t border-[#222222]">
                         <div className="flex items-center justify-between mb-4">
                           <div className="space-y-1">
-                              <h4 className="font-bold text-white text-sm flex items-center gap-2">
-                                <Gift size={16} className="text-purple-500" /> Spin Segment Probability
-                              </h4>
-                              <p className="text-xs text-gray-500">Adjust the weight for higher/lower chances of winning specific rewards.</p>
-                            </div>
-                            <button
-                              onClick={() => {
-                                const newId = Math.max(...(promoSettings.spinSegments?.map(s => s.id) || [0])) + 1;
-                                const newSegments = [...(promoSettings.spinSegments || []), { id: newId, label: 'New Reward', value: 0, weight: 'Medium', type: 'cash' }];
-                                setPromoSettings({ ...promoSettings, spinSegments: newSegments });
-                              }}
-                              className="px-4 py-2 bg-purple-500/10 text-purple-500 rounded-xl text-xs font-bold hover:bg-purple-500/20 transition flex items-center gap-2"
-                            >
-                              + Add Segment
-                            </button>
+                            <h4 className="font-bold text-white text-sm flex items-center gap-2">
+                              <Gift size={16} className="text-purple-500" /> Spin Segment Probability
+                            </h4>
+                            <p className="text-xs text-gray-500">Adjust the weight for higher/lower chances of winning specific rewards.</p>
                           </div>
-                          <div className="space-y-3">
-                            {promoSettings.spinSegments?.map((s, idx) => (
-                              <div key={s.id} className="flex items-center justify-between p-4 bg-[#0D0D0D] border border-[#222222] rounded-2xl hover:border-[#333333] transition gap-4">
-                                <div className="flex flex-col gap-3 flex-1">
-                                  <div className="flex items-center gap-4">
-                                    <div className="flex-1">
-                                      <span className="text-[9px] text-gray-500 uppercase font-black tracking-widest block mb-1">Display Label</span>
-                                      <input
-                                        className="font-bold text-sm text-white bg-white/5 border border-white/10 rounded-xl px-3 py-2 w-full outline-none focus:border-amber-500/50 transition"
-                                        value={s.label}
-                                        onChange={e => {
-                                          const newSegments = [...(promoSettings.spinSegments || [])];
-                                          newSegments[idx].label = e.target.value;
-                                          setPromoSettings({ ...promoSettings, spinSegments: newSegments });
-                                        }}
-                                      />
-                                    </div>
-                                    <div className="w-32">
-                                      <span className="text-[9px] text-amber-500 uppercase font-black tracking-widest block mb-1">Actual Amount (₹)</span>
-                                      <input
-                                        type="number"
-                                        className="font-bold text-lg text-amber-500 bg-amber-500/5 border border-amber-500/20 rounded-xl px-3 py-2 w-full outline-none focus:border-amber-500 transition"
-                                        value={s.value}
-                                        onChange={e => {
-                                          const newSegments = [...(promoSettings.spinSegments || [])];
-                                          newSegments[idx].value = parseInt(e.target.value) || 0;
-                                          setPromoSettings({ ...promoSettings, spinSegments: newSegments });
-                                        }}
-                                      />
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <div className="flex flex-col items-end">
-                                    <span className="text-[9px] text-gray-500 uppercase font-black tracking-widest block mb-1">Win Chance</span>
-                                    <select
-                                      value={s.weight}
+                          <button
+                            onClick={() => {
+                              const newId = Math.max(...(promoSettings.spinSegments?.map(s => s.id) || [0])) + 1;
+                              const newSegments = [...(promoSettings.spinSegments || []), { id: newId, label: 'New Reward', value: 0, weight: 'Medium', type: 'cash' }];
+                              setPromoSettings({ ...promoSettings, spinSegments: newSegments });
+                            }}
+                            className="px-4 py-2 bg-purple-500/10 text-purple-500 rounded-xl text-xs font-bold hover:bg-purple-500/20 transition flex items-center gap-2"
+                          >
+                            + Add Segment
+                          </button>
+                        </div>
+                        <div className="space-y-3">
+                          {promoSettings.spinSegments?.map((s, idx) => (
+                            <div key={s.id} className="flex items-center justify-between p-4 bg-[#0D0D0D] border border-[#222222] rounded-2xl hover:border-[#333333] transition gap-4">
+                              <div className="flex flex-col gap-3 flex-1">
+                                <div className="flex items-center gap-4">
+                                  <div className="flex-1">
+                                    <span className="text-[9px] text-gray-500 uppercase font-black tracking-widest block mb-1">Display Label</span>
+                                    <input
+                                      className="font-bold text-sm text-white bg-white/5 border border-white/10 rounded-xl px-3 py-2 w-full outline-none focus:border-amber-500/50 transition"
+                                      value={s.label}
                                       onChange={e => {
                                         const newSegments = [...(promoSettings.spinSegments || [])];
-                                        newSegments[idx].weight = e.target.value;
+                                        newSegments[idx].label = e.target.value;
                                         setPromoSettings({ ...promoSettings, spinSegments: newSegments });
                                       }}
-                                      className="bg-[#1C1C1C] text-gray-300 border border-[#333333] rounded-lg px-2 py-1.5 text-xs font-bold outline-none focus:border-[#3B82F6]"
-                                    >
-                                      <option>Extremely Low</option>
-                                      <option>Very Low</option>
-                                      <option>Medium</option>
-                                      <option>High Risk</option>
-                                    </select>
+                                    />
                                   </div>
-                                  <button
-                                    onClick={() => {
-                                      const newSegments = (promoSettings.spinSegments || []).filter((_, i) => i !== idx);
-                                      setPromoSettings({ ...promoSettings, spinSegments: newSegments });
-                                    }}
-                                    className="mt-4 p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition"
-                                  >
-                                    <X size={16} />
-                                  </button>
+                                  <div className="w-32">
+                                    <span className="text-[9px] text-amber-500 uppercase font-black tracking-widest block mb-1">Actual Amount (₹)</span>
+                                    <input
+                                      type="number"
+                                      className="font-bold text-lg text-amber-500 bg-amber-500/5 border border-amber-500/20 rounded-xl px-3 py-2 w-full outline-none focus:border-amber-500 transition"
+                                      value={s.value}
+                                      onChange={e => {
+                                        const newSegments = [...(promoSettings.spinSegments || [])];
+                                        newSegments[idx].value = parseInt(e.target.value) || 0;
+                                        setPromoSettings({ ...promoSettings, spinSegments: newSegments });
+                                      }}
+                                    />
+                                  </div>
                                 </div>
                               </div>
-                            ))}
-                          </div>
+                              <div className="flex items-center gap-2">
+                                <div className="flex flex-col items-end">
+                                  <span className="text-[9px] text-gray-500 uppercase font-black tracking-widest block mb-1">Win Chance</span>
+                                  <select
+                                    value={s.weight}
+                                    onChange={e => {
+                                      const newSegments = [...(promoSettings.spinSegments || [])];
+                                      newSegments[idx].weight = e.target.value;
+                                      setPromoSettings({ ...promoSettings, spinSegments: newSegments });
+                                    }}
+                                    className="bg-[#1C1C1C] text-gray-300 border border-[#333333] rounded-lg px-2 py-1.5 text-xs font-bold outline-none focus:border-[#3B82F6]"
+                                  >
+                                    <option>Extremely Low</option>
+                                    <option>Very Low</option>
+                                    <option>Medium</option>
+                                    <option>High Risk</option>
+                                  </select>
+                                </div>
+                                <button
+                                  onClick={() => {
+                                    const newSegments = (promoSettings.spinSegments || []).filter((_, i) => i !== idx);
+                                    setPromoSettings({ ...promoSettings, spinSegments: newSegments });
+                                  }}
+                                  className="mt-4 p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition"
+                                >
+                                  <X size={16} />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-
-                        <button
-                          onClick={handleSavePromotions}
-                          disabled={loading}
-                          className="w-full py-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-2xl font-bold uppercase tracking-widest hover:opacity-90 transition-all shadow-[0_0_20px_rgba(245,158,11,0.3)] disabled:opacity-50"
-                        >
-                          {loading ? 'Saving...' : 'Save Promotion Settings'}
-                        </button>
                       </div>
+
+                      <button
+                        onClick={handleSavePromotions}
+                        disabled={loading}
+                        className="w-full py-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-2xl font-bold uppercase tracking-widest hover:opacity-90 transition-all shadow-[0_0_20px_rgba(245,158,11,0.3)] disabled:opacity-50"
+                      >
+                        {loading ? 'Saving...' : 'Save Promotion Settings'}
+                      </button>
                     </div>
                   </div>
-                )}
+                </div>
+              )}
 
-                {/* MEDIA MANAGER */}
-                {activeTab === 'media' && (
-                  <div className="space-y-6">
+              {/* MEDIA MANAGER */}
+              {activeTab === 'media' && (
+                <div className="space-y-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <button 
+                      <button
                         onClick={navigateBack}
                         disabled={currentPath === 'products'}
                         className="p-2 hover:bg-[#222222] rounded-xl text-gray-400 disabled:opacity-20 transition"
@@ -1754,13 +1776,13 @@ const AdminPage: React.FC = () => {
                     <div className="flex items-center gap-3">
                       {currentPath !== 'products' && (
                         <>
-                          <button 
+                          <button
                             onClick={handleCreateProductFromFolder}
                             className="flex items-center gap-2 px-4 py-2.5 bg-blue-500 text-white rounded-xl text-sm font-bold hover:bg-blue-600 transition shadow-[0_0_15px_rgba(59,130,246,0.3)]"
                           >
                             <Package size={16} /> Create Product
                           </button>
-                          <button 
+                          <button
                             onClick={async () => {
                               if (confirm(`Group and sync all images in this folder as ONE product?`)) {
                                 setLoading(true);
@@ -1798,7 +1820,7 @@ const AdminPage: React.FC = () => {
                       <div className="relative">
                         {showFolderInput ? (
                           <div className="flex items-center gap-2 bg-[#0D0D0D] border border-[#333333] rounded-xl px-3 py-1.5 animate-in fade-in slide-in-from-right-4">
-                            <input 
+                            <input
                               autoFocus
                               value={newFolderName}
                               onChange={e => setNewFolderName(e.target.value)}
@@ -1810,7 +1832,7 @@ const AdminPage: React.FC = () => {
                             <button onClick={() => setShowFolderInput(false)} className="text-gray-500 hover:text-white"><X size={14} /></button>
                           </div>
                         ) : (
-                          <button 
+                          <button
                             onClick={() => setShowFolderInput(true)}
                             className="flex items-center gap-2 px-4 py-2.5 bg-[#1C1C1C] border border-[#222222] text-gray-300 rounded-xl text-sm font-bold hover:border-amber-500/50 transition"
                           >
@@ -1847,7 +1869,7 @@ const AdminPage: React.FC = () => {
                           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
                             {/* Folders */}
                             {mediaItems.folders.map(folder => (
-                              <div 
+                              <div
                                 key={folder.fullPath}
                                 onClick={() => navigateToFolder(folder.name)}
                                 className="group cursor-pointer space-y-3"
@@ -1864,14 +1886,14 @@ const AdminPage: React.FC = () => {
 
                             {/* Files */}
                             {mediaItems.files.map(file => (
-                              <div 
+                              <div
                                 key={file.fullPath}
                                 className="group space-y-3"
                               >
                                 <div className="aspect-square bg-[#0D0D0D] border border-[#222222] rounded-3xl overflow-hidden relative group-hover:border-amber-500/50 transition-all duration-300 shadow-lg shadow-black/20">
                                   <img src={file.url} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" alt={file.name} />
                                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-4">
-                                    <button 
+                                    <button
                                       onClick={() => {
                                         navigator.clipboard.writeText(file.url);
                                         alert('Link copied to clipboard!');
@@ -2080,13 +2102,13 @@ const AdminPage: React.FC = () => {
                 <div className="space-y-4">
                   <div className="bg-[#161616] rounded-2xl border border-[#222222] p-4 flex flex-wrap gap-3 items-center justify-between shadow-sm">
                     <div className="flex items-center gap-2 bg-[#0D0D0D] p-1 rounded-xl border border-[#222222]">
-                      <button 
+                      <button
                         onClick={() => { setProductViewMode('folders'); setSelectedCategoryFolder(null); }}
                         className={`px-4 py-1.5 rounded-lg text-sm font-bold transition flex items-center gap-2 ${productViewMode === 'folders' ? 'bg-amber-500 text-white' : 'text-gray-500 hover:text-gray-300'}`}
                       >
                         <Folder size={16} /> Folders
                       </button>
-                      <button 
+                      <button
                         onClick={() => setProductViewMode('list')}
                         className={`px-4 py-1.5 rounded-lg text-sm font-bold transition flex items-center gap-2 ${productViewMode === 'list' ? 'bg-amber-500 text-white' : 'text-gray-500 hover:text-gray-300'}`}
                       >
@@ -2100,7 +2122,7 @@ const AdminPage: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <button 
+                      <button
                         onClick={() => {
                           const newName = prompt("Enter new name for all products in this view:");
                           if (newName) handleBulkRename(newName);
@@ -2113,8 +2135,8 @@ const AdminPage: React.FC = () => {
                         <Plus size={18} /> Add Product
                       </button>
                       {products.length > 0 && (
-                        <button 
-                          onClick={handleDeleteAllProducts} 
+                        <button
+                          onClick={handleDeleteAllProducts}
                           className="flex items-center gap-2 px-3 py-2 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl hover:bg-red-500 hover:text-white transition"
                           title="Clear All"
                         >
@@ -2129,8 +2151,8 @@ const AdminPage: React.FC = () => {
                       {CATEGORIES.map(cat => {
                         const count = products.filter(p => p.category === cat).length;
                         return (
-                          <div 
-                            key={cat} 
+                          <div
+                            key={cat}
                             onClick={() => setSelectedCategoryFolder(cat)}
                             className="group cursor-pointer space-y-3"
                           >
@@ -2147,7 +2169,7 @@ const AdminPage: React.FC = () => {
                     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
                       {productViewMode === 'folders' && selectedCategoryFolder && (
                         <div className="flex items-center gap-3 mb-2">
-                          <button 
+                          <button
                             onClick={() => setSelectedCategoryFolder(null)}
                             className="p-2 bg-[#161616] border border-[#222222] rounded-xl text-gray-400 hover:text-white hover:border-amber-500/50 transition"
                           >
@@ -2158,7 +2180,7 @@ const AdminPage: React.FC = () => {
                           </h3>
                         </div>
                       )}
-                      
+
                       <div className="bg-[#161616] rounded-2xl border border-[#222222] shadow-sm overflow-hidden">
                         <div className="overflow-x-auto">
                           <table className="w-full">
@@ -2167,43 +2189,43 @@ const AdminPage: React.FC = () => {
                             </thead>
                             <tbody className="divide-y divide-[#222222]">
                               {(selectedCategoryFolder ? filtered.filter(p => p.category === selectedCategoryFolder) : filtered).map(p => (
-                            <tr key={p.id} className="hover:bg-white/[0.02] transition">
-                              <td className="px-4 py-3">
-                                <div className="flex items-center gap-3">
-                                  <img src={p.images ? p.images[0] : (p as any).image} alt={p.name} className="w-11 h-11 rounded-xl object-cover border border-[#333333] opacity-90" />
-                                  <div>
-                                    <p className="font-medium text-gray-200 text-sm line-clamp-1">{p.name}</p>
-                                    <div className="flex gap-1 mt-0.5">
-                                      <span className="text-[9px] text-gray-500 font-mono">#{p.designNo || 'N/A'}</span>
-                                      {p.featured && <span className="text-[10px] bg-amber-500/10 text-amber-400 px-1.5 py-0.5 rounded font-medium border border-amber-500/20">Featured</span>}
+                                <tr key={p.id} className="hover:bg-white/[0.02] transition">
+                                  <td className="px-4 py-3">
+                                    <div className="flex items-center gap-3">
+                                      <img src={p.images ? p.images[0] : (p as any).image} alt={p.name} className="w-11 h-11 rounded-xl object-cover border border-[#333333] opacity-90" />
+                                      <div>
+                                        <p className="font-medium text-gray-200 text-sm line-clamp-1">{p.name}</p>
+                                        <div className="flex gap-1 mt-0.5">
+                                          <span className="text-[9px] text-gray-500 font-mono">#{p.designNo || 'N/A'}</span>
+                                          {p.featured && <span className="text-[10px] bg-amber-500/10 text-amber-400 px-1.5 py-0.5 rounded font-medium border border-amber-500/20">Featured</span>}
+                                        </div>
+                                      </div>
                                     </div>
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="px-4 py-3 text-sm text-gray-400 capitalize">{p.category}</td>
-                              <td className="px-4 py-3 font-mono text-gray-300 text-sm">₹{p.price.toLocaleString('en-IN')}</td>
-                              <td className="px-4 py-3 text-sm text-amber-500 font-mono">{p.netWeight || 0}g</td>
-                              <td className="px-4 py-3 text-sm text-gray-500">{p.laborCharges ?? makingCharges[p.category as keyof typeof makingCharges]}%</td>
-                              <td className="px-4 py-3">
-                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase border ${p.inStock ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'}`}>{p.inStock ? 'In Stock' : 'Out of Stock'}</span>
-                              </td>
-                              <td className="px-4 py-3">
-                                <div className="flex gap-1">
-                                  <Link to={`/product/${p.id}`} className="p-1.5 text-gray-500 hover:text-blue-400 hover:bg-white/5 rounded-lg transition" title="View"><Eye size={16} /></Link>
-                                  <button onClick={() => openEdit(p)} className="p-1.5 text-gray-500 hover:text-amber-400 hover:bg-white/5 rounded-lg transition" title="Edit"><Edit size={16} /></button>
-                                  {p.images && p.images.length > 1 && (
-                                    <button onClick={() => handleSplitProduct(p)} className="p-1.5 text-gray-500 hover:text-purple-400 hover:bg-white/5 rounded-lg transition" title="Split into separate products"><Layers size={16} /></button>
-                                  )}
-                                  <button onClick={() => deleteProduct(p.id)} className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-white/5 rounded-lg transition" title="Delete"><Trash2 size={16} /></button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                                  </td>
+                                  <td className="px-4 py-3 text-sm text-gray-400 capitalize">{p.category}</td>
+                                  <td className="px-4 py-3 font-mono text-gray-300 text-sm">₹{p.price.toLocaleString('en-IN')}</td>
+                                  <td className="px-4 py-3 text-sm text-amber-500 font-mono">{p.netWeight || 0}g</td>
+                                  <td className="px-4 py-3 text-sm text-gray-500">{p.laborCharges ?? makingCharges[p.category as keyof typeof makingCharges]}%</td>
+                                  <td className="px-4 py-3">
+                                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase border ${p.inStock ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'}`}>{p.inStock ? 'In Stock' : 'Out of Stock'}</span>
+                                  </td>
+                                  <td className="px-4 py-3">
+                                    <div className="flex gap-1">
+                                      <Link to={`/product/${p.id}`} className="p-1.5 text-gray-500 hover:text-blue-400 hover:bg-white/5 rounded-lg transition" title="View"><Eye size={16} /></Link>
+                                      <button onClick={() => openEdit(p)} className="p-1.5 text-gray-500 hover:text-amber-400 hover:bg-white/5 rounded-lg transition" title="Edit"><Edit size={16} /></button>
+                                      {p.images && p.images.length > 1 && (
+                                        <button onClick={() => handleSplitProduct(p)} className="p-1.5 text-gray-500 hover:text-purple-400 hover:bg-white/5 rounded-lg transition" title="Split into separate products"><Layers size={16} /></button>
+                                      )}
+                                      <button onClick={() => deleteProduct(p.id)} className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-white/5 rounded-lg transition" title="Delete"><Trash2 size={16} /></button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
                   )}
                 </div>
               )}
@@ -2234,6 +2256,39 @@ const AdminPage: React.FC = () => {
                     <button onClick={handleUpdateRates}
                       className="mt-6 w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl font-bold hover:opacity-90 transition flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(245,158,11,0.3)]">
                       <Save size={18} /> Save Metal Rates
+                    </button>
+                  </div>
+
+                  <div className="bg-[#161616] rounded-2xl border border-[#222222] p-6 shadow-sm">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center border border-blue-500/20"><Percent className="text-blue-500" size={20} /></div>
+                      <div><h3 className="font-bold text-white">Global Making Charges</h3><p className="text-xs text-gray-400">Default percentage (%) per category</p></div>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {Object.keys(makingCharges).sort().map((cat) => (
+                        <div key={cat} className="space-y-1.5">
+                          <label className="text-xs font-semibold text-gray-400 capitalize">{cat.replace(/-/g, ' ')}</label>
+                          <div className="flex items-center border border-[#222222] rounded-xl overflow-hidden focus-within:border-blue-500 transition bg-[#0D0D0D]">
+                            <input type="number"
+                              value={makingDraft[cat as keyof typeof makingDraft]}
+                              onChange={e => setMakingDraft(m => ({ ...m, [cat]: Number(e.target.value) }))}
+                              className="flex-1 px-3 py-2 text-sm bg-transparent outline-none font-medium text-white" />
+                            <span className="px-3 py-2 bg-[#1C1C1C] text-gray-500 text-xs border-l border-[#222222]">%</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <button onClick={async () => {
+                      setLoading(true);
+                      try {
+                        await configService.updateMakingCharges(makingDraft);
+                        setMakingCharges(makingDraft);
+                        alert("✅ Making charges updated!");
+                      } catch (e) { alert("Failed to update."); }
+                      finally { setLoading(false); }
+                    }}
+                      className="mt-6 w-full py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-bold hover:opacity-90 transition flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(59,130,246,0.3)]">
+                      <Save size={18} /> Save Making Charges
                     </button>
                   </div>
                 </div>
@@ -2441,9 +2496,9 @@ const AdminPage: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Product Type (Select Name)</label>
-                    <select 
-                      name="name" 
-                      value={PRODUCT_TYPES.some(t => t.name === formData.name) ? formData.name : 'Other'} 
+                    <select
+                      name="name"
+                      value={PRODUCT_TYPES.some(t => t.name === formData.name) ? formData.name : 'Other'}
                       onChange={handleChange}
                       className="w-full px-4 py-2.5 border border-[#222222] bg-[#0D0D0D] text-white rounded-xl text-sm focus:outline-none focus:border-amber-500"
                     >
@@ -2455,12 +2510,12 @@ const AdminPage: React.FC = () => {
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Product Name (Display)</label>
-                    <input 
-                      name="name" 
-                      value={formData.name} 
-                      onChange={handleChange} 
-                      placeholder="e.g. Classic Gold Ring" 
-                      className="w-full px-4 py-2.5 border border-[#222222] bg-[#0D0D0D] text-white rounded-xl text-sm focus:outline-none focus:border-amber-500 placeholder-gray-600" 
+                    <input
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      placeholder="e.g. Classic Gold Ring"
+                      className="w-full px-4 py-2.5 border border-[#222222] bg-[#0D0D0D] text-white rounded-xl text-sm focus:outline-none focus:border-amber-500 placeholder-gray-600"
                     />
                   </div>
                 </div>
@@ -2469,22 +2524,22 @@ const AdminPage: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Design/Model No.</label>
-                    <input 
-                      name="designNo" 
-                      value={formData.designNo} 
-                      onChange={handleChange} 
-                      placeholder="e.g. DR-001" 
-                      className="w-full px-4 py-2.5 border border-[#222222] bg-[#0D0D0D] text-white rounded-xl text-sm focus:outline-none focus:border-amber-500 placeholder-gray-600" 
+                    <input
+                      name="designNo"
+                      value={formData.designNo}
+                      onChange={handleChange}
+                      placeholder="e.g. DR-001"
+                      className="w-full px-4 py-2.5 border border-[#222222] bg-[#0D0D0D] text-white rounded-xl text-sm focus:outline-none focus:border-amber-500 placeholder-gray-600"
                     />
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Batch Number</label>
-                    <input 
-                      name="batchNo" 
-                      value={formData.batchNo} 
-                      onChange={handleChange} 
-                      placeholder="e.g. BATCH-2024-01" 
-                      className="w-full px-4 py-2.5 border border-[#222222] bg-[#0D0D0D] text-white rounded-xl text-sm focus:outline-none focus:border-amber-500 placeholder-gray-600" 
+                    <input
+                      name="batchNo"
+                      value={formData.batchNo}
+                      onChange={handleChange}
+                      placeholder="e.g. BATCH-2024-01"
+                      className="w-full px-4 py-2.5 border border-[#222222] bg-[#0D0D0D] text-white rounded-xl text-sm focus:outline-none focus:border-amber-500 placeholder-gray-600"
                     />
                   </div>
                 </div>

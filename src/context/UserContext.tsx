@@ -59,7 +59,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => unsubscribeAuth();
   }, []);
 
-  const login = async (name: string, email: string, phone: string, address: string, referralCode?: string) => {
+  const login = async (name: string, email: string, phone: string, address: string = '', referralCode?: string) => {
     // Wait for auth to be ready
     if (!auth.currentUser) {
       let attempts = 0;
@@ -84,7 +84,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         name,
         email,
         phone,
-        address
+        address: address || userDoc.data().address || ''
       });
       return;
     }
