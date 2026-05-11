@@ -59,8 +59,16 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
 
     const handleOpen = () => setIsOpen(true);
     window.addEventListener('open-lucky-wheel', handleOpen);
+
+    // Auto-open if referral code exists and not logged in
+    const refCode = getRefFromUrl();
+    const savedRef = localStorage.getItem('pending_referral');
+    if (!isLoggedIn && (refCode || savedRef)) {
+      setIsOpen(true);
+    }
+
     return () => window.removeEventListener('open-lucky-wheel', handleOpen);
-  }, [isEmbedded]);
+  }, [isEmbedded, isLoggedIn]);
 
   useEffect(() => {
     if (isLoggedIn && shouldAutoSpin && canSpin() && !isSpinning) {
