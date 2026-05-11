@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Package, Plus, Edit, Trash2, Search, ShoppingCart, TrendingUp, DollarSign, Eye, X, Save, Upload, Image, Percent, Gem, Settings, Users, Wallet, Crown, Bell, Phone, Mail, Calendar, BadgeCheck, Loader2, Gift, LogOut, MapPin, History, Send, Shield, Info, Folder, FolderSync, CheckCircle, AlertCircle } from 'lucide-react';
+import { Package, Plus, Edit, Trash2, Search, ShoppingCart, TrendingUp, DollarSign, Eye, X, Save, Upload, Image, Percent, Gem, Settings, Users, Wallet, Crown, Bell, Phone, Mail, Calendar, BadgeCheck, Loader2, Gift, LogOut, MapPin, History, Send, Shield, Info, Folder, FolderSync, CheckCircle, AlertCircle, ChevronRight, ChevronLeft, HardDrive, FileImage, RefreshCw } from 'lucide-react';
 import { categories } from '../data/products';
 import { Product, User } from '../types';
 import { formatPrice } from '../utils/whatsapp';
@@ -23,7 +23,7 @@ import { db } from '../lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 
-type TabType = 'dashboard' | 'products' | 'bulk' | 'banners' | 'coupons' | 'rates' | 'promotions' | 'customers' | 'orders' | 'notifications' | 'logs';
+type TabType = 'dashboard' | 'products' | 'bulk' | 'banners' | 'coupons' | 'rates' | 'promotions' | 'customers' | 'orders' | 'notifications' | 'logs' | 'media';
 
 
 
@@ -58,6 +58,10 @@ const AdminPage: React.FC = () => {
   const [customers, setCustomers] = useState<User[]>([]);
   const [custSearch, setCustSearch] = useState('');
   const [selectedCust, setSelectedCust] = useState<User | null>(null);
+
+  // View States
+  const [productViewMode, setProductViewMode] = useState<'list' | 'folders'>('folders');
+  const [selectedCategoryFolder, setSelectedCategoryFolder] = useState<string | null>(null);
 
   // New States
   const [banners, setBanners] = useState<BannerType[]>([]);
@@ -101,6 +105,13 @@ const AdminPage: React.FC = () => {
       { id: 4, label: 'Diamond Pendant', weight: 'Extremely Low', value: 0, type: 'item' }
     ]
   });
+
+  // Media Manager States
+  const [currentPath, setCurrentPath] = useState('products');
+  const [mediaItems, setMediaItems] = useState<{ folders: any[], files: any[] }>({ folders: [], files: [] });
+  const [mediaLoading, setMediaLoading] = useState(false);
+  const [newFolderName, setNewFolderName] = useState('');
+  const [showFolderInput, setShowFolderInput] = useState(false);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -175,7 +186,75 @@ const AdminPage: React.FC = () => {
     if (activeTab === 'logs') {
       fetchLogs();
     }
+    if (activeTab === 'media') {
+      fetchMedia();
+    }
   }, [activeTab]);
+
+  const fetchMedia = async (path: string = currentPath) => {
+    setMediaLoading(true);
+    try {
+      const data = await productService.listStorageItems(path);
+      setMediaItems(data);
+      setCurrentPath(path);
+    } catch (error) {
+      console.error("Failed to fetch media:", error);
+    } finally {
+      setMediaLoading(false);
+    }
+  };
+
+  const navigateToFolder = (folderName: string) => {
+    const newPath = `${currentPath}/${folderName}`;
+    fetchMedia(newPath);
+  };
+
+  const navigateBack = () => {
+    if (currentPath === 'products') return;
+    const parts = currentPath.split('/');
+    parts.pop();
+    const newPath = parts.join('/');
+    fetchMedia(newPath);
+  };
+
+  const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    setMediaLoading(true);
+    try {
+      for (const file of files) {
+        // Auto Image Compression
+        const options = {
+          maxSizeMB: 0.8,
+          maxWidthOrHeight: 1920,
+          useWebWorker: true
+        };
+        const compressedFile = await imageCompression(file, options);
+        await productService.uploadImage(compressedFile, currentPath);
+      }
+      await fetchMedia(); // Refresh
+      alert(`Successfully uploaded ${files.length} images to ${currentPath}`);
+    } catch (error) {
+      console.error("Media upload error:", error);
+      alert("Upload failed.");
+    } finally {
+      setMediaLoading(false);
+    }
+  };
+
+  const handleCreateFolder = () => {
+    if (!newFolderName.trim()) return;
+    // Firebase Storage doesn't have "empty folders", but we can simulate it
+    // by just navigating to the path. However, for it to persist, 
+    // a file must be uploaded. We'll just update UI and path.
+    const newPath = `${currentPath}/${newFolderName.trim()}`;
+    setCurrentPath(newPath);
+    setMediaItems({ folders: [], files: [] }); // Start empty
+    setNewFolderName('');
+    setShowFolderInput(false);
+    alert(`Folder "${newFolderName}" ready. Note: Folders in Storage are only created when you upload an image to them.`);
+  };
 
   const handleSendNotification = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -326,6 +405,21 @@ const AdminPage: React.FC = () => {
 
 
   const openAdd = () => { resetForm(); setShowModal(true); };
+  
+  const handleCreateProductFromFolder = () => {
+    const folderName = currentPath.split('/').pop() || '';
+    resetForm();
+    setFormData(prev => ({
+      ...prev,
+      name: folderName,
+      images: mediaItems.files.map(f => f.url)
+    }));
+    if (mediaItems.files.length > 0) {
+      setImgPreview(mediaItems.files[0].url);
+    }
+    setShowModal(true);
+  };
+
   const openEdit = (p: Product) => {
     setEditingProduct(p);
     setFormData({
@@ -508,6 +602,36 @@ const AdminPage: React.FC = () => {
     } catch (error: any) {
       console.error("Save Error:", error);
       alert("Failed to save product: " + (error.message || "Unknown error"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBulkRename = async (newName: string) => {
+    setLoading(true);
+    try {
+      const productsToUpdate = selectedCategoryFolder 
+        ? products.filter(p => p.category === selectedCategoryFolder)
+        : products.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
+
+      if (productsToUpdate.length === 0) {
+        alert("No products found to rename in this view.");
+        return;
+      }
+
+      for (const p of productsToUpdate) {
+        const suffixMatch = p.name.match(/-page-(\d+)$/) || p.name.match(/-(\d+)$/);
+        const suffix = suffixMatch ? suffixMatch[0] : "";
+        const finalName = suffix ? `${newName}${suffix}` : newName;
+        
+        await productService.saveProduct({ ...p, name: finalName });
+      }
+      
+      const allProducts = await productService.getAllProducts();
+      setProducts(allProducts);
+      alert(`Successfully renamed ${productsToUpdate.length} products to "${newName}".`);
+    } catch (e) {
+      alert("Bulk rename failed.");
     } finally {
       setLoading(false);
     }
@@ -933,6 +1057,7 @@ const AdminPage: React.FC = () => {
             ['rates', 'Market Rates', Gem],
             ['customers', 'Clients', Users],
             ['orders', 'Invoices', ShoppingCart],
+            ['media', 'Media Manager', HardDrive],
             ['bulk', 'Data Sync', Upload],
             ['notifications', 'Notifications', Bell],
             ['logs', 'Audit Logs', History]
@@ -1318,10 +1443,11 @@ const AdminPage: React.FC = () => {
                             </div>
                           </div>
                         </div>
+                      </div>
 
-                        <div className="pt-6 border-t border-[#222222]">
-                          <div className="flex items-center justify-between mb-4">
-                            <div className="space-y-1">
+                      <div className="pt-6 border-t border-[#222222]">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="space-y-1">
                               <h4 className="font-bold text-white text-sm flex items-center gap-2">
                                 <Gift size={16} className="text-purple-500" /> Spin Segment Probability
                               </h4>
@@ -1413,8 +1539,181 @@ const AdminPage: React.FC = () => {
                       </div>
                     </div>
                   </div>
+                )}
+
+                {/* MEDIA MANAGER */}
+                {activeTab === 'media' && (
+                  <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <button 
+                        onClick={navigateBack}
+                        disabled={currentPath === 'products'}
+                        className="p-2 hover:bg-[#222222] rounded-xl text-gray-400 disabled:opacity-20 transition"
+                      >
+                        <ChevronLeft size={24} />
+                      </button>
+                      <div>
+                        <h3 className="text-2xl font-bold text-white">Media Manager</h3>
+                        <div className="flex items-center gap-2 text-xs text-gray-500 font-mono">
+                          <Folder size={12} className="text-amber-500" />
+                          <span>{currentPath}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      {currentPath !== 'products' && (
+                        <>
+                          <button 
+                            onClick={handleCreateProductFromFolder}
+                            className="flex items-center gap-2 px-4 py-2.5 bg-blue-500 text-white rounded-xl text-sm font-bold hover:bg-blue-600 transition shadow-[0_0_15px_rgba(59,130,246,0.3)]"
+                          >
+                            <Package size={16} /> Create Product
+                          </button>
+                          <button 
+                            onClick={async () => {
+                              if (confirm(`Group and sync all images in this folder as ONE product?`)) {
+                                setLoading(true);
+                                try {
+                                  // Simplified sync for this specific folder
+                                  const folderName = currentPath.split('/').pop() || 'new-product';
+                                  const imageUrls = mediaItems.files.map(f => f.url);
+                                  await productService.saveProduct({
+                                    id: folderName,
+                                    name: folderName,
+                                    price: 0,
+                                    category: 'necklaces', // default
+                                    material: 'gold',
+                                    description: `Synced from folder: ${currentPath}`,
+                                    images: imageUrls,
+                                    inStock: true,
+                                    occasion: 'daily',
+                                    rating: 4.5,
+                                    reviews: 0
+                                  } as any);
+                                  const all = await productService.getAllProducts();
+                                  setProducts(all);
+                                  alert("Synced successfully!");
+                                } catch (e) { alert("Sync failed."); }
+                                finally { setLoading(false); }
+                              }
+                            }}
+                            className="flex items-center gap-2 px-4 py-2.5 bg-green-500/10 border border-green-500/20 text-green-400 rounded-xl hover:bg-green-500 hover:text-white transition text-sm font-bold"
+                          >
+                            <RefreshCw size={16} /> Group Sync
+                          </button>
+                        </>
+                      )}
+
+                      <div className="relative">
+                        {showFolderInput ? (
+                          <div className="flex items-center gap-2 bg-[#0D0D0D] border border-[#333333] rounded-xl px-3 py-1.5 animate-in fade-in slide-in-from-right-4">
+                            <input 
+                              autoFocus
+                              value={newFolderName}
+                              onChange={e => setNewFolderName(e.target.value)}
+                              onKeyDown={e => e.key === 'Enter' && handleCreateFolder()}
+                              placeholder="Folder name..."
+                              className="bg-transparent outline-none text-sm text-white w-32"
+                            />
+                            <button onClick={handleCreateFolder} className="text-amber-500 hover:text-amber-400 font-bold text-xs uppercase">Add</button>
+                            <button onClick={() => setShowFolderInput(false)} className="text-gray-500 hover:text-white"><X size={14} /></button>
+                          </div>
+                        ) : (
+                          <button 
+                            onClick={() => setShowFolderInput(true)}
+                            className="flex items-center gap-2 px-4 py-2.5 bg-[#1C1C1C] border border-[#222222] text-gray-300 rounded-xl text-sm font-bold hover:border-amber-500/50 transition"
+                          >
+                            <Plus size={16} className="text-amber-500" /> New Folder
+                          </button>
+                        )}
+                      </div>
+
+                      <label className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 text-white rounded-xl text-sm font-bold hover:bg-amber-600 transition cursor-pointer shadow-[0_0_15px_rgba(245,158,11,0.3)]">
+                        <Upload size={16} /> Upload Image
+                        <input type="file" multiple accept="image/*" className="hidden" onChange={handleMediaUpload} />
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Media Grid */}
+                  <div className="bg-[#161616] rounded-[2.5rem] p-8 border border-[#222222] shadow-sm min-h-[500px]">
+                    {mediaLoading ? (
+                      <div className="flex flex-col items-center justify-center h-[400px] gap-4">
+                        <Loader2 className="animate-spin text-amber-500" size={40} />
+                        <p className="text-gray-500 font-mono text-xs uppercase tracking-widest">Scanning Storage...</p>
+                      </div>
+                    ) : (
+                      <>
+                        {(mediaItems.folders.length === 0 && mediaItems.files.length === 0) ? (
+                          <div className="flex flex-col items-center justify-center h-[400px] text-center">
+                            <div className="w-20 h-20 bg-white/5 rounded-3xl flex items-center justify-center text-gray-700 mb-4 border border-white/5">
+                              <HardDrive size={40} />
+                            </div>
+                            <h4 className="text-gray-400 font-bold">This folder is empty</h4>
+                            <p className="text-gray-600 text-xs mt-1">Upload images or create subfolders to get started.</p>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                            {/* Folders */}
+                            {mediaItems.folders.map(folder => (
+                              <div 
+                                key={folder.fullPath}
+                                onClick={() => navigateToFolder(folder.name)}
+                                className="group cursor-pointer space-y-3"
+                              >
+                                <div className="aspect-square bg-[#0D0D0D] border border-[#222222] rounded-3xl flex items-center justify-center text-amber-500 group-hover:border-amber-500/50 group-hover:bg-amber-500/5 transition-all duration-300">
+                                  <Folder size={48} fill="currentColor" fillOpacity={0.1} />
+                                </div>
+                                <div className="text-center">
+                                  <p className="text-sm font-bold text-gray-300 truncate px-2">{folder.name}</p>
+                                  <p className="text-[10px] text-gray-600 uppercase font-bold tracking-tighter">Folder</p>
+                                </div>
+                              </div>
+                            ))}
+
+                            {/* Files */}
+                            {mediaItems.files.map(file => (
+                              <div 
+                                key={file.fullPath}
+                                className="group space-y-3"
+                              >
+                                <div className="aspect-square bg-[#0D0D0D] border border-[#222222] rounded-3xl overflow-hidden relative group-hover:border-amber-500/50 transition-all duration-300 shadow-lg shadow-black/20">
+                                  <img src={file.url} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" alt={file.name} />
+                                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-4">
+                                    <button 
+                                      onClick={() => {
+                                        navigator.clipboard.writeText(file.url);
+                                        alert('Link copied to clipboard!');
+                                      }}
+                                      className="w-full py-2 bg-white text-black rounded-xl text-[10px] font-black uppercase hover:bg-amber-500 hover:text-white transition shadow-lg"
+                                    >
+                                      Copy Link
+                                    </button>
+                                  </div>
+                                </div>
+                                <div className="text-center">
+                                  <p className="text-sm font-bold text-gray-300 truncate px-2">{file.name}</p>
+                                  <p className="text-[10px] text-gray-600 uppercase font-bold tracking-tighter">Image</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-3 p-4 bg-amber-500/5 border border-amber-500/10 rounded-2xl">
+                    <Info size={16} className="text-amber-500 shrink-0" />
+                    <p className="text-xs text-gray-400">
+                      <span className="text-amber-500 font-bold">Pro Tip:</span> In Firebase Storage, folders are created automatically when you upload a file to a new path. Creating a folder here sets the path for your next upload.
+                    </p>
+                  </div>
                 </div>
               )}
+
 
               {/* NOTIFICATIONS TOOL */}
               {activeTab === 'notifications' && (
@@ -1591,30 +1890,94 @@ const AdminPage: React.FC = () => {
               {activeTab === 'products' && (
                 <div className="space-y-4">
                   <div className="bg-[#161616] rounded-2xl border border-[#222222] p-4 flex flex-wrap gap-3 items-center justify-between shadow-sm">
+                    <div className="flex items-center gap-2 bg-[#0D0D0D] p-1 rounded-xl border border-[#222222]">
+                      <button 
+                        onClick={() => { setProductViewMode('folders'); setSelectedCategoryFolder(null); }}
+                        className={`px-4 py-1.5 rounded-lg text-sm font-bold transition flex items-center gap-2 ${productViewMode === 'folders' ? 'bg-amber-500 text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                      >
+                        <Folder size={16} /> Folders
+                      </button>
+                      <button 
+                        onClick={() => setProductViewMode('list')}
+                        className={`px-4 py-1.5 rounded-lg text-sm font-bold transition flex items-center gap-2 ${productViewMode === 'list' ? 'bg-amber-500 text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                      >
+                        <Package size={16} /> List
+                      </button>
+                    </div>
+
                     <div className="relative flex-1 min-w-[200px]">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
                       <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search products..." className="w-full pl-10 pr-4 py-2 border border-[#222222] bg-[#0D0D0D] text-gray-300 rounded-xl text-sm focus:outline-none focus:border-amber-500 placeholder-gray-600" />
                     </div>
-                    <button onClick={openAdd} className="flex items-center gap-2 px-5 py-2 bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition shadow-[0_0_15px_rgba(245,158,11,0.3)] font-medium text-sm">
-                      <Plus size={18} /> Add Product
-                    </button>
-                    {products.length > 0 && (
+
+                    <div className="flex items-center gap-2">
                       <button 
-                        onClick={handleDeleteAllProducts} 
-                        className="flex items-center gap-2 px-5 py-2 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl hover:bg-red-500 hover:text-white transition font-medium text-sm"
+                        onClick={() => {
+                          const newName = prompt("Enter new name for all products in this view:");
+                          if (newName) handleBulkRename(newName);
+                        }}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-xl hover:bg-blue-500 hover:text-white transition font-medium text-sm"
                       >
-                        <Trash2 size={18} /> Clear All
+                        <Edit size={16} /> Bulk Rename
                       </button>
-                    )}
+                      <button onClick={openAdd} className="flex items-center gap-2 px-5 py-2 bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition shadow-[0_0_15px_rgba(245,158,11,0.3)] font-medium text-sm">
+                        <Plus size={18} /> Add Product
+                      </button>
+                      {products.length > 0 && (
+                        <button 
+                          onClick={handleDeleteAllProducts} 
+                          className="flex items-center gap-2 px-3 py-2 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl hover:bg-red-500 hover:text-white transition"
+                          title="Clear All"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  <div className="bg-[#161616] rounded-2xl border border-[#222222] shadow-sm overflow-hidden">
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead className="bg-white/[0.02] border-b border-[#222222]">
-                          <tr>{['Product', 'Category', 'Price', 'Weight', 'Making%', 'Status', 'Actions'].map(h => <th key={h} className="px-4 py-3 text-left text-[10px] font-mono font-bold text-gray-500 uppercase tracking-wider">{h}</th>)}</tr>
-                        </thead>
-                        <tbody className="divide-y divide-[#222222]">
-                          {filtered.map(p => (
+
+                  {productViewMode === 'folders' && !selectedCategoryFolder ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 animate-in fade-in zoom-in duration-300">
+                      {CATEGORIES.map(cat => {
+                        const count = products.filter(p => p.category === cat).length;
+                        return (
+                          <div 
+                            key={cat} 
+                            onClick={() => setSelectedCategoryFolder(cat)}
+                            className="group cursor-pointer space-y-3"
+                          >
+                            <div className="aspect-square bg-[#161616] border border-[#222222] rounded-[2rem] flex flex-col items-center justify-center text-amber-500 group-hover:border-amber-500/50 group-hover:bg-amber-500/5 transition-all duration-500 relative overflow-hidden shadow-lg">
+                              <div className="absolute top-4 right-4 w-8 h-8 bg-black/40 rounded-full flex items-center justify-center text-[10px] font-bold text-white border border-white/10">{count}</div>
+                              <Folder size={48} fill="currentColor" fillOpacity={0.1} className="transform group-hover:scale-110 transition-transform duration-500" />
+                              <p className="text-sm font-bold text-gray-300 uppercase tracking-widest mt-2">{cat}</p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                      {productViewMode === 'folders' && selectedCategoryFolder && (
+                        <div className="flex items-center gap-3 mb-2">
+                          <button 
+                            onClick={() => setSelectedCategoryFolder(null)}
+                            className="p-2 bg-[#161616] border border-[#222222] rounded-xl text-gray-400 hover:text-white hover:border-amber-500/50 transition"
+                          >
+                            <ChevronLeft size={18} />
+                          </button>
+                          <h3 className="text-lg font-bold text-white capitalize flex items-center gap-2">
+                            <Folder size={20} className="text-amber-500" /> {selectedCategoryFolder}
+                          </h3>
+                        </div>
+                      )}
+                      
+                      <div className="bg-[#161616] rounded-2xl border border-[#222222] shadow-sm overflow-hidden">
+                        <div className="overflow-x-auto">
+                          <table className="w-full">
+                            <thead className="bg-white/[0.02] border-b border-[#222222]">
+                              <tr>{['Product', 'Category', 'Price', 'Weight', 'Status', 'Actions'].map(h => <th key={h} className="px-4 py-3 text-left text-[10px] font-mono font-bold text-gray-500 uppercase tracking-wider">{h}</th>)}</tr>
+                            </thead>
+                            <tbody className="divide-y divide-[#222222]">
+                              {(selectedCategoryFolder ? filtered.filter(p => p.category === selectedCategoryFolder) : filtered).map(p => (
                             <tr key={p.id} className="hover:bg-white/[0.02] transition">
                               <td className="px-4 py-3">
                                 <div className="flex items-center gap-3">
@@ -1648,6 +2011,8 @@ const AdminPage: React.FC = () => {
                       </table>
                     </div>
                   </div>
+                </div>
+                  )}
                 </div>
               )}
 

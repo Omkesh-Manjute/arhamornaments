@@ -216,6 +216,32 @@ export const productService = {
 
     await processFolder(rootRef);
     return count;
+  },
+
+  /**
+   * Lists items and prefixes (folders) in a specific Storage path.
+   */
+  async listStorageItems(path: string = 'products') {
+    const storageRef = ref(storage, path);
+    const result = await listAll(storageRef);
+    
+    const folders = result.prefixes.map(prefix => ({
+      name: prefix.name,
+      fullPath: prefix.fullPath,
+      type: 'folder'
+    }));
+
+    const files = await Promise.all(result.items.map(async item => {
+      const url = await getDownloadURL(item);
+      return {
+        name: item.name,
+        fullPath: item.fullPath,
+        url,
+        type: 'file'
+      };
+    }));
+
+    return { folders, files };
   }
 };
 

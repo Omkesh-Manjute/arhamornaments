@@ -27,7 +27,15 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
   const { isLoggedIn, login, recordSpin, canSpin, user } = useUser();
 
   useEffect(() => {
-    if (isEmbedded) { setIsOpen(true); return; }
+    if (isEmbedded) { setIsOpen(true); }
+    
+    // Check for referral code in URL
+    const params = new URLSearchParams(window.location.search);
+    const refCode = params.get('ref');
+    if (refCode) {
+      setFormData(prev => ({ ...prev, referralCode: refCode.toUpperCase() }));
+    }
+
     const handleOpen = () => setIsOpen(true);
     window.addEventListener('open-lucky-wheel', handleOpen);
     return () => window.removeEventListener('open-lucky-wheel', handleOpen);

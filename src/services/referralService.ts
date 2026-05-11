@@ -24,7 +24,7 @@ export const referralService = {
     if (!code || code.trim() === '') return null;
     
     const usersRef = collection(db, 'users');
-    const q = query(usersRef, where('referralCode', '==', code.toUpperCase()));
+    const q = query(usersRef, where('referralCode', '==', code.trim().toUpperCase()));
     const querySnapshot = await getDocs(q);
     
     if (!querySnapshot.empty) {
