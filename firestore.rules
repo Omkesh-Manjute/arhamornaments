@@ -35,37 +35,49 @@ service cloud.firestore {
     // Product collection
     match /products/{productId} {
       allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == 'gYOZP76EiJTCttGfbYerfcehvoy2';
+      allow write: if isAdmin();
     }
 
     // Banners
     match /banners/{bannerId} {
       allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == 'gYOZP76EiJTCttGfbYerfcehvoy2';
+      allow write: if isAdmin();
     }
 
     // Coupons
     match /coupons/{couponId} {
       allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == 'gYOZP76EiJTCttGfbYerfcehvoy2';
+      allow write: if isAdmin();
     }
 
     // App Metadata
     match /metadata/{docId} {
       allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == 'gYOZP76EiJTCttGfbYerfcehvoy2';
+      allow write: if isAdmin();
+    }
+
+    // Settings (Lucky Wheel, etc)
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Referral Tasks (Fallback for security rules)
+    match /referral_tasks/{taskId} {
+      allow create: if request.auth != null;
+      allow read, delete: if request.auth != null && (resource.data.referrerUid == request.auth.uid || isAdmin());
     }
 
     // Orders
     match /orders/{orderId} {
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow read: if request.auth != null && (resource.data.userId == request.auth.uid || request.auth.uid == 'gYOZP76EiJTCttGfbYerfcehvoy2');
-      allow write: if request.auth != null && request.auth.uid == 'gYOZP76EiJTCttGfbYerfcehvoy2';
+      allow read: if request.auth != null && (resource.data.userId == request.auth.uid || isAdmin());
+      allow write: if isAdmin();
     }
 
     // Audit Logs
     match /audit_logs/{logId} {
-      allow read, write: if request.auth != null && request.auth.uid == 'gYOZP76EiJTCttGfbYerfcehvoy2';
+      allow read, write: if isAdmin();
     }
     
     // Block all other access by default
