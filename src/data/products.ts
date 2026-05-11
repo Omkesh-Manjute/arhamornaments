@@ -969,13 +969,16 @@ export const banners: Banner[] = [
 ];
 
 export const categories: Category[] = [
-  { id: 'rings', name: 'Rings', icon: '💍', count: 24 },
-  { id: 'necklaces', name: 'Necklaces', icon: '📿', count: 24 },
   { id: 'earrings', name: 'Earrings', icon: '✨', count: 38 },
-  { id: 'coins', name: 'Coins', icon: '🪙', count: 4 },
-  { id: 'bangles', name: 'Bangles', icon: '⭕', count: 15 },
+  { id: 'rings', name: 'Rings', icon: '💍', count: 24 },
+  { id: 'bracelets', name: 'Bracelets', icon: '📿', count: 12 },
+  { id: 'nose-jewelry', name: 'Nose Jewelry', icon: '💎', count: 18 },
+  { id: 'necklaces', name: 'Necklaces', icon: '📿', count: 24 },
   { id: 'pendants', name: 'Pendants', icon: '💎', count: 21 },
-  { id: 'mangalsutra', name: 'Mangalsutra', icon: '📿', count: 8 }
+  { id: 'pendant-sets', name: 'Pendant Sets', icon: '✨', count: 14 },
+  { id: 'bangles', name: 'Bangles', icon: '⭕', count: 15 },
+  { id: 'mangalsutra', name: 'Mangalsutra', icon: '📿', count: 8 },
+  { id: 'coins', name: 'Coins', icon: '🪙', count: 4 }
 ];
 
 export const materials = [

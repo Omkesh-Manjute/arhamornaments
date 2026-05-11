@@ -42,9 +42,9 @@ const HomePage: React.FC = () => {
   ];
 
   const categories = [
-    { name: 'Cluster Rings', image: '/images/products/cluster_rings.png', path: '/products?category=rings' },
+    { name: 'Bracelets', image: '/images/products/filigree_gold_bangles.png', path: '/products?category=bracelets' },
     { name: 'Bangles', image: '/images/products/temple_gold_kangan.png', path: '/products?category=bangles' },
-    { name: 'Engagement Rings', image: '/images/products/engagement_ring.png', path: '/products?category=rings' },
+    { name: 'Nose Jewelry', image: '/images/products/antique_floral.png', path: '/products?category=nose-jewelry' },
     { name: 'Necklaces', image: '/images/products/necklaces_category.png', path: '/products?category=necklaces' },
   ];
 

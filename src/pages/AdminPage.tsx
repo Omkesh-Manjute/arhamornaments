@@ -27,7 +27,21 @@ type TabType = 'dashboard' | 'products' | 'bulk' | 'banners' | 'coupons' | 'rate
 
 
 
-const CATEGORIES = ['rings', 'necklaces', 'earrings', 'bangles', 'pendants', 'mangalsutra', 'coins'] as const;
+const CATEGORIES = ['earrings', 'bracelets', 'rings', 'nose-jewelry', 'pendants', 'pendant-sets', 'necklaces', 'bangles', 'mangalsutra', 'coins'] as const;
+
+const PRODUCT_TYPES = [
+  { name: 'Bali', category: 'earrings' },
+  { name: 'Bracelet', category: 'bracelets' },
+  { name: 'Couple Ring', category: 'rings' },
+  { name: 'Gents Ring', category: 'rings' },
+  { name: 'Ladies Ring', category: 'rings' },
+  { name: 'Nath', category: 'nose-jewelry' },
+  { name: 'Nose Pin', category: 'nose-jewelry' },
+  { name: 'Pendant', category: 'pendants' },
+  { name: 'Pendant Set', category: 'pendant-sets' },
+  { name: 'Tops', category: 'earrings' },
+  { name: 'Other', category: 'rings' }
+];
 
 const AdminPage: React.FC = () => {
   const { rates, setRates, makingCharges, setMakingCharges } = usePrice();
@@ -451,6 +465,20 @@ const AdminPage: React.FC = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
+    
+    // Auto-select category if a known product type is chosen
+    if (name === 'name') {
+      const typeMatch = PRODUCT_TYPES.find(t => t.name === value);
+      if (typeMatch && typeMatch.name !== 'Other') {
+        setFormData(prev => ({ 
+          ...prev, 
+          name: value, 
+          category: typeMatch.category as any
+        }));
+        return;
+      }
+    }
+
     setFormData(prev => ({ ...prev, [name]: val }));
     if (name === 'image') setImgPreview(value);
   };
@@ -2227,10 +2255,32 @@ const AdminPage: React.FC = () => {
                   )}
                 </div>
 
-                {/* Name */}
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Product Name</label>
-                  <input name="name" value={formData.name} onChange={handleChange} placeholder="e.g. Classic Gold Ring" className="w-full px-4 py-2.5 border border-[#222222] bg-[#0D0D0D] text-white rounded-xl text-sm focus:outline-none focus:border-amber-500 placeholder-gray-600" />
+                {/* Name & Product Type */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Product Type (Select Name)</label>
+                    <select 
+                      name="name" 
+                      value={PRODUCT_TYPES.some(t => t.name === formData.name) ? formData.name : 'Other'} 
+                      onChange={handleChange}
+                      className="w-full px-4 py-2.5 border border-[#222222] bg-[#0D0D0D] text-white rounded-xl text-sm focus:outline-none focus:border-amber-500"
+                    >
+                      <option value="">Select Product Type</option>
+                      {PRODUCT_TYPES.map(pt => (
+                        <option key={pt.name} value={pt.name}>{pt.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Product Name (Display)</label>
+                    <input 
+                      name="name" 
+                      value={formData.name} 
+                      onChange={handleChange} 
+                      placeholder="e.g. Classic Gold Ring" 
+                      className="w-full px-4 py-2.5 border border-[#222222] bg-[#0D0D0D] text-white rounded-xl text-sm focus:outline-none focus:border-amber-500 placeholder-gray-600" 
+                    />
+                  </div>
                 </div>
 
                 {/* Price row */}
