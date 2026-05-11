@@ -27,19 +27,29 @@ type TabType = 'dashboard' | 'products' | 'bulk' | 'banners' | 'coupons' | 'rate
 
 
 
-const CATEGORIES = ['earrings', 'bracelets', 'rings', 'nose-jewelry', 'pendants', 'pendant-sets', 'necklaces', 'bangles', 'mangalsutra', 'coins'] as const;
+const CATEGORIES = [
+  'bangles', 'bracelets', 'chain-sets', 'chains', 'earrings', 'kadas', 
+  'necklace-sets', 'nose-jewelry', 'pendant-sets', 'pendants', 'rings', 
+  'temple-necklaces', 'thushi', 'necklaces', 'mangalsutra', 'coins'
+] as const;
 
 const PRODUCT_TYPES = [
-  { name: 'Bali', category: 'earrings' },
+  { name: 'Bangles', category: 'bangles' },
   { name: 'Bracelet', category: 'bracelets' },
-  { name: 'Couple Ring', category: 'rings' },
-  { name: 'Gents Ring', category: 'rings' },
-  { name: 'Ladies Ring', category: 'rings' },
-  { name: 'Nath', category: 'nose-jewelry' },
-  { name: 'Nose Pin', category: 'nose-jewelry' },
-  { name: 'Pendant', category: 'pendants' },
+  { name: 'Chain Set', category: 'chain-sets' },
+  { name: 'Chain', category: 'chains' },
+  { name: 'Earrings', category: 'earrings' },
+  { name: 'Kada', category: 'kadas' },
+  { name: 'Necklace Set', category: 'necklace-sets' },
+  { name: 'Nath/Nose Jewelry', category: 'nose-jewelry' },
   { name: 'Pendant Set', category: 'pendant-sets' },
+  { name: 'Pendant', category: 'pendants' },
+  { name: 'Ring', category: 'rings' },
+  { name: 'Temple Necklace', category: 'temple-necklaces' },
+  { name: 'Thushi', category: 'thushi' },
+  { name: 'Bali', category: 'earrings' },
   { name: 'Tops', category: 'earrings' },
+  { name: 'Nose Pin', category: 'nose-jewelry' },
   { name: 'Other', category: 'rings' }
 ];
 
@@ -59,6 +69,8 @@ const AdminPage: React.FC = () => {
     name: '', price: '', originalPrice: '', category: 'rings', material: 'gold',
     purity: '22K', occasion: 'daily', description: '', image: '', images: [] as string[],
     netWeight: '', laborCharges: '', inStock: true, featured: false, trending: false,
+    batchNo: '',
+    designNo: '',
     diamondDetails: [] as any[],
     variants: [] as any[]
   });
@@ -108,6 +120,7 @@ const AdminPage: React.FC = () => {
   const [duplicateConflict, setDuplicateConflict] = useState<Product[]>([]);
   const [folderImportData, setFolderImportData] = useState<{name: string, files: File[]}[]>([]);
   const [showFolderPreview, setShowFolderPreview] = useState(false);
+  const [multiProductMode, setMultiProductMode] = useState(false);
 
   const [promoSettings, setPromoSettings] = useState({
     newUserBonus: 100,
@@ -126,6 +139,7 @@ const AdminPage: React.FC = () => {
   const [mediaLoading, setMediaLoading] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [showFolderInput, setShowFolderInput] = useState(false);
+  const [mediaCache, setMediaCache] = useState<Record<string, { folders: any[], files: any[] }>>({});
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -206,10 +220,18 @@ const AdminPage: React.FC = () => {
   }, [activeTab]);
 
   const fetchMedia = async (path: string = currentPath) => {
-    setMediaLoading(true);
+    // Show cache immediately if available, but still fetch in bg
+    if (mediaCache[path]) {
+      setMediaItems(mediaCache[path]);
+      setCurrentPath(path);
+    } else {
+      setMediaLoading(true);
+    }
+
     try {
       const data = await productService.listStorageItems(path);
       setMediaItems(data);
+      setMediaCache(prev => ({ ...prev, [path]: data }));
       setCurrentPath(path);
     } catch (error) {
       console.error("Failed to fetch media:", error);
@@ -409,6 +431,7 @@ const AdminPage: React.FC = () => {
   const resetForm = () => {
     setFormData({
       name: '', price: '', originalPrice: '', category: 'rings', material: 'gold', purity: '22K', occasion: 'daily', description: '', image: '', images: [], netWeight: '', laborCharges: '', inStock: true, featured: false, trending: false,
+      batchNo: '', designNo: '',
       diamondDetails: [],
       variants: []
     });
@@ -452,6 +475,8 @@ const AdminPage: React.FC = () => {
       inStock: p.inStock,
       featured: p.featured || false,
       trending: p.trending || false,
+      batchNo: p.batchNo || '',
+      designNo: p.designNo || '',
       diamondDetails: p.diamondDetails || [],
       variants: p.variants || [],
       images: p.images || []
@@ -466,14 +491,39 @@ const AdminPage: React.FC = () => {
     const { name, value, type } = e.target;
     const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
     
-    // Auto-select category if a known product type is chosen
+    // Auto-select category based on name keywords
     if (name === 'name') {
+      const lowerVal = value.toLowerCase();
+      let detectedCategory: string | null = null;
+
+      // 1. Check exact matches first
       const typeMatch = PRODUCT_TYPES.find(t => t.name === value);
       if (typeMatch && typeMatch.name !== 'Other') {
+        detectedCategory = typeMatch.category;
+      } else {
+        // 2. Fuzzy matching / Keywords
+        if (lowerVal.includes('nath') || lowerVal.includes('nose')) detectedCategory = 'nose-jewelry';
+        else if (lowerVal.includes('ring')) detectedCategory = 'rings';
+        else if (lowerVal.includes('bali') || lowerVal.includes('top') || lowerVal.includes('earring')) detectedCategory = 'earrings';
+        else if (lowerVal.includes('bracelet')) detectedCategory = 'bracelets';
+        else if (lowerVal.includes('pendant set')) detectedCategory = 'pendant-sets';
+        else if (lowerVal.includes('pendant')) detectedCategory = 'pendants';
+        else if (lowerVal.includes('mangalsutra')) detectedCategory = 'mangalsutra';
+        else if (lowerVal.includes('bangle')) detectedCategory = 'bangles';
+        else if (lowerVal.includes('kada')) detectedCategory = 'kadas';
+        else if (lowerVal.includes('chain set')) detectedCategory = 'chain-sets';
+        else if (lowerVal.includes('temple necklace')) detectedCategory = 'temple-necklaces';
+        else if (lowerVal.includes('necklace set')) detectedCategory = 'necklace-sets';
+        else if (lowerVal.includes('thushi')) detectedCategory = 'thushi';
+        else if (lowerVal.includes('coin')) detectedCategory = 'coins';
+        else if (lowerVal.includes('necklace') || lowerVal.includes('chain')) detectedCategory = 'necklaces';
+      }
+
+      if (detectedCategory) {
         setFormData(prev => ({ 
           ...prev, 
           name: value, 
-          category: typeMatch.category as any
+          category: detectedCategory as any
         }));
         return;
       }
@@ -568,6 +618,61 @@ const AdminPage: React.FC = () => {
     const uploadedUrls = uploadQueue.filter(q => q.url).map(q => q.url!);
     const allImages = [...formData.images, ...uploadedUrls];
 
+    // Multi-Product Creation Logic (One image = One product)
+    if (multiProductMode && allImages.length > 1 && !editingProduct) {
+      try {
+        const productsToCreate: Product[] = allImages.map((imgUrl, idx) => {
+          const slugify = (text: string) => text.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
+          const baseName = formData.name;
+          const productId = `${slugify(baseName)}-${idx + 1}-${Date.now().toString().slice(-4)}`;
+          
+          return {
+            id: productId,
+            name: idx === 0 ? baseName : `${baseName} (${idx + 1})`,
+            price: Number(formData.price),
+            originalPrice: formData.originalPrice ? Number(formData.originalPrice) : undefined,
+            category: formData.category as Product['category'],
+            material: formData.material as Product['material'],
+            purity: formData.purity,
+            occasion: formData.occasion as Product['occasion'],
+            description: formData.description,
+            images: [imgUrl],
+            netWeight: formData.netWeight ? Number(formData.netWeight) : undefined,
+            laborCharges: formData.laborCharges ? Number(formData.laborCharges) : undefined,
+            inStock: formData.inStock,
+            featured: formData.featured,
+            trending: formData.trending,
+            diamondDetails: formData.diamondDetails,
+            variants: formData.variants,
+            rating: 4.5,
+            reviews: 0,
+            createdAt: new Date().toISOString()
+          };
+        });
+
+        await productService.bulkUpload(productsToCreate);
+        
+        await adminService.createAuditLog({
+          adminId: auth.currentUser?.uid || 'unknown',
+          adminEmail: auth.currentUser?.email || 'unknown',
+          action: 'BULK_CREATE_MODAL',
+          details: `Created ${productsToCreate.length} products from multi-upload.`
+        });
+
+        const all = await productService.getAllProducts();
+        setProducts(all);
+        setShowModal(false);
+        resetForm();
+        setUploadQueue([]);
+        setMultiProductMode(false);
+      } catch (error: any) {
+        alert("Bulk save failed: " + error.message);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     // Deterministic ID based on name for new products to prevent duplicates
     const slugify = (text: string) => text.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
     const productId = editingProduct?.id || `${slugify(formData.name)}-${Date.now().toString().slice(-4)}`;
@@ -602,6 +707,8 @@ const AdminPage: React.FC = () => {
       trending: formData.trending,
       diamondDetails: formData.diamondDetails,
       variants: formData.variants,
+      batchNo: formData.batchNo,
+      designNo: formData.designNo,
       rating: editingProduct?.rating || 4.5,
       reviews: editingProduct?.reviews || 0
     };
@@ -771,10 +878,17 @@ const AdminPage: React.FC = () => {
   };
 
   const handleSyncWithStorage = async () => {
+    // Determine mode via user confirmation if they haven't manually toggled it
+    let mode = syncGranular;
+    if (!mode) {
+      const choice = window.confirm("How should we sync these images?\n\nOK = Group all images in a folder as ONE product (Gallery mode)\nCancel = Create a SEPARATE product for each image");
+      mode = !choice; // Cancel means granular (separate)
+    }
+
     setLoading(true);
-    setBulkStatus(`Scanning Storage... Category: ${syncCategory} | Mode: ${syncGranular ? 'Individual Images' : 'Folders'}`);
+    setBulkStatus(`Scanning Storage... Category: ${syncCategory} | Mode: ${mode ? 'Individual Images' : 'Folders'}`);
     try {
-      const addedCount = await productService.syncStorageWithFirestore(syncGranular, syncCategory);
+      const addedCount = await productService.syncStorageWithFirestore(mode, syncCategory);
       await adminService.createAuditLog({
         adminId: auth.currentUser?.uid || 'unknown',
         adminEmail: auth.currentUser?.email || 'unknown',
@@ -940,6 +1054,53 @@ const AdminPage: React.FC = () => {
         console.error("Delete Error:", error);
         alert("Failed to delete product.");
       }
+    }
+  };
+
+  const handleSplitProduct = async (product: Product) => {
+    if (!product.images || product.images.length <= 1) return;
+    
+    if (!confirm(`This product has ${product.images.length} images. Split it into ${product.images.length} separate products?`)) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // 1. Delete the original grouped product (don't delete images from storage!)
+      await productService.deleteProduct(product.id);
+
+      // 2. Create individual products for each image
+      const newProducts: Product[] = product.images.map((imgUrl, idx) => {
+        const slugify = (text: string) => text.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
+        const baseId = slugify(product.name);
+        const uniqueId = `${baseId}-split-${idx + 1}-${Date.now().toString().slice(-4)}`;
+        
+        return {
+          ...product,
+          id: uniqueId,
+          name: idx === 0 ? product.name : `${product.name} (Part ${idx + 1})`,
+          images: [imgUrl],
+          createdAt: new Date().toISOString()
+        };
+      });
+
+      await productService.bulkUpload(newProducts);
+
+      await adminService.createAuditLog({
+        adminId: auth.currentUser?.uid || 'unknown',
+        adminEmail: auth.currentUser?.email || 'unknown',
+        action: 'SPLIT_PRODUCT',
+        details: `Split product "${product.name}" into ${newProducts.length} separate items.`
+      });
+
+      const all = await productService.getAllProducts();
+      setProducts(all);
+      alert(`✅ Successfully split into ${newProducts.length} products!`);
+    } catch (e) {
+      console.error("Split Error:", e);
+      alert("Failed to split product.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -2028,9 +2189,12 @@ const AdminPage: React.FC = () => {
                               </td>
                               <td className="px-4 py-3">
                                 <div className="flex gap-1">
-                                  <Link to={`/product/${p.id}`} className="p-1.5 text-gray-500 hover:text-blue-400 hover:bg-white/5 rounded-lg transition"><Eye size={16} /></Link>
-                                  <button onClick={() => openEdit(p)} className="p-1.5 text-gray-500 hover:text-amber-400 hover:bg-white/5 rounded-lg transition"><Edit size={16} /></button>
-                                  <button onClick={() => deleteProduct(p.id)} className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-white/5 rounded-lg transition"><Trash2 size={16} /></button>
+                                  <Link to={`/product/${p.id}`} className="p-1.5 text-gray-500 hover:text-blue-400 hover:bg-white/5 rounded-lg transition" title="View"><Eye size={16} /></Link>
+                                  <button onClick={() => openEdit(p)} className="p-1.5 text-gray-500 hover:text-amber-400 hover:bg-white/5 rounded-lg transition" title="Edit"><Edit size={16} /></button>
+                                  {p.images && p.images.length > 1 && (
+                                    <button onClick={() => handleSplitProduct(p)} className="p-1.5 text-gray-500 hover:text-purple-400 hover:bg-white/5 rounded-lg transition" title="Split into separate products"><Layers size={16} /></button>
+                                  )}
+                                  <button onClick={() => deleteProduct(p.id)} className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-white/5 rounded-lg transition" title="Delete"><Trash2 size={16} /></button>
                                 </div>
                               </td>
                             </tr>
@@ -2253,6 +2417,24 @@ const AdminPage: React.FC = () => {
                       ))}
                     </div>
                   )}
+
+                  {!editingProduct && (uploadQueue.length > 1 || formData.images.length > 1) && (
+                    <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-3 flex items-center justify-between animate-in fade-in slide-in-from-top-2">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-amber-500/10 rounded-lg flex items-center justify-center text-amber-500">
+                          <Layers size={16} />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-amber-200">Multi-Product Mode</p>
+                          <p className="text-[10px] text-amber-500/70">Create {uploadQueue.length + formData.images.length} separate products from these images?</p>
+                        </div>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" checked={multiProductMode} onChange={e => setMultiProductMode(e.target.checked)} className="sr-only peer" />
+                        <div className="w-9 h-5 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                      </label>
+                    </div>
+                  )}
                 </div>
 
                 {/* Name & Product Type */}
@@ -2278,6 +2460,30 @@ const AdminPage: React.FC = () => {
                       value={formData.name} 
                       onChange={handleChange} 
                       placeholder="e.g. Classic Gold Ring" 
+                      className="w-full px-4 py-2.5 border border-[#222222] bg-[#0D0D0D] text-white rounded-xl text-sm focus:outline-none focus:border-amber-500 placeholder-gray-600" 
+                    />
+                  </div>
+                </div>
+
+                {/* Batch & Design No */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Design/Model No.</label>
+                    <input 
+                      name="designNo" 
+                      value={formData.designNo} 
+                      onChange={handleChange} 
+                      placeholder="e.g. DR-001" 
+                      className="w-full px-4 py-2.5 border border-[#222222] bg-[#0D0D0D] text-white rounded-xl text-sm focus:outline-none focus:border-amber-500 placeholder-gray-600" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Batch Number</label>
+                    <input 
+                      name="batchNo" 
+                      value={formData.batchNo} 
+                      onChange={handleChange} 
+                      placeholder="e.g. BATCH-2024-01" 
                       className="w-full px-4 py-2.5 border border-[#222222] bg-[#0D0D0D] text-white rounded-xl text-sm focus:outline-none focus:border-amber-500 placeholder-gray-600" 
                     />
                   </div>

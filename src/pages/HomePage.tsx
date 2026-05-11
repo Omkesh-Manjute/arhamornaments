@@ -42,10 +42,14 @@ const HomePage: React.FC = () => {
   ];
 
   const categories = [
-    { name: 'Bracelets', image: '/images/products/filigree_gold_bangles.png', path: '/products?category=bracelets' },
-    { name: 'Bangles', image: '/images/products/temple_gold_kangan.png', path: '/products?category=bangles' },
-    { name: 'Nose Jewelry', image: '/images/products/antique_floral.png', path: '/products?category=nose-jewelry' },
+    { name: 'Rings', image: '/images/products/rings_category.png', path: '/products?category=rings' },
+    { name: 'Earrings', image: '/images/products/earrings_category.png', path: '/products?category=earrings' },
     { name: 'Necklaces', image: '/images/products/necklaces_category.png', path: '/products?category=necklaces' },
+    { name: 'Bangles', image: '/images/products/bangles_category.png', path: '/products?category=bangles' },
+    { name: 'Bracelets', image: '/images/products/bracelets_category.png', path: '/products?category=bracelets' },
+    { name: 'Nose Jewelry', image: '/images/products/nose_jewelry_category.png', path: '/products?category=nose-jewelry' },
+    { name: 'Pendants', image: '/images/products/pendants_category.png', path: '/products?category=pendants' },
+    { name: 'Chain Sets', image: '/images/products/chain_sets_category.png', path: '/products?category=chain-sets' },
   ];
 
   return (

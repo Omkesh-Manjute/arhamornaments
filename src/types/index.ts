@@ -19,7 +19,8 @@ export interface Product {
   name: string;
   price: number;
   originalPrice?: number;
-  category: 'rings' | 'necklaces' | 'earrings' | 'coins' | 'bangles' | 'pendants' | 'mangalsutra';
+  category: 'rings' | 'necklaces' | 'earrings' | 'coins' | 'bangles' | 'pendants' | 'mangalsutra' | 'bracelets' | 'nose-jewelry' | 'pendant-sets' | 'chain-sets' | 'chains' | 'kadas' | 'necklace-sets' | 'temple-necklaces' | 'thushi';
+  batchNo?: string;
   material: 'gold' | 'silver' | 'diamond' | 'platinum';
 
   // Jewelry specific details

@@ -162,11 +162,25 @@ export const productService = {
 
             if (!exists) {
               const url = await getDownloadURL(item);
+              const lowerName = productCode.toLowerCase();
+              let finalCategory = defaultCategory;
+
+              // Smart Category Detection from filename
+              if (lowerName.includes('nath') || lowerName.includes('nose')) finalCategory = 'nose-jewelry';
+              else if (lowerName.includes('ring')) finalCategory = 'rings';
+              else if (lowerName.includes('bali') || lowerName.includes('top') || lowerName.includes('earring')) finalCategory = 'earrings';
+              else if (lowerName.includes('bracelet')) finalCategory = 'bracelets';
+              else if (lowerName.includes('pendant')) finalCategory = 'pendants';
+              else if (lowerName.includes('mangalsutra')) finalCategory = 'mangalsutra';
+              else if (lowerName.includes('bangle')) finalCategory = 'bangles';
+              else if (lowerName.includes('coin')) finalCategory = 'coins';
+              else if (lowerName.includes('necklace') || lowerName.includes('chain')) finalCategory = 'necklaces';
+
               const productData: any = {
                 name: productCode,
                 designNo: productCode,
                 price: 0,
-                category: defaultCategory,
+                category: finalCategory,
                 material: 'gold',
                 description: `Imported from Storage: ${productCode}`,
                 images: [url],

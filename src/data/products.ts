@@ -978,7 +978,13 @@ export const categories: Category[] = [
   { id: 'pendant-sets', name: 'Pendant Sets', icon: '✨', count: 14 },
   { id: 'bangles', name: 'Bangles', icon: '⭕', count: 15 },
   { id: 'mangalsutra', name: 'Mangalsutra', icon: '📿', count: 8 },
-  { id: 'coins', name: 'Coins', icon: '🪙', count: 4 }
+  { id: 'coins', name: 'Coins', icon: '🪙', count: 4 },
+  { id: 'chain-sets', name: 'Chain Sets', icon: '🔗', count: 0 },
+  { id: 'chains', name: 'Chains', icon: '⛓️', count: 0 },
+  { id: 'kadas', name: 'Kadas', icon: '⭕', count: 0 },
+  { id: 'necklace-sets', name: 'Necklace Sets', icon: '📿', count: 0 },
+  { id: 'temple-necklaces', name: 'Temple Necklaces', icon: '🔱', count: 0 },
+  { id: 'thushi', name: 'Thushi', icon: '📿', count: 0 }
 ];
 
 export const materials = [

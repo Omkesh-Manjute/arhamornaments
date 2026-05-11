@@ -13,11 +13,13 @@ const categories: Category[] = [
   { id: 'rings', name: 'Rings', image: '/images/products/engagement_ring.png', path: '/products?category=rings' },
   { id: 'bracelets', name: 'Bracelets', image: '/images/products/filigree_gold_bangles.png', path: '/products?category=bracelets' },
   { id: 'necklaces', name: 'Necklaces', image: '/images/products/necklaces_category.png', path: '/products?category=necklaces' },
+  { id: 'bangles', name: 'Bangles', image: '/images/products/temple_gold_kangan.png', path: '/products?category=bangles' },
   { id: 'pendants', name: 'Pendants', image: '/images/products/heart_diamond_pendant.png', path: '/products?category=pendants' },
   { id: 'pendant-sets', name: 'Pendant Sets', image: '/images/products/peacock_fusion.png', path: '/products?category=pendant-sets' },
   { id: 'nose-jewelry', name: 'Nose Jewelry', image: '/images/products/antique_floral.png', path: '/products?category=nose-jewelry' },
-  { id: 'bangles', name: 'Bangles', image: '/images/products/temple_gold_kangan.png', path: '/products?category=bangles' },
+  { id: 'chain-sets', name: 'Chain Sets', image: '/images/products/chain_sets_category.png', path: '/products?category=chain-sets' },
   { id: 'mangalsutra', name: 'Mangalsutra', image: '/images/products/antique_floral.png', path: '/products?category=mangalsutra' },
+  { id: 'chains', name: 'Chains', image: '/images/products/chains_category.png', path: '/products?category=chains' },
   { id: 'gold-coins', name: 'Gold Coins', image: '/images/products/gold_coin_2.jpg', path: '/products?category=coins' },
 ];
 
