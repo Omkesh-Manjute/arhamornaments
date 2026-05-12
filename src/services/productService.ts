@@ -25,17 +25,47 @@ import { Product } from '../types';
  */
 export const productService = {
   /**
-   * Fetches all products from Firestore.
+   * Fetches all products from Firestore (no orderBy to avoid index issues).
    */
   async getAllProducts(): Promise<Product[]> {
     const productsRef = collection(db, 'products');
-    const q = query(productsRef, orderBy('name'));
-    const querySnapshot = await getDocs(q);
+    const querySnapshot = await getDocs(productsRef);
     
-    return querySnapshot.docs.map(doc => ({
+    const products = querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     } as Product));
+
+    // Sort client-side to avoid Firestore composite index requirement
+    return products.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  },
+
+  /**
+   * Splits a multi-image product into individual products.
+   */
+  async splitProduct(product: Product): Promise<void> {
+    if (!product.images || product.images.length <= 1) return;
+
+    const batch = writeBatch(db);
+    
+    product.images.forEach((imgUrl, idx) => {
+      const newId = `${product.id}-split-${idx}-${Date.now().toString().slice(-4)}`;
+      const { id, images, ...rest } = product;
+      const newProduct = {
+        ...rest,
+        name: idx === 0 ? product.name : `${product.name} (${idx + 1})`,
+        images: [imgUrl],
+        designNo: product.designNo ? `${product.designNo}-${idx + 1}` : '',
+      };
+      const docRef = doc(db, 'products', newId);
+      batch.set(docRef, newProduct);
+    });
+
+    // Delete original multi-image product
+    const origRef = doc(db, 'products', product.id);
+    batch.delete(origRef);
+
+    await batch.commit();
   },
 
   /**
@@ -52,7 +82,8 @@ export const productService = {
     if (categoryFilter) {
       constraints.push(where('category', '==', categoryFilter));
     }
-    constraints.push(orderBy('name'));
+    // Use __name__ ordering (always indexed, no composite needed)
+    constraints.push(orderBy('__name__'));
     if (lastDoc) {
       constraints.push(startAfter(lastDoc));
     }
