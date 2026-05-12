@@ -32,18 +32,46 @@ const AdminProducts: React.FC<AdminProductsProps> = ({ onEditProduct }) => {
   const [viewMode, setViewMode] = useState<'list' | 'folders'>('folders');
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [totalCount, setTotalCount] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const lastDocRef = React.useRef<any>(null);
+  const ADMIN_PAGE_SIZE = 50;
 
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [selectedFolder]);
 
   const fetchProducts = async () => {
     setLoading(true);
+    lastDocRef.current = null;
     try {
-      const data = await productService.getAllProducts();
-      setProducts(data);
+      const catFilter = selectedFolder || undefined;
+      const [result, count] = await Promise.all([
+        productService.getProductsPaginated(ADMIN_PAGE_SIZE, null, catFilter),
+        productService.getProductCount(catFilter)
+      ]);
+      setProducts(result.products);
+      lastDocRef.current = result.lastDoc;
+      setHasMore(result.hasMore);
+      setTotalCount(count);
     } catch (err) {
       console.error("Failed to fetch products", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadMore = async () => {
+    if (!hasMore || loading) return;
+    setLoading(true);
+    try {
+      const catFilter = selectedFolder || undefined;
+      const result = await productService.getProductsPaginated(ADMIN_PAGE_SIZE, lastDocRef.current, catFilter);
+      setProducts(prev => [...prev, ...result.products]);
+      lastDocRef.current = result.lastDoc;
+      setHasMore(result.hasMore);
+    } catch (err) {
+      console.error("Failed to load more", err);
     } finally {
       setLoading(false);
     }
@@ -216,13 +244,13 @@ const AdminProducts: React.FC<AdminProductsProps> = ({ onEditProduct }) => {
                   <h3 className="text-xl font-black text-white tracking-tight capitalize flex items-center gap-2">
                     <Folder size={20} className="text-amber-500" /> {selectedFolder}
                   </h3>
-                  <p className="text-[10px] text-gray-500 font-mono uppercase tracking-widest mt-0.5">{displayedProducts.length} items discovered</p>
+                  <p className="text-[10px] text-gray-500 font-mono uppercase tracking-widest mt-0.5">{displayedProducts.length} of {totalCount} items</p>
                 </div>
               </div>
             ) : (
               <div>
                 <h3 className="text-xl font-black text-white tracking-tight">Full Inventory</h3>
-                <p className="text-[10px] text-gray-500 font-mono uppercase tracking-widest mt-0.5">Showing {filtered.length} of {products.length} total products</p>
+                <p className="text-[10px] text-gray-500 font-mono uppercase tracking-widest mt-0.5">Showing {products.length} of {totalCount} total products</p>
               </div>
             )}
           </div>
@@ -239,7 +267,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({ onEditProduct }) => {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-4">
                           <div className="w-14 h-14 rounded-2xl overflow-hidden border border-[#333333] bg-[#0D0D0D] shrink-0 group-hover:border-amber-500/30 transition-colors">
-                            <img src={p.images?.[0] || (p as any).image} alt={p.name} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all group-hover:scale-110 duration-500" />
+                            <img src={p.images?.[0] || (p as any).image} alt={p.name} loading="lazy" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all group-hover:scale-110 duration-500" />
                           </div>
                           <div className="min-w-0">
                             <p className="font-bold text-gray-200 text-sm truncate group-hover:text-white transition-colors">{p.name}</p>
@@ -284,6 +312,18 @@ const AdminProducts: React.FC<AdminProductsProps> = ({ onEditProduct }) => {
               <div className="p-20 text-center">
                 <Package className="mx-auto text-gray-800 mb-4" size={48} />
                 <p className="text-gray-500 font-bold">No products found matching your criteria</p>
+              </div>
+            )}
+            {hasMore && (
+              <div className="p-6 border-t border-[#222222] flex justify-center">
+                <button
+                  onClick={loadMore}
+                  disabled={loading}
+                  className="px-8 py-3 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-xl font-bold hover:bg-amber-500 hover:text-white transition-all flex items-center gap-2 disabled:opacity-50"
+                >
+                  {loading ? <Loader2 className="animate-spin" size={16} /> : <RefreshCw size={16} />}
+                  Load More ({products.length} / {totalCount})
+                </button>
               </div>
             )}
           </div>

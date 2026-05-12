@@ -11,7 +11,11 @@ import {
   orderBy,
   where,
   setDoc,
-  writeBatch
+  writeBatch,
+  limit,
+  startAfter,
+  getCountFromServer,
+  DocumentSnapshot
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject, listAll } from 'firebase/storage';
 import { Product } from '../types';
@@ -32,6 +36,63 @@ export const productService = {
       id: doc.id,
       ...doc.data()
     } as Product));
+  },
+
+  /**
+   * Paginated product fetch — loads products in small batches.
+   */
+  async getProductsPaginated(
+    pageSize: number = 24,
+    lastDoc?: DocumentSnapshot | null,
+    categoryFilter?: string
+  ): Promise<{ products: Product[]; lastDoc: DocumentSnapshot | null; hasMore: boolean }> {
+    const productsRef = collection(db, 'products');
+    const constraints: any[] = [];
+
+    if (categoryFilter) {
+      constraints.push(where('category', '==', categoryFilter));
+    }
+    constraints.push(orderBy('name'));
+    if (lastDoc) {
+      constraints.push(startAfter(lastDoc));
+    }
+    constraints.push(limit(pageSize + 1)); // fetch 1 extra to check hasMore
+
+    const q = query(productsRef, ...constraints);
+    const snap = await getDocs(q);
+    const docs = snap.docs;
+    const hasMore = docs.length > pageSize;
+    const pageDocs = hasMore ? docs.slice(0, pageSize) : docs;
+
+    return {
+      products: pageDocs.map(d => ({ id: d.id, ...d.data() } as Product)),
+      lastDoc: pageDocs.length > 0 ? pageDocs[pageDocs.length - 1] : null,
+      hasMore
+    };
+  },
+
+  /**
+   * Get total product count (fast, doesn't download docs).
+   */
+  async getProductCount(categoryFilter?: string): Promise<number> {
+    const productsRef = collection(db, 'products');
+    const constraints: any[] = [];
+    if (categoryFilter) {
+      constraints.push(where('category', '==', categoryFilter));
+    }
+    const q = query(productsRef, ...constraints);
+    const snap = await getCountFromServer(q);
+    return snap.data().count;
+  },
+
+  /**
+   * Get only featured products (for homepage — avoids loading everything).
+   */
+  async getFeaturedProducts(count: number = 8): Promise<Product[]> {
+    const productsRef = collection(db, 'products');
+    const q = query(productsRef, where('featured', '==', true), limit(count));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() } as Product));
   },
 
   /**

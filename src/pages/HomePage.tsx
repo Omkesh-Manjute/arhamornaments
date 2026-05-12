@@ -22,11 +22,11 @@ const HomePage: React.FC = () => {
     setIsVisible(true);
     const loadFeatured = async () => {
       try {
-        const all = await productService.getAllProducts();
-        const featured = all.filter(p => p.featured).slice(0, 4);
+        const featured = await productService.getFeaturedProducts(8);
         setFeaturedProducts(featured.length > 0 ? featured : products.filter(p => p.featured).slice(0, 4));
       } catch (error) {
         console.error("Failed to load featured products:", error);
+        setFeaturedProducts(products.filter(p => p.featured).slice(0, 4));
       } finally {
         setLoading(false);
       }
