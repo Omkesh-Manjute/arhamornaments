@@ -79,23 +79,10 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!firebaseUser) throw new Error("No authenticated user found. Please try again.");
 
     const uid = firebaseUser.uid;
-
-    // Check if document already exists to avoid overwriting existing data (like wallet balance)
     const userDocRef = doc(db, 'users', uid);
     const userDoc = await getDoc(userDocRef);
 
-    if (userDoc.exists()) {
-      // User already exists, just update name/email/phone if they changed
-      await updateDoc(userDocRef, {
-        name,
-        email,
-        phone,
-        address: address || userDoc.data().address || ''
-      });
-      return;
-    }
-
-    // New user setup
+    // Prepare referral info regardless of whether doc exists
     const hasReferral = !!(referralCode && referralCode.trim());
     let referrerUid: string | null = null;
     if (hasReferral) {
@@ -106,6 +93,37 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
 
+    if (userDoc.exists()) {
+      const existingData = userDoc.data();
+      // If user exists but hasn't been referred yet, we can apply the referral now
+      const updateData: any = {
+        name,
+        email,
+        phone,
+        address: address || existingData.address || ''
+      };
+
+      if (!existingData.referredBy && referrerUid) {
+        updateData.referredBy = referrerUid;
+        updateData.walletBalance = increment(100);
+        updateData.notifications = arrayUnion({
+          id: Date.now().toString(),
+          title: 'Referral Bonus! 🎊',
+          message: `You joined with a referral code. ₹100 has been added to your wallet as a welcome bonus!`,
+          type: 'system',
+          date: new Date().toISOString(),
+          isRead: false,
+        });
+
+        // Credit the referrer
+        await referralService.creditReferrer(referrerUid, name);
+      }
+
+      await updateDoc(userDocRef, updateData);
+      return;
+    }
+
+    // New user setup
     const userData = {
       name,
       email,

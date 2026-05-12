@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { X, Save, Upload, Loader2, Image, Layers, Trash2 } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { X, Save, Upload, Loader2, Image, Layers, Trash2, Calculator } from 'lucide-react';
 import { Product } from '../../types';
 import { productService } from '../../services/productService';
 import { adminService } from '../../services/adminService';
 import { auth } from '../../lib/firebase';
+import { usePrice } from '../../context/PriceContext';
 import imageCompression from 'browser-image-compression';
 import { useDropzone } from 'react-dropzone';
 
@@ -22,6 +23,7 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
   CATEGORIES,
   onSave
 }) => {
+  const { rates, makingCharges: globalMaking } = usePrice();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
@@ -34,6 +36,7 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
     occasion: 'daily',
     description: '',
     images: [] as string[],
+    grossWeight: '',
     netWeight: '',
     laborCharges: '',
     inStock: true,
@@ -61,6 +64,7 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
         occasion: product.occasion,
         description: product.description,
         images: product.images || [],
+        grossWeight: (product.grossWeight || '').toString(),
         netWeight: (product.netWeight || '').toString(),
         laborCharges: (product.laborCharges || '').toString(),
         inStock: product.inStock,
@@ -73,7 +77,7 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
       });
     } else {
       setFormData({
-        name: '', price: '', originalPrice: '', category: 'rings', material: 'gold', purity: '22K', occasion: 'daily', description: '', images: [], netWeight: '', laborCharges: '', inStock: true, featured: false, trending: false,
+        name: '', price: '', originalPrice: '', category: 'rings', material: 'gold', purity: '22K', occasion: 'daily', description: '', images: [], grossWeight: '', netWeight: '', laborCharges: '', inStock: true, featured: false, trending: false,
         batchNo: '', designNo: '', diamondDetails: [], variants: []
       });
     }
@@ -93,7 +97,7 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
     setUploadQueue(prev => [...prev, { file, progress: 10, id: uploadId }]);
 
     try {
-      const options = { maxSizeMB: 0.8, maxWidthOrHeight: 1920, useWebWorker: true };
+      const options = { maxSizeMB: 0.3, maxWidthOrHeight: 1200, useWebWorker: true, initialQuality: 0.7 };
       const compressedFile = await imageCompression(file, options);
       setUploadQueue(prev => prev.map(item => item.id === uploadId ? { ...item, progress: 40 } : item));
       
@@ -157,7 +161,7 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
         const productData: Product = {
           id: product?.id || `${formData.name.toLowerCase().replace(/\s+/g, '-')}-${Date.now().toString().slice(-4)}`,
           name: formData.name,
-          price: Number(formData.price),
+          price: calculatedPrice > 0 ? calculatedPrice : Number(formData.price),
           originalPrice: formData.originalPrice ? Number(formData.originalPrice) : undefined,
           category: formData.category as any,
           material: formData.material as any,
@@ -165,6 +169,7 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
           occasion: formData.occasion as any,
           description: formData.description,
           images: allImages.length > 0 ? allImages : ['https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=500'],
+          grossWeight: formData.grossWeight ? Number(formData.grossWeight) : undefined,
           netWeight: formData.netWeight ? Number(formData.netWeight) : undefined,
           laborCharges: formData.laborCharges ? Number(formData.laborCharges) : undefined,
           inStock: formData.inStock,
@@ -199,6 +204,28 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
       setLoading(false);
     }
   };
+
+  // Auto-calculate price from market rate
+  const marketRate = useMemo(() => {
+    const p = formData.purity || '22K';
+    if (formData.material === 'gold') return rates[`gold${p}` as keyof typeof rates] || rates.gold22K;
+    if (formData.material === 'silver') return rates.silver;
+    if (formData.material === 'platinum') return rates.platinum;
+    return 0;
+  }, [formData.purity, formData.material, rates]);
+
+  const makingPct = useMemo(() => {
+    if (formData.laborCharges) return Number(formData.laborCharges);
+    return (globalMaking as any)[formData.category] || 10;
+  }, [formData.laborCharges, formData.category, globalMaking]);
+
+  const calculatedPrice = useMemo(() => {
+    const nw = parseFloat(formData.netWeight) || 0;
+    if (nw <= 0 || marketRate <= 0) return 0;
+    const metalCost = nw * marketRate;
+    const makingCost = metalCost * (makingPct / 100);
+    return Math.round((metalCost + makingCost) * 1.03);
+  }, [formData.netWeight, marketRate, makingPct]);
 
   if (!isOpen) return null;
 
@@ -270,40 +297,101 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
             </div>
 
             {/* Right: Form */}
-            <div className="lg:col-span-7 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
+            <div className="lg:col-span-7 space-y-5">
+              {/* Row 1: Name + Design */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Product Name</label>
-                  <input value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full px-5 py-4 bg-[#0D0D0D] border border-[#222222] rounded-2xl text-white outline-none focus:border-amber-500 transition-colors placeholder:text-gray-700" placeholder="e.g. Traditional Gold Choker" />
+                  <input value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full px-5 py-3.5 bg-[#0D0D0D] border border-[#222222] rounded-2xl text-white outline-none focus:border-amber-500 transition-colors placeholder:text-gray-700" placeholder="e.g. Traditional Gold Choker" />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Price (₹)</label>
-                  <input type="number" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className="w-full px-5 py-4 bg-[#0D0D0D] border border-[#222222] rounded-2xl text-white outline-none focus:border-amber-500 transition-colors font-mono" placeholder="0.00" />
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Design #</label>
+                  <input value={formData.designNo} onChange={e => setFormData({...formData, designNo: e.target.value})} className="w-full px-5 py-3.5 bg-[#0D0D0D] border border-[#222222] rounded-2xl text-white outline-none focus:border-amber-500 transition-colors font-mono" placeholder="D-0000" />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                <div className="space-y-2">
+              {/* Row 2: Category + Purity (Karat) */}
+              <div className="grid grid-cols-2 gap-5">
+                <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Category</label>
-                  <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full px-5 py-4 bg-[#0D0D0D] border border-[#222222] rounded-2xl text-white outline-none focus:border-amber-500 transition-colors appearance-none capitalize">
+                  <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full px-5 py-3.5 bg-[#0D0D0D] border border-[#222222] rounded-2xl text-white outline-none focus:border-amber-500 transition-colors appearance-none capitalize">
                     {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Weight (grams)</label>
-                  <input type="number" step="0.001" value={formData.netWeight} onChange={e => setFormData({...formData, netWeight: e.target.value})} className="w-full px-5 py-4 bg-[#0D0D0D] border border-[#222222] rounded-2xl text-white outline-none focus:border-amber-500 transition-colors font-mono" placeholder="0.000" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Design #</label>
-                  <input value={formData.designNo} onChange={e => setFormData({...formData, designNo: e.target.value})} className="w-full px-5 py-4 bg-[#0D0D0D] border border-[#222222] rounded-2xl text-white outline-none focus:border-amber-500 transition-colors font-mono" placeholder="D-0000" />
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Karat / Purity</label>
+                  <div className="flex gap-2">
+                    {['18K','22K','24K'].map(k => (
+                      <button key={k} type="button" onClick={() => setFormData({...formData, purity: k})}
+                        className={`flex-1 py-3.5 rounded-xl font-black text-sm tracking-wider transition-all border ${
+                          formData.purity === k
+                            ? 'bg-amber-500 text-white border-amber-500 shadow-lg shadow-amber-500/20'
+                            : 'bg-[#0D0D0D] text-gray-500 border-[#222222] hover:border-amber-500/50'
+                        }`}
+                      >{k}</button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-2">
+              {/* Row 3: GWT + NWT */}
+              <div className="grid grid-cols-2 gap-5">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">GWT — Gross Weight (g)</label>
+                  <input type="number" step="0.001" value={formData.grossWeight} onChange={e => setFormData({...formData, grossWeight: e.target.value})} className="w-full px-5 py-3.5 bg-[#0D0D0D] border border-[#222222] rounded-2xl text-white outline-none focus:border-amber-500 transition-colors font-mono" placeholder="0.000" />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">NWT — Net Weight (g)</label>
+                  <input type="number" step="0.001" value={formData.netWeight} onChange={e => setFormData({...formData, netWeight: e.target.value})} className="w-full px-5 py-3.5 bg-[#0D0D0D] border border-[#222222] rounded-2xl text-white outline-none focus:border-amber-500 transition-colors font-mono" placeholder="0.000" />
+                </div>
+              </div>
+
+              {/* Row 4: Market Rate (auto) + Making Charges */}
+              <div className="grid grid-cols-2 gap-5">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Market Rate (₹/g) — Auto</label>
+                  <div className="w-full px-5 py-3.5 bg-[#0D0D0D] border border-emerald-500/30 rounded-2xl text-emerald-400 font-mono font-bold flex items-center gap-2">
+                    <span className="text-emerald-500/60">₹</span>{marketRate.toLocaleString('en-IN')}
+                    <span className="text-[9px] text-gray-600 ml-auto">per gram • {formData.purity}</span>
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Making Charges (%)</label>
+                  <input type="number" step="0.5" value={formData.laborCharges} onChange={e => setFormData({...formData, laborCharges: e.target.value})} className="w-full px-5 py-3.5 bg-[#0D0D0D] border border-[#222222] rounded-2xl text-white outline-none focus:border-amber-500 transition-colors font-mono" placeholder={`${makingPct}% (default)`} />
+                </div>
+              </div>
+
+              {/* Calculated Final Price */}
+              {calculatedPrice > 0 && (
+                <div className="bg-gradient-to-r from-amber-500/10 to-emerald-500/10 border border-amber-500/20 rounded-2xl p-5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Calculator size={18} className="text-amber-500" />
+                      <div>
+                        <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Auto-Calculated Final Price</p>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          {formData.netWeight}g × ₹{marketRate.toLocaleString('en-IN')} + {makingPct}% making + 3% GST
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-3xl font-black text-amber-500">₹{calculatedPrice.toLocaleString('en-IN')}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Manual Price Override */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">{calculatedPrice > 0 ? 'Manual Price Override (₹) — optional' : 'Price (₹)'}</label>
+                <input type="number" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className="w-full px-5 py-3.5 bg-[#0D0D0D] border border-[#222222] rounded-2xl text-white outline-none focus:border-amber-500 transition-colors font-mono" placeholder={calculatedPrice > 0 ? `Auto: ₹${calculatedPrice}` : '0.00'} />
+              </div>
+
+              {/* Description */}
+              <div className="space-y-1.5">
                 <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Description</label>
-                <textarea rows={4} value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full px-5 py-4 bg-[#0D0D0D] border border-[#222222] rounded-2xl text-white outline-none focus:border-amber-500 transition-colors resize-none placeholder:text-gray-700" placeholder="Tell the story of this piece..." />
+                <textarea rows={3} value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full px-5 py-3.5 bg-[#0D0D0D] border border-[#222222] rounded-2xl text-white outline-none focus:border-amber-500 transition-colors resize-none placeholder:text-gray-700" placeholder="Tell the story of this piece..." />
               </div>
 
+              {/* Checkboxes */}
               <div className="flex flex-wrap gap-6 pt-4 border-t border-[#222222]">
                 <label className="flex items-center gap-3 cursor-pointer group">
                   <input type="checkbox" checked={formData.inStock} onChange={e => setFormData({...formData, inStock: e.target.checked})} className="w-5 h-5 rounded-lg border-[#333333] bg-[#0D0D0D] text-amber-500 focus:ring-offset-0 focus:ring-0" />

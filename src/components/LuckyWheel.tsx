@@ -249,7 +249,7 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
       setIsSpinning(false);
       setWinningSegment(winner);
       setShowResult(true);
-      if (winner.type === 'cash') await recordSpin(winner.value);
+      if (winner.value > 0) await recordSpin(winner.value);
     }, 5000);
   };
 
@@ -312,9 +312,11 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
           </div>
           <div className="py-8 px-10 bg-gradient-to-br from-[#E0F7F9] to-white rounded-[2.5rem] border border-[#40C0CB]/20 shadow-2xl">
             <p className="text-6xl font-black text-[#0D4449]">₹{winningSegment.value}</p>
-            <p className="text-xs text-[#40C0CB] font-black tracking-[0.3em] uppercase mt-2">Cash Prize</p>
+            <p className="text-xs text-[#40C0CB] font-black tracking-[0.3em] uppercase mt-2">
+              {winningSegment.value > 0 ? 'Cash Prize' : 'Reward Won'}
+            </p>
           </div>
-          {winningSegment.type === 'cash' ? (
+          {winningSegment.value > 0 ? (
             <div className="bg-green-50 text-green-700 p-4 rounded-2xl flex items-center justify-center gap-3 border border-green-100">
               <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center"><Check size={14} className="text-white"/></div>
               <span className="font-bold text-sm">₹{winningSegment.value} credited to your wallet!</span>
