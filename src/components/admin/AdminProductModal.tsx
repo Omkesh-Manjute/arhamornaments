@@ -113,15 +113,19 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
   const processFiles = async (files: File[]) => {
     setUploading(true);
     try {
-      const results = await Promise.all(
-        files.map(file => handleCompressedUpload(file).catch(e => {
+      const results: string[] = [];
+      // Process one by one to avoid browser hang on heavy compression
+      for (const file of files) {
+        try {
+          const url = await handleCompressedUpload(file);
+          if (url) results.push(url);
+        } catch (e) {
           console.error("Failed to upload", file.name, e);
-          return null;
-        }))
-      );
-      const successUrls = results.filter(Boolean) as string[];
-      if (successUrls.length > 0) {
-        setFormData(prev => ({ ...prev, images: [...prev.images, ...successUrls] }));
+        }
+      }
+      
+      if (results.length > 0) {
+        setFormData(prev => ({ ...prev, images: [...prev.images, ...results] }));
       }
     } catch (e) {
       console.error("Upload batch failed", e);
@@ -420,12 +424,20 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-8 border-t border-[#222222] bg-[#0D0D0D]/50 rounded-b-[2.5rem] flex gap-4 shrink-0">
-          <button onClick={onClose} className="flex-1 py-5 bg-white/5 text-gray-400 rounded-2xl font-black uppercase tracking-widest hover:bg-white/10 transition-all border border-white/5">Cancel</button>
-          <button onClick={handleSave} disabled={loading} className="flex-[2] py-5 bg-amber-500 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-amber-600 transition-all shadow-xl shadow-amber-500/20 disabled:opacity-50 flex items-center justify-center gap-3">
-            {loading ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
-            {product ? 'Update Inventory' : multiProductMode ? `Create ${formData.images.length} Products` : 'Publish Product'}
-          </button>
+        <div className="p-8 border-t border-[#222222] bg-[#0D0D0D]/50 rounded-b-[2.5rem] flex flex-col gap-4 shrink-0">
+          {uploading && (
+            <div className="flex items-center gap-3 px-4 py-2 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+              <Loader2 className="animate-spin text-amber-500" size={14} />
+              <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest">Uploading media... please wait</p>
+            </div>
+          )}
+          <div className="flex gap-4">
+            <button onClick={onClose} className="flex-1 py-5 bg-white/5 text-gray-400 rounded-2xl font-black uppercase tracking-widest hover:bg-white/10 transition-all border border-white/5">Cancel</button>
+            <button onClick={handleSave} disabled={loading || uploading} className="flex-[2] py-5 bg-amber-500 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-amber-600 transition-all shadow-xl shadow-amber-500/20 disabled:opacity-50 flex items-center justify-center gap-3">
+              {loading ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
+              {product ? 'Update Inventory' : multiProductMode ? `Create ${formData.images.length} Products` : 'Publish Product'}
+            </button>
+          </div>
         </div>
       </div>
     </div>

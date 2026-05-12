@@ -6,6 +6,7 @@ import {
   Edit, 
   Trash2, 
   ChevronLeft, 
+  ChevronDown,
   Eye, 
   Layers,
   Loader2,
@@ -31,6 +32,14 @@ const AdminProducts: React.FC<AdminProductsProps> = ({ onEditProduct }) => {
   const [loading, setLoading] = useState(true);
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+
+  const toggleGroup = (group: string) => {
+    const newExpanded = new Set(expandedGroups);
+    if (newExpanded.has(group)) newExpanded.delete(group);
+    else newExpanded.add(group);
+    setExpandedGroups(newExpanded);
+  };
 
   useEffect(() => {
     fetchProducts();
@@ -101,26 +110,23 @@ const AdminProducts: React.FC<AdminProductsProps> = ({ onEditProduct }) => {
   }, [products]);
 
   // Products for selected folder, filtered by search
-  const displayedProducts = useMemo(() => {
-    let result = products;
-    
-    // Filter by category if folder selected
-    if (selectedFolder) {
-      result = result.filter(p => p.category === selectedFolder);
-    }
-    
-    // Filter by search (name or design number)
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      result = result.filter(p =>
-        p.name.toLowerCase().includes(q) ||
-        p.designNo?.toLowerCase().includes(q) ||
-        p.category.toLowerCase().includes(q)
-      );
-    }
-    
     return result;
   }, [products, selectedFolder, searchQuery]);
+
+  // Grouped products for the table
+  const groupedProducts = useMemo(() => {
+    const groups: Record<string, Product[]> = {};
+    
+    displayedProducts.forEach(p => {
+      // Logic: 001-1 -> group 001. If no dash, group is the designNo itself.
+      const base = p.designNo?.split('-')[0] || 'Uncategorized';
+      if (!groups[base]) groups[base] = [];
+      groups[base].push(p);
+    });
+
+    // Sort groups by key
+    return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
+  }, [displayedProducts]);
 
   if (loading && products.length === 0) {
     return (
@@ -224,54 +230,86 @@ const AdminProducts: React.FC<AdminProductsProps> = ({ onEditProduct }) => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#222222]">
-                  {displayedProducts.map(p => (
-                    <tr key={p.id} className="group hover:bg-white/[0.02] transition-all">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-4">
-                          <div className="w-14 h-14 rounded-2xl overflow-hidden border border-[#333333] bg-[#0D0D0D] shrink-0 group-hover:border-amber-500/30 transition-colors">
-                            <img src={p.images?.[0] || (p as any).image} alt={p.name} loading="lazy" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all group-hover:scale-110 duration-500" />
-                          </div>
-                          <div className="min-w-0">
-                            <p className="font-bold text-gray-200 text-sm truncate group-hover:text-white transition-colors">{p.name}</p>
-                            {p.images && p.images.length > 1 && (
-                              <span className="text-[9px] text-blue-400 font-bold">{p.images.length} images</span>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-1.5">
-                          <Hash size={12} className="text-gray-600" />
-                          <span className="text-xs text-amber-500/80 font-mono font-bold">{p.designNo || '—'}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <p className="font-mono text-white text-sm font-bold">₹{p.price?.toLocaleString('en-IN') || '0'}</p>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="space-y-0.5">
-                          {p.grossWeight && <p className="text-[10px] text-gray-500">GWT: <span className="text-gray-300 font-bold">{p.grossWeight}g</span></p>}
-                          <p className="text-sm text-amber-500/80 font-mono font-bold">{p.netWeight || 0}g</p>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-1.5 h-1.5 rounded-full ${p.inStock ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
-                          <span className={`text-[10px] font-black uppercase tracking-widest ${p.inStock ? 'text-green-500/80' : 'text-red-500/80'}`}>{p.inStock ? 'In Stock' : 'Sold Out'}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex gap-1.5">
-                          <Link to={`/product/${p.id}`} className="p-2.5 text-gray-500 hover:text-white hover:bg-white/5 rounded-xl transition" title="Preview"><Eye size={16} /></Link>
-                          <button onClick={() => onEditProduct(p)} className="p-2.5 text-gray-500 hover:text-amber-500 hover:bg-amber-500/5 rounded-xl transition" title="Edit Product"><Edit size={16} /></button>
-                          {p.images && p.images.length > 1 && (
-                            <button onClick={() => handleSplit(p)} className="p-2.5 text-gray-500 hover:text-purple-400 hover:bg-purple-500/5 rounded-xl transition" title="Split into separate products"><Layers size={16} /></button>
-                          )}
-                          <button onClick={() => handleDelete(p.id)} className="p-2.5 text-gray-500 hover:text-red-500 hover:bg-red-500/5 rounded-xl transition" title="Delete"><Trash2 size={16} /></button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  {groupedProducts.map(([groupName, groupItems]) => {
+                    const isExpanded = expandedGroups.has(groupName);
+                    const firstP = groupItems[0];
+                    
+                    return (
+                      <React.Fragment key={groupName}>
+                        {/* Group Header Row */}
+                        <tr 
+                          onClick={() => toggleGroup(groupName)}
+                          className="cursor-pointer bg-white/[0.01] hover:bg-white/[0.03] transition-all border-l-2 border-transparent hover:border-amber-500/50"
+                        >
+                          <td className="px-6 py-4" colSpan={2}>
+                            <div className="flex items-center gap-4">
+                              <div className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
+                                <ChevronDown size={16} className="text-gray-500" />
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl overflow-hidden border border-white/5 bg-black/40">
+                                  <img src={firstP.images?.[0]} alt="" className="w-full h-full object-cover opacity-50" />
+                                </div>
+                                <div>
+                                  <p className="font-black text-white text-sm tracking-tight">{groupName}</p>
+                                  <p className="text-[9px] text-amber-500/60 font-mono uppercase tracking-widest">{groupItems.length} Products in group</p>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-gray-500 text-[10px] uppercase tracking-widest font-bold" colSpan={3}>
+                            {firstP.name}
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                             <span className="text-[10px] font-black bg-amber-500/10 text-amber-500 px-3 py-1.5 rounded-full border border-amber-500/20">GROUP</span>
+                          </td>
+                        </tr>
+
+                        {/* Child Rows */}
+                        {isExpanded && groupItems.map(p => (
+                          <tr key={p.id} className="group hover:bg-white/[0.02] transition-all bg-black/20">
+                            <td className="px-6 py-4 pl-16">
+                              <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-2xl overflow-hidden border border-[#333333] bg-[#0D0D0D] shrink-0 group-hover:border-amber-500/30 transition-colors">
+                                  <img src={p.images?.[0] || (p as any).image} alt={p.name} loading="lazy" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all group-hover:scale-110 duration-500" />
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="font-bold text-gray-200 text-xs truncate group-hover:text-white transition-colors">{p.name}</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-1.5">
+                                <Hash size={12} className="text-gray-600" />
+                                <span className="text-[10px] text-amber-500/80 font-mono font-bold">{p.designNo || '—'}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <p className="font-mono text-white text-xs font-bold">₹{p.price?.toLocaleString('en-IN') || '0'}</p>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="space-y-0.5">
+                                <p className="text-xs text-amber-500/80 font-mono font-bold">{p.netWeight || 0}g</p>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-2">
+                                <div className={`w-1 h-1 rounded-full ${p.inStock ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                                <span className={`text-[9px] font-black uppercase tracking-widest ${p.inStock ? 'text-green-500/80' : 'text-red-500/80'}`}>{p.inStock ? 'Stock' : 'Sold'}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex gap-1 justify-end">
+                                <Link to={`/product/${p.id}`} className="p-2 text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition" title="Preview"><Eye size={14} /></Link>
+                                <button onClick={(e) => { e.stopPropagation(); onEditProduct(p); }} className="p-2 text-gray-500 hover:text-amber-500 hover:bg-amber-500/5 rounded-lg transition" title="Edit Product"><Edit size={14} /></button>
+                                <button onClick={(e) => { e.stopPropagation(); handleDelete(p.id); }} className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-500/5 rounded-lg transition" title="Delete"><Trash2 size={14} /></button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </React.Fragment>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
