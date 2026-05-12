@@ -180,15 +180,18 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
     }
   };
 
+  // ⚠️ IMPORTANT: Segment order MUST match the wheel image exactly.
+  // Index 0 = segment at 12 o'clock (top), going CLOCKWISE.
+  // Based on wheel-bg.png: ₹100 is at top, then ₹150, ₹200... going clockwise.
   const [segments, setSegments] = useState([
-    { label: '₹250', sub: 'Cash', value: 250, type: 'cash', weight: 'Medium' },
-    { label: '₹300', sub: 'Cash', value: 300, type: 'cash', weight: 'Medium' },
-    { label: '₹350', sub: 'Cash', value: 350, type: 'cash', weight: 'Medium' },
-    { label: '₹400', sub: 'Cash', value: 400, type: 'cash', weight: 'Medium' },
-    { label: '₹450', sub: 'Cash', value: 450, type: 'cash', weight: 'Medium' },
-    { label: '₹100', sub: 'Cash', value: 100, type: 'cash', weight: 'High Risk' },
-    { label: '₹150', sub: 'Cash', value: 150, type: 'cash', weight: 'Medium' },
-    { label: '₹200', sub: 'Cash', value: 200, type: 'cash', weight: 'Medium' },
+    { id: 1, label: '₹100 Cash', value: 100, type: 'cash', weight: 'High' },
+    { id: 2, label: '₹150 Cash', value: 150, type: 'cash', weight: 'Medium' },
+    { id: 3, label: '₹200 Cash', value: 200, type: 'cash', weight: 'Medium' },
+    { id: 4, label: '₹250 Cash', value: 250, type: 'cash', weight: 'Medium' },
+    { id: 5, label: '₹300 Cash', value: 300, type: 'cash', weight: 'Medium' },
+    { id: 6, label: '₹350 Cash', value: 350, type: 'cash', weight: 'Medium' },
+    { id: 7, label: '₹400 Cash', value: 400, type: 'cash', weight: 'Medium' },
+    { id: 8, label: '₹450 Cash', value: 450, type: 'cash', weight: 'Low' },
   ]);
 
   useEffect(() => {
@@ -213,11 +216,13 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
 
   const getWeightValue = (weight: string) => {
     switch (weight) {
-      case 'High Risk': return 50;
+      case 'Very High': return 100;
+      case 'High': return 50;
       case 'Medium': return 25;
+      case 'Low': return 10;
       case 'Very Low': return 5;
       case 'Extremely Low': return 1;
-      default: return 10;
+      default: return 25;
     }
   };
 
@@ -241,19 +246,22 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
     setIsSpinning(true);
 
     const segmentSize = 360 / segments.length;
-    // The visual wheel has ₹250 (Index 0) at the very top (0 degrees).
-    // To land on winningIndex, we need to rotate it back so that index center is at 0.
-    const targetBaseRotation = (360 - (winningIndex * segmentSize)) % 360;
+    // Rotation formula:
+    // - Each segment i starts at i * segmentSize degrees from the top.
+    // - To land on segment i, rotate so that segment's CENTER aligns with the top pointer.
+    // - CENTER of segment i = i * segmentSize + segmentSize/2
+    // - We need: (currentRotation + newDegrees) % 360 = 360 - centerOfSegment
+    const centerOffset = segmentSize / 2;
+    const targetBaseRotation = (360 - (winningIndex * segmentSize) - centerOffset + 360) % 360;
 
     // Add multiple full spins (5-8 spins) for effect
     const fullSpins = 5 + Math.floor(Math.random() * 3);
-    const extraDegrees = (fullSpins * 360) + targetBaseRotation;
+    const targetRotation = (fullSpins * 360) + targetBaseRotation;
 
-    // Current rotation might not be 0, so we add to it
-    // But we need the FINAL rotation to result in the targetBaseRotation
+    // Ensure we always spin forward (add to current rotation)
     const currentModulo = rotation % 360;
-    const degreesToAdd = extraDegrees - currentModulo + (extraDegrees < currentModulo ? 360 : 0);
-    const newRotation = rotation + degreesToAdd;
+    const degreesNeeded = (targetBaseRotation - currentModulo + 360) % 360;
+    const newRotation = rotation + (fullSpins * 360) + degreesNeeded;
 
     setRotation(newRotation);
 
