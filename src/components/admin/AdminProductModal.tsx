@@ -112,17 +112,22 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
 
   const processFiles = async (files: File[]) => {
     setUploading(true);
-    const urls = [];
-    for (const file of files) {
-      try {
-        const url = await handleCompressedUpload(file);
-        urls.push(url);
-      } catch (e) {
-        console.error("Failed to upload", file.name);
+    try {
+      const results = await Promise.all(
+        files.map(file => handleCompressedUpload(file).catch(e => {
+          console.error("Failed to upload", file.name, e);
+          return null;
+        }))
+      );
+      const successUrls = results.filter(Boolean) as string[];
+      if (successUrls.length > 0) {
+        setFormData(prev => ({ ...prev, images: [...prev.images, ...successUrls] }));
       }
+    } catch (e) {
+      console.error("Upload batch failed", e);
+    } finally {
+      setUploading(false);
     }
-    setUploading(false);
-    return urls;
   };
 
   const removeImage = (url: string) => {
@@ -133,8 +138,12 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
   };
 
   const handleSave = async () => {
-    if (!formData.name || !formData.price) {
-      alert("Please enter product name and price");
+    if (!formData.name) {
+      alert("Please enter a product name");
+      return;
+    }
+    if (!formData.price && calculatedPrice <= 0) {
+      alert("Please enter a price or fill in weight + karat for auto-pricing");
       return;
     }
 
