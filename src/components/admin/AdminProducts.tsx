@@ -110,6 +110,24 @@ const AdminProducts: React.FC<AdminProductsProps> = ({ onEditProduct }) => {
   }, [products]);
 
   // Products for selected folder, filtered by search
+  const displayedProducts = useMemo(() => {
+    let result = products;
+    
+    // Filter by category if folder selected
+    if (selectedFolder) {
+      result = result.filter(p => p.category === selectedFolder);
+    }
+    
+    // Filter by search (name or design number)
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      result = result.filter(p =>
+        p.name.toLowerCase().includes(q) ||
+        p.designNo?.toLowerCase().includes(q) ||
+        p.category.toLowerCase().includes(q)
+      );
+    }
+    
     return result;
   }, [products, selectedFolder, searchQuery]);
 
