@@ -18,6 +18,7 @@ const ProductDetail: React.FC = () => {
   const [quantity, setQuantity] = useState(1);
   const [selectedPurity, setSelectedPurity] = useState<string>('');
   const [selectedQuality, setSelectedQuality] = useState<string>('');
+  const [dbProducts, setDbProducts] = useState<Product[]>([]);
   
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
@@ -51,6 +52,19 @@ const ProductDetail: React.FC = () => {
     window.scrollTo(0, 0);
   }, [id]);
 
+  // Fetch all products for recommendations
+  React.useEffect(() => {
+    const fetchAll = async () => {
+      try {
+        const fetched = await productService.getAllProducts();
+        setDbProducts(fetched);
+      } catch (error) {
+        console.error("Error fetching all products:", error);
+      }
+    };
+    fetchAll();
+  }, []);
+
   // Initialize selections when product loads
   React.useEffect(() => {
     if (product) {
@@ -59,10 +73,11 @@ const ProductDetail: React.FC = () => {
     }
   }, [product]);
 
-  // AI Recommendations logic moved to top (safe access)
+  // AI Recommendations logic
   const completeTheLook = useMemo(() => {
     if (!product) return [];
-    return staticProducts
+    const source = dbProducts.length > 0 ? dbProducts : staticProducts;
+    return source
       .filter(p => 
         p.id !== product.id && 
         p.material === product.material && 
@@ -70,16 +85,17 @@ const ProductDetail: React.FC = () => {
         (p.occasion === product.occasion || p.featured)
       )
       .slice(0, 4);
-  }, [product?.id, product?.category]);
+  }, [product?.id, product?.category, dbProducts]);
 
   const relatedProducts = useMemo(() => {
     if (!product) return [];
-    let related = staticProducts.filter(p => p.category === product.category && p.id !== product.id);
+    const source = dbProducts.length > 0 ? dbProducts : staticProducts;
+    let related = source.filter(p => p.category === product.category && p.id !== product.id);
     if (related.length === 0) {
-      related = staticProducts.filter(p => p.id !== product.id && (p.trending || p.featured));
+      related = source.filter(p => p.id !== product.id && (p.trending || p.featured));
     }
     return related.slice(0, 4);
-  }, [product?.id, product?.category]);
+  }, [product?.id, product?.category, dbProducts]);
 
   // Recently Viewed Logic moved to top
   const [recentlyViewed, setRecentlyViewed] = useState<any[]>([]);
@@ -89,8 +105,9 @@ const ProductDetail: React.FC = () => {
       const stored = localStorage.getItem('recentlyViewed');
       let viewedIds: string[] = stored ? JSON.parse(stored) : [];
       viewedIds = viewedIds.filter(vId => vId !== product.id);
+      const source = dbProducts.length > 0 ? dbProducts : staticProducts;
       const viewedProducts = viewedIds
-        .map(vId => staticProducts.find(p => p.id === vId))
+        .map(vId => source.find(p => p.id === vId))
         .filter((p): p is any => !!p)
         .slice(0, 4);
       setRecentlyViewed(viewedProducts);
@@ -160,11 +177,11 @@ const ProductDetail: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
           {/* Left: Gallery */}
           <div className="space-y-6">
-            <div className="relative aspect-[4/5] rounded-[3rem] overflow-hidden bg-white shadow-2xl group">
+            <div className="relative aspect-square rounded-[3rem] overflow-hidden bg-white shadow-2xl group">
               <img
                 src={product.images[currentImage]}
                 alt={product.name}
-                className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+                className="w-full h-full object-contain p-8 transition-transform duration-1000 group-hover:scale-105"
               />
               
               {/* Floating Badges */}
@@ -267,15 +284,14 @@ const ProductDetail: React.FC = () => {
                 <span className="text-gray-400 font-medium">Purity</span>
                 <span className="text-gray-400 font-medium text-center">:</span>
                 <div className="flex gap-2">
-                   {['18K', '22K', '24K'].map(p => (
-                     <button 
-                        key={p}
-                        onClick={() => setSelectedPurity(p)}
-                        className={`px-2 py-0.5 rounded text-[10px] font-black border transition-all ${selectedPurity === p ? 'bg-gold text-white border-gold' : 'border-gray-200 text-gray-400'}`}
-                     >
-                       {p}
-                     </button>
-                   ))}
+                    {['18K', '22K', '24K'].map(p => (
+                      <span 
+                         key={p}
+                         className={`px-2 py-0.5 rounded text-[10px] font-black border transition-all ${selectedPurity === p ? 'bg-gold text-white border-gold' : 'border-gray-200 text-gray-300 opacity-50'}`}
+                      >
+                        {p}
+                      </span>
+                    ))}
                 </div>
 
                 <span className="text-gray-400 font-medium">Gross Weight</span>
@@ -395,7 +411,7 @@ const ProductDetail: React.FC = () => {
         <div className="mt-32 space-y-12">
           <div className="text-center space-y-2">
             <h4 className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em]">Collection</h4>
-            <h2 className="text-4xl font-heading font-bold text-charcoal">Similar Products</h2>
+            <h2 className="text-4xl font-heading font-bold text-charcoal">Related Products</h2>
             <div className="w-12 h-1 bg-gold mx-auto mt-4"></div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
