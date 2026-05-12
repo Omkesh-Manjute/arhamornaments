@@ -299,7 +299,7 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
     </div>
   );
 
-  const RightPanel = () => {
+  const renderRightPanel = () => {
     if (showResult && winningSegment) return (
       <div className="flex-1 p-8 md:p-12 flex flex-col justify-center">
         <div className="text-center space-y-6">
@@ -416,7 +416,7 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
         </button>
       )}
       {WheelPanel}
-      <RightPanel/>
+      {renderRightPanel()}
     </div>
   );
 
