@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Package, DollarSign, TrendingUp, ShoppingCart, Upload, Loader2 } from 'lucide-react';
+import { Package, DollarSign, TrendingUp, ShoppingCart, Upload, Loader2, ChevronDown, Hash } from 'lucide-react';
 import { Product } from '../../types';
 import { productService } from '../../services/productService';
 
@@ -17,6 +17,14 @@ interface AdminDashboardProps {
 const AdminDashboard: React.FC<AdminDashboardProps> = ({ sendNotification }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+
+  const toggleGroup = (group: string) => {
+    const newExpanded = new Set(expandedGroups);
+    if (newExpanded.has(group)) newExpanded.delete(group);
+    else newExpanded.add(group);
+    setExpandedGroups(newExpanded);
+  };
 
   useEffect(() => {
     fetchData();
@@ -40,6 +48,22 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ sendNotification }) => 
     featured: products.filter(p => p.featured).length,
     inStock: products.filter(p => p.inStock).length
   };
+
+  // Grouped products for the table (limited to first 20 recent groups)
+  const groupedProducts = React.useMemo(() => {
+    const groups: Record<string, Product[]> = {};
+    
+    products.forEach(p => {
+      const base = p.designNo?.split('-')[0] || 'Uncategorized';
+      if (!groups[base]) groups[base] = [];
+      groups[base].push(p);
+    });
+
+    return Object.entries(groups).sort((a, b) => {
+       // Sort by most recent product's ID or similar if possible, here just by key for now
+       return a[0].localeCompare(b[0]);
+    }).slice(0, 20);
+  }, [products]);
 
   if (loading) {
     return (
@@ -100,30 +124,60 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ sendNotification }) => 
           <div className="col-span-3 text-[10px] font-mono font-bold uppercase tracking-[0.15em] text-gray-500 text-center">Status</div>
         </div>
         <div className="divide-y divide-[#222222]">
-          {products.slice(0, 10).map(p => (
-            <div key={p.id} className="grid grid-cols-12 gap-4 px-6 items-center h-[56px] hover:bg-white/[0.02] transition-colors cursor-pointer group relative">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_var(--mouse-x,_50%)_var(--mouse-y,_50%),_rgba(59,130,246,0.08)_0%,_transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-              <div className="col-span-4 flex items-center gap-3 min-w-0">
-                <img src={p.images ? p.images[0] : (p as any).image} className="w-8 h-8 rounded-lg object-cover opacity-80 group-hover:opacity-100 transition-opacity" alt="" />
-                <span className="text-sm font-medium text-gray-200 truncate">{p.name}</span>
-              </div>
-              <div className="col-span-2 text-xs text-gray-400 capitalize">{p.category}</div>
-              <div className="col-span-3 text-sm font-mono text-right text-gray-300">₹{Number(p.price).toLocaleString('en-IN')}</div>
-              <div className="col-span-3 flex justify-center">
-                {p.inStock ? (
-                  <span className="inline-flex items-center gap-2 h-6 px-3 rounded-full text-[10px] font-bold text-[#34D399] bg-[#34D399]/10">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#34D399] animate-pulse"></span>
-                    IN STOCK
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-2 h-6 px-3 rounded-full text-[10px] font-bold text-[#FB7185] bg-[#FB7185]/10">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#FB7185]"></span>
-                    OUT OF STOCK
-                  </span>
-                )}
-              </div>
-            </div>
-          ))}
+          {groupedProducts.map(([groupName, groupItems]) => {
+            const isExpanded = expandedGroups.has(groupName);
+            const firstP = groupItems[0];
+            
+            return (
+              <React.Fragment key={groupName}>
+                {/* Group Header Row */}
+                <div 
+                  onClick={() => toggleGroup(groupName)}
+                  className="grid grid-cols-12 gap-4 px-6 items-center h-[56px] hover:bg-white/[0.03] transition-all cursor-pointer group border-l-2 border-transparent hover:border-amber-500/50"
+                >
+                  <div className="col-span-4 flex items-center gap-3">
+                    <div className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
+                      <ChevronDown size={14} className="text-gray-500" />
+                    </div>
+                    <img src={firstP.images?.[0]} className="w-8 h-8 rounded-lg object-cover opacity-50" alt="" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-gray-200 truncate">{groupName}</p>
+                      <p className="text-[9px] text-amber-500/60 font-mono uppercase tracking-widest leading-none">{groupItems.length} Variations</p>
+                    </div>
+                  </div>
+                  <div className="col-span-2 text-xs text-gray-500 uppercase font-bold tracking-tighter truncate">{firstP.name}</div>
+                  <div className="col-span-3 text-sm font-mono text-right text-gray-500">₹{Number(firstP.price).toLocaleString('en-IN')}</div>
+                  <div className="col-span-3 flex justify-center">
+                    <span className="text-[10px] font-black bg-amber-500/10 text-amber-500 px-3 py-1 rounded-full border border-amber-500/20">GROUP</span>
+                  </div>
+                </div>
+
+                {/* Individual Items */}
+                {isExpanded && groupItems.map(p => (
+                  <div key={p.id} className="grid grid-cols-12 gap-4 px-6 pl-12 items-center h-[64px] bg-black/20 hover:bg-white/[0.02] transition-colors cursor-pointer group relative">
+                    <div className="col-span-4 flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-xl overflow-hidden border border-[#333333] bg-[#0D0D0D]">
+                        <img src={p.images ? p.images[0] : (p as any).image} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all group-hover:scale-110" alt="" />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-xs font-medium text-gray-300 truncate block">{p.name}</span>
+                        <div className="flex items-center gap-1 mt-0.5">
+                          <Hash size={10} className="text-gray-600" />
+                          <span className="text-[9px] text-amber-500/60 font-mono font-bold">{p.designNo}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="col-span-2 text-[10px] text-gray-500 uppercase tracking-widest">{p.category}</div>
+                    <div className="col-span-3 text-sm font-mono text-right text-white font-bold">₹{Number(p.price).toLocaleString('en-IN')}</div>
+                    <div className="col-span-3 flex justify-center">
+                      <div className={`w-1.5 h-1.5 rounded-full ${p.inStock ? 'bg-emerald-500' : 'bg-rose-500'} mr-2`}></div>
+                      <span className={`text-[10px] font-black uppercase tracking-widest ${p.inStock ? 'text-emerald-500/80' : 'text-rose-500/80'}`}>{p.inStock ? 'In Stock' : 'Sold'}</span>
+                    </div>
+                  </div>
+                ))}
+              </React.Fragment>
+            );
+          })}
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Package, Plus, TrendingUp, DollarSign, X, Gem, Settings, Users, Bell, History, Shield, FolderSync, LogOut, Loader2, ChevronRight, Menu } from 'lucide-react';
+import { Package, Plus, TrendingUp, DollarSign, X, Gem, Settings, Users, Bell, History, Shield, LogOut, Loader2, ChevronRight, Menu } from 'lucide-react';
 import { Product, User } from '../types';
 import { usePrice } from '../context/PriceContext';
 import { auth } from '../lib/firebase';
@@ -16,10 +16,9 @@ import AdminCustomers from '../components/admin/AdminCustomers';
 import AdminNotifications from '../components/admin/AdminNotifications';
 import AdminAuditLogs from '../components/admin/AdminAuditLogs';
 import AdminProducts from '../components/admin/AdminProducts';
-import AdminBulkSync from '../components/admin/AdminBulkSync';
 import AdminProductModal from '../components/admin/AdminProductModal';
 
-type TabType = 'dashboard' | 'products' | 'bulk' | 'banners' | 'coupons' | 'rates' | 'promotions' | 'customers' | 'notifications' | 'logs';
+type TabType = 'dashboard' | 'products' | 'banners' | 'coupons' | 'rates' | 'promotions' | 'customers' | 'notifications' | 'logs';
 
 const CATEGORIES = [
   'bangles', 'bracelets', 'chain-sets', 'chains', 'earrings', 'kadas',
@@ -144,7 +143,6 @@ const AdminPage: React.FC = () => {
   const menuItems = [
     { id: 'dashboard', label: 'Overview', icon: TrendingUp },
     { id: 'products', label: 'Inventory', icon: Package },
-    { id: 'bulk', label: 'Bulk Sync', icon: FolderSync },
     { id: 'rates', label: 'Market Rates', icon: DollarSign },
     { id: 'promotions', label: 'Growth Hub', icon: Gem },
     { id: 'customers', label: 'Members', icon: Users },
@@ -225,7 +223,6 @@ const AdminPage: React.FC = () => {
           <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             {activeTab === 'dashboard' && <AdminDashboard sendNotification={() => setActiveTab('notifications')} />}
             {activeTab === 'products' && <AdminProducts onEditProduct={openEdit} />}
-            {activeTab === 'bulk' && <AdminBulkSync onRefresh={() => {}} />}
             {activeTab === 'banners' && <AdminBanners />}
             {activeTab === 'coupons' && <AdminCoupons />}
             {activeTab === 'rates' && <AdminMarketRates />}
