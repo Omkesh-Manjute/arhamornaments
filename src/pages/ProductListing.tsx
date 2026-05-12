@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useSearchParams, Link, useLocation, useParams } from 'react-router-dom';
 import { Filter, X, ChevronDown, Grid, List, SlidersHorizontal, ChevronLeft } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
@@ -30,54 +30,30 @@ const ProductListing: React.FC = () => {
 
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [totalCount, setTotalCount] = useState(0);
-  const lastDocRef = useRef<any>(null);
+  const [displayCount, setDisplayCount] = useState(24);
   const PAGE_SIZE = 24;
 
-  // Fetch first page of products from Firestore
-  const loadInitialProducts = useCallback(async () => {
-    setLoading(true);
-    lastDocRef.current = null;
-    try {
-      const catFilter = selectedCategory || undefined;
-      const [result, count] = await Promise.all([
-        productService.getProductsPaginated(PAGE_SIZE, null, catFilter),
-        productService.getProductCount(catFilter)
-      ]);
-      setAllProducts(result.products.length > 0 ? result.products : products);
-      lastDocRef.current = result.lastDoc;
-      setHasMore(result.hasMore);
-      setTotalCount(count);
-    } catch (error) {
-      console.error("Failed to load products:", error);
-      setAllProducts(products);
-    } finally {
-      setLoading(false);
-    }
-  }, [selectedCategory]);
-
-  // Load more products (next page)
-  const loadMoreProducts = async () => {
-    if (loadingMore || !hasMore) return;
-    setLoadingMore(true);
-    try {
-      const catFilter = selectedCategory || undefined;
-      const result = await productService.getProductsPaginated(PAGE_SIZE, lastDocRef.current, catFilter);
-      setAllProducts(prev => [...prev, ...result.products]);
-      lastDocRef.current = result.lastDoc;
-      setHasMore(result.hasMore);
-    } catch (error) {
-      console.error("Failed to load more:", error);
-    } finally {
-      setLoadingMore(false);
-    }
-  };
-
+  // Fetch ALL products from Firestore once
   useEffect(() => {
-    loadInitialProducts();
-  }, [loadInitialProducts]);
+    const loadProducts = async () => {
+      setLoading(true);
+      try {
+        const fetched = await productService.getAllProducts();
+        setAllProducts(fetched.length > 0 ? fetched : products);
+      } catch (error) {
+        console.error("Failed to load products:", error);
+        setAllProducts(products);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProducts();
+  }, []);
+
+  // Reset display count when filters change
+  useEffect(() => {
+    setDisplayCount(PAGE_SIZE);
+  }, [selectedCategory, selectedMaterial, selectedOccasion, searchQuery, priceRange, sortBy]);
 
   // Filter products
   const filteredProducts = useMemo(() => {
@@ -415,7 +391,7 @@ const ProductListing: React.FC = () => {
                   ? 'grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6'
                   : 'flex flex-col gap-4'
                 }>
-                  {filteredProducts.map((product) => (
+                  {filteredProducts.slice(0, displayCount).map((product) => (
                     <ProductCard key={product.id} product={product} />
                   ))}
                 </div>
@@ -423,22 +399,16 @@ const ProductListing: React.FC = () => {
                 {/* Load More / Pagination */}
                 <div className="flex flex-col items-center py-10 space-y-3">
                   <p className="text-xs text-gray-400 uppercase tracking-widest font-bold">
-                    Showing {allProducts.length} of {totalCount} products
+                    Showing {Math.min(displayCount, filteredProducts.length)} of {filteredProducts.length} products
                   </p>
-                  {hasMore && (
+                  {displayCount < filteredProducts.length ? (
                     <button
-                      onClick={loadMoreProducts}
-                      disabled={loadingMore}
-                      className="px-8 py-3 bg-amber-500 text-white rounded-full font-bold hover:bg-amber-600 transition-all flex items-center gap-2 shadow-lg shadow-amber-500/20 disabled:opacity-60"
+                      onClick={() => setDisplayCount(prev => prev + PAGE_SIZE)}
+                      className="px-8 py-3 bg-amber-500 text-white rounded-full font-bold hover:bg-amber-600 transition-all flex items-center gap-2 shadow-lg shadow-amber-500/20"
                     >
-                      {loadingMore ? (
-                        <><Loader2 className="animate-spin" size={18} /> Loading...</>
-                      ) : (
-                        <>Load More <ChevronRight size={18} /></>
-                      )}
+                      Load More <ChevronRight size={18} />
                     </button>
-                  )}
-                  {!hasMore && allProducts.length > 0 && (
+                  ) : (
                     <p className="text-xs text-gray-300 italic">You've seen all products ✨</p>
                   )}
                 </div>

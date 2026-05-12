@@ -4,13 +4,13 @@ import {
   Package, 
   Search, 
   Edit, 
-  Plus, 
   Trash2, 
   ChevronLeft, 
   Eye, 
   Layers,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  Hash
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Product } from '../../types';
@@ -29,49 +29,20 @@ interface AdminProductsProps {
 const AdminProducts: React.FC<AdminProductsProps> = ({ onEditProduct }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<'list' | 'folders'>('folders');
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [totalCount, setTotalCount] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
-  const lastDocRef = React.useRef<any>(null);
-  const ADMIN_PAGE_SIZE = 50;
 
   useEffect(() => {
     fetchProducts();
-  }, [selectedFolder]);
+  }, []);
 
   const fetchProducts = async () => {
     setLoading(true);
-    lastDocRef.current = null;
     try {
-      const catFilter = selectedFolder || undefined;
-      const [result, count] = await Promise.all([
-        productService.getProductsPaginated(ADMIN_PAGE_SIZE, null, catFilter),
-        productService.getProductCount(catFilter)
-      ]);
-      setProducts(result.products);
-      lastDocRef.current = result.lastDoc;
-      setHasMore(result.hasMore);
-      setTotalCount(count);
+      const data = await productService.getAllProducts();
+      setProducts(data);
     } catch (err) {
       console.error("Failed to fetch products", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadMore = async () => {
-    if (!hasMore || loading) return;
-    setLoading(true);
-    try {
-      const catFilter = selectedFolder || undefined;
-      const result = await productService.getProductsPaginated(ADMIN_PAGE_SIZE, lastDocRef.current, catFilter);
-      setProducts(prev => [...prev, ...result.products]);
-      lastDocRef.current = result.lastDoc;
-      setHasMore(result.hasMore);
-    } catch (err) {
-      console.error("Failed to load more", err);
     } finally {
       setLoading(false);
     }
@@ -84,22 +55,6 @@ const AdminProducts: React.FC<AdminProductsProps> = ({ onEditProduct }) => {
       setProducts(prev => prev.filter(p => p.id !== id));
     } catch (err) {
       alert("Failed to delete product");
-    }
-  };
-
-  const handleBulkRename = async (newName: string, targets: Product[]) => {
-    if (!confirm(`Rename ${targets.length} products?`)) return;
-    setLoading(true);
-    try {
-      for (const p of targets) {
-        await productService.saveProduct({ ...p, name: newName });
-      }
-      await fetchProducts();
-      alert("Bulk rename complete");
-    } catch (err) {
-      alert("Rename failed");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -135,20 +90,37 @@ const AdminProducts: React.FC<AdminProductsProps> = ({ onEditProduct }) => {
     }
   };
 
-  const filtered = useMemo(() => {
-    return products.filter(p => 
-      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.designNo?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.category.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [products, searchQuery]);
+  // Category counts from ALL loaded products
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    CATEGORIES.forEach(cat => { counts[cat] = 0; });
+    products.forEach(p => {
+      if (counts[p.category] !== undefined) counts[p.category]++;
+    });
+    return counts;
+  }, [products]);
 
+  // Products for selected folder, filtered by search
   const displayedProducts = useMemo(() => {
-    if (viewMode === 'folders' && selectedFolder) {
-      return filtered.filter(p => p.category === selectedFolder);
+    let result = products;
+    
+    // Filter by category if folder selected
+    if (selectedFolder) {
+      result = result.filter(p => p.category === selectedFolder);
     }
-    return filtered;
-  }, [filtered, viewMode, selectedFolder]);
+    
+    // Filter by search (name or design number)
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      result = result.filter(p =>
+        p.name.toLowerCase().includes(q) ||
+        p.designNo?.toLowerCase().includes(q) ||
+        p.category.toLowerCase().includes(q)
+      );
+    }
+    
+    return result;
+  }, [products, selectedFolder, searchQuery]);
 
   if (loading && products.length === 0) {
     return (
@@ -161,44 +133,22 @@ const AdminProducts: React.FC<AdminProductsProps> = ({ onEditProduct }) => {
 
   return (
     <div className="space-y-6">
+      {/* Top Bar */}
       <div className="flex flex-wrap gap-4 items-center justify-between">
-        <div className="flex items-center gap-2 bg-[#161616] p-1 rounded-2xl border border-[#222222]">
-          <button
-            onClick={() => { setViewMode('folders'); setSelectedFolder(null); }}
-            className={`px-5 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2 ${viewMode === 'folders' ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' : 'text-gray-500 hover:text-gray-300'}`}
-          >
-            <Folder size={16} /> Folders
-          </button>
-          <button
-            onClick={() => setViewMode('list')}
-            className={`px-5 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2 ${viewMode === 'list' ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' : 'text-gray-500 hover:text-gray-300'}`}
-          >
-            <Package size={16} /> List
-          </button>
-        </div>
-
+        {/* Search */}
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
           <input 
             value={searchQuery} 
             onChange={e => setSearchQuery(e.target.value)} 
-            placeholder="Search by name, design #, or category..." 
+            placeholder={selectedFolder ? `Filter by name or design # in ${selectedFolder}...` : "Search by name, design #, or category..."} 
             className="w-full pl-12 pr-4 py-3 border border-[#222222] bg-[#161616] text-gray-200 rounded-[1.25rem] text-sm focus:outline-none focus:border-amber-500 transition-all placeholder-gray-600 shadow-sm" 
           />
         </div>
 
         <div className="flex items-center gap-2">
-          <button onClick={fetchProducts} className="p-3 bg-[#161616] border border-[#222222] rounded-xl text-gray-500 hover:text-amber-500 transition">
+          <button onClick={fetchProducts} className="p-3 bg-[#161616] border border-[#222222] rounded-xl text-gray-500 hover:text-amber-500 transition" title="Refresh">
             <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
-          </button>
-          <button
-            onClick={() => {
-              const newName = prompt("Enter new name for all products currently visible:");
-              if (newName) handleBulkRename(newName, displayedProducts);
-            }}
-            className="flex items-center gap-2 px-5 py-3 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-xl hover:bg-blue-500 hover:text-white transition font-bold text-xs uppercase tracking-widest"
-          >
-            <Edit size={16} /> Bulk Rename
           </button>
           <button
             onClick={handleClearAll}
@@ -210,56 +160,68 @@ const AdminProducts: React.FC<AdminProductsProps> = ({ onEditProduct }) => {
         </div>
       </div>
 
-      {viewMode === 'folders' && !selectedFolder ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 animate-in fade-in zoom-in duration-500">
-          {CATEGORIES.map(cat => {
-            const count = filtered.filter(p => p.category === cat).length;
-            return (
-              <div
-                key={cat}
-                onClick={() => setSelectedFolder(cat)}
-                className="group cursor-pointer space-y-3"
-              >
-                <div className="aspect-square bg-[#161616] border border-[#222222] rounded-[2.5rem] flex flex-col items-center justify-center text-amber-500 group-hover:border-amber-500/50 group-hover:bg-amber-500/5 transition-all duration-500 relative overflow-hidden shadow-lg">
-                  <div className="absolute top-4 right-4 px-2 py-1 bg-black/60 rounded-lg text-[9px] font-black text-white border border-white/10 uppercase tracking-tighter">{count} Items</div>
-                  <Folder size={48} fill="currentColor" fillOpacity={0.1} className="transform group-hover:scale-110 transition-transform duration-500" />
-                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mt-3 group-hover:text-white transition-colors">{cat}</p>
+      {/* Category Folders */}
+      {!selectedFolder ? (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-xl font-black text-white tracking-tight">All Categories</h3>
+              <p className="text-[10px] text-gray-500 font-mono uppercase tracking-widest mt-0.5">{products.length} total products</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 animate-in fade-in zoom-in duration-500">
+            {CATEGORIES.map(cat => {
+              const count = categoryCounts[cat];
+              return (
+                <div
+                  key={cat}
+                  onClick={() => { setSelectedFolder(cat); setSearchQuery(''); }}
+                  className="group cursor-pointer space-y-3"
+                >
+                  <div className={`aspect-square bg-[#161616] border rounded-[2.5rem] flex flex-col items-center justify-center text-amber-500 group-hover:border-amber-500/50 group-hover:bg-amber-500/5 transition-all duration-500 relative overflow-hidden shadow-lg ${count > 0 ? 'border-[#333333]' : 'border-[#222222] opacity-60'}`}>
+                    <div className={`absolute top-4 right-4 px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-tighter border ${count > 0 ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-black/60 text-gray-600 border-white/10'}`}>
+                      {count}
+                    </div>
+                    <Folder size={48} fill="currentColor" fillOpacity={0.1} className="transform group-hover:scale-110 transition-transform duration-500" />
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mt-3 group-hover:text-white transition-colors">{cat}</p>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       ) : (
+        /* Product List Inside Folder */
         <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="flex items-center justify-between">
-            {viewMode === 'folders' && selectedFolder ? (
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={() => setSelectedFolder(null)}
-                  className="p-3 bg-[#161616] border border-[#222222] rounded-2xl text-gray-400 hover:text-white hover:border-amber-500/50 transition-all shadow-sm"
-                >
-                  <ChevronLeft size={20} />
-                </button>
-                <div>
-                  <h3 className="text-xl font-black text-white tracking-tight capitalize flex items-center gap-2">
-                    <Folder size={20} className="text-amber-500" /> {selectedFolder}
-                  </h3>
-                  <p className="text-[10px] text-gray-500 font-mono uppercase tracking-widest mt-0.5">{displayedProducts.length} of {totalCount} items</p>
-                </div>
-              </div>
-            ) : (
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => { setSelectedFolder(null); setSearchQuery(''); }}
+                className="p-3 bg-[#161616] border border-[#222222] rounded-2xl text-gray-400 hover:text-white hover:border-amber-500/50 transition-all shadow-sm"
+              >
+                <ChevronLeft size={20} />
+              </button>
               <div>
-                <h3 className="text-xl font-black text-white tracking-tight">Full Inventory</h3>
-                <p className="text-[10px] text-gray-500 font-mono uppercase tracking-widest mt-0.5">Showing {products.length} of {totalCount} total products</p>
+                <h3 className="text-xl font-black text-white tracking-tight capitalize flex items-center gap-2">
+                  <Folder size={20} className="text-amber-500" /> {selectedFolder}
+                </h3>
+                <p className="text-[10px] text-gray-500 font-mono uppercase tracking-widest mt-0.5">
+                  {displayedProducts.length} of {categoryCounts[selectedFolder] || 0} products
+                  {searchQuery && ` • filtered by "${searchQuery}"`}
+                </p>
               </div>
-            )}
+            </div>
           </div>
 
           <div className="bg-[#161616] rounded-[2.5rem] border border-[#222222] shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-white/[0.01] border-b border-[#222222]">
-                  <tr>{['Product', 'Category', 'Price', 'Weight', 'Status', 'Actions'].map(h => <th key={h} className="px-6 py-5 text-left text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">{h}</th>)}</tr>
+                  <tr>
+                    {['Product', 'Design #', 'Price', 'Weight', 'Status', 'Actions'].map(h => (
+                      <th key={h} className="px-6 py-5 text-left text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">{h}</th>
+                    ))}
+                  </tr>
                 </thead>
                 <tbody className="divide-y divide-[#222222]">
                   {displayedProducts.map(p => (
@@ -271,21 +233,26 @@ const AdminProducts: React.FC<AdminProductsProps> = ({ onEditProduct }) => {
                           </div>
                           <div className="min-w-0">
                             <p className="font-bold text-gray-200 text-sm truncate group-hover:text-white transition-colors">{p.name}</p>
-                            <div className="flex gap-2 mt-1 items-center">
-                              <span className="text-[10px] text-gray-600 font-mono font-bold tracking-widest uppercase">ID: {p.designNo || 'N/A'}</span>
-                              {p.featured && <span className="text-[8px] bg-amber-500/10 text-amber-500 px-1.5 py-0.5 rounded-md font-black uppercase tracking-tighter border border-amber-500/10">Premium</span>}
-                            </div>
+                            {p.images && p.images.length > 1 && (
+                              <span className="text-[9px] text-blue-400 font-bold">{p.images.length} images</span>
+                            )}
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="px-3 py-1 bg-[#0D0D0D] border border-[#222222] rounded-lg text-[10px] font-bold text-gray-400 uppercase tracking-wider">{p.category}</span>
+                        <div className="flex items-center gap-1.5">
+                          <Hash size={12} className="text-gray-600" />
+                          <span className="text-xs text-amber-500/80 font-mono font-bold">{p.designNo || '—'}</span>
+                        </div>
                       </td>
                       <td className="px-6 py-4">
-                        <p className="font-mono text-white text-sm font-bold">₹{p.price.toLocaleString('en-IN')}</p>
+                        <p className="font-mono text-white text-sm font-bold">₹{p.price?.toLocaleString('en-IN') || '0'}</p>
                       </td>
                       <td className="px-6 py-4">
-                        <p className="text-sm text-amber-500/80 font-mono font-bold">{p.netWeight || 0}g</p>
+                        <div className="space-y-0.5">
+                          {p.grossWeight && <p className="text-[10px] text-gray-500">GWT: <span className="text-gray-300 font-bold">{p.grossWeight}g</span></p>}
+                          <p className="text-sm text-amber-500/80 font-mono font-bold">{p.netWeight || 0}g</p>
+                        </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
@@ -296,11 +263,11 @@ const AdminProducts: React.FC<AdminProductsProps> = ({ onEditProduct }) => {
                       <td className="px-6 py-4">
                         <div className="flex gap-1.5">
                           <Link to={`/product/${p.id}`} className="p-2.5 text-gray-500 hover:text-white hover:bg-white/5 rounded-xl transition" title="Preview"><Eye size={16} /></Link>
-                          <button onClick={() => onEditProduct(p)} className="p-2.5 text-gray-500 hover:text-amber-500 hover:bg-amber-500/5 rounded-xl transition" title="Edit Properties"><Edit size={16} /></button>
+                          <button onClick={() => onEditProduct(p)} className="p-2.5 text-gray-500 hover:text-amber-500 hover:bg-amber-500/5 rounded-xl transition" title="Edit Product"><Edit size={16} /></button>
                           {p.images && p.images.length > 1 && (
-                            <button onClick={() => handleSplit(p)} className="p-2.5 text-gray-500 hover:text-purple-400 hover:bg-purple-500/5 rounded-xl transition" title="Deconstruct Product"><Layers size={16} /></button>
+                            <button onClick={() => handleSplit(p)} className="p-2.5 text-gray-500 hover:text-purple-400 hover:bg-purple-500/5 rounded-xl transition" title="Split into separate products"><Layers size={16} /></button>
                           )}
-                          <button onClick={() => handleDelete(p.id)} className="p-2.5 text-gray-500 hover:text-red-500 hover:bg-red-500/5 rounded-xl transition" title="Permanent Delete"><Trash2 size={16} /></button>
+                          <button onClick={() => handleDelete(p.id)} className="p-2.5 text-gray-500 hover:text-red-500 hover:bg-red-500/5 rounded-xl transition" title="Delete"><Trash2 size={16} /></button>
                         </div>
                       </td>
                     </tr>
@@ -311,19 +278,9 @@ const AdminProducts: React.FC<AdminProductsProps> = ({ onEditProduct }) => {
             {displayedProducts.length === 0 && (
               <div className="p-20 text-center">
                 <Package className="mx-auto text-gray-800 mb-4" size={48} />
-                <p className="text-gray-500 font-bold">No products found matching your criteria</p>
-              </div>
-            )}
-            {hasMore && (
-              <div className="p-6 border-t border-[#222222] flex justify-center">
-                <button
-                  onClick={loadMore}
-                  disabled={loading}
-                  className="px-8 py-3 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-xl font-bold hover:bg-amber-500 hover:text-white transition-all flex items-center gap-2 disabled:opacity-50"
-                >
-                  {loading ? <Loader2 className="animate-spin" size={16} /> : <RefreshCw size={16} />}
-                  Load More ({products.length} / {totalCount})
-                </button>
+                <p className="text-gray-500 font-bold">
+                  {searchQuery ? `No products matching "${searchQuery}"` : 'No products in this category yet'}
+                </p>
               </div>
             )}
           </div>

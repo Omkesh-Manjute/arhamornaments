@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Package, Plus, TrendingUp, DollarSign, X, Gem, Settings, Users, Bell, History, Shield, FolderSync, HardDrive, LogOut, Loader2, ChevronRight, Menu } from 'lucide-react';
+import { Package, Plus, TrendingUp, DollarSign, X, Gem, Settings, Users, Bell, History, Shield, FolderSync, LogOut, Loader2, ChevronRight, Menu } from 'lucide-react';
 import { Product, User } from '../types';
 import { usePrice } from '../context/PriceContext';
 import { auth } from '../lib/firebase';
@@ -17,10 +17,9 @@ import AdminNotifications from '../components/admin/AdminNotifications';
 import AdminAuditLogs from '../components/admin/AdminAuditLogs';
 import AdminProducts from '../components/admin/AdminProducts';
 import AdminBulkSync from '../components/admin/AdminBulkSync';
-import AdminMediaManager from '../components/admin/AdminMediaManager';
 import AdminProductModal from '../components/admin/AdminProductModal';
 
-type TabType = 'dashboard' | 'products' | 'bulk' | 'banners' | 'coupons' | 'rates' | 'promotions' | 'customers' | 'notifications' | 'logs' | 'media';
+type TabType = 'dashboard' | 'products' | 'bulk' | 'banners' | 'coupons' | 'rates' | 'promotions' | 'customers' | 'notifications' | 'logs';
 
 const CATEGORIES = [
   'bangles', 'bracelets', 'chain-sets', 'chains', 'earrings', 'kadas',
@@ -146,7 +145,6 @@ const AdminPage: React.FC = () => {
     { id: 'dashboard', label: 'Overview', icon: TrendingUp },
     { id: 'products', label: 'Inventory', icon: Package },
     { id: 'bulk', label: 'Bulk Sync', icon: FolderSync },
-    { id: 'media', label: 'Media Manager', icon: HardDrive },
     { id: 'rates', label: 'Market Rates', icon: DollarSign },
     { id: 'promotions', label: 'Growth Hub', icon: Gem },
     { id: 'customers', label: 'Members', icon: Users },
@@ -235,7 +233,6 @@ const AdminPage: React.FC = () => {
             {activeTab === 'customers' && <AdminCustomers setSelectedCust={setSelectedCust} />}
             {activeTab === 'notifications' && <AdminNotifications />}
             {activeTab === 'logs' && <AdminAuditLogs />}
-            {activeTab === 'media' && <AdminMediaManager onSelectImages={() => {}} />}
           </div>
         </div>
       </main>
