@@ -30,10 +30,9 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {!isAdminPage && <LivePriceTicker />}
       {!isAdminPage && <Header />}
       
-      <main className={`flex-1 ${!isAdminPage ? 'pt-[36px] lg:pt-0' : ''}`}>
+      <main className="flex-1 pt-[64px] md:pt-[72px]">
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/products" element={<ProductListing />} />

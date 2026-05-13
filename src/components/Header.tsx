@@ -76,14 +76,13 @@ const Header: React.FC = () => {
 
   return (
     <header
-      className={`fixed top-[36px] left-0 right-0 z-50 transition-all duration-500 ${isScrolled || !isHomePage ? 'bg-white shadow-md py-1.5' : 'bg-white lg:bg-transparent py-1.5 lg:py-4'
-        } ${!isHomePage || isScrolled ? 'border-b border-gray-100' : ''}`}
+      className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md py-1.5 border-b border-gray-100"
     >
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         <div className="flex items-center justify-between">
           {/* Mobile Menu Button */}
           <button
-            className={`lg:hidden p-2 transition-colors ${isScrolled || !isHomePage || isMobile ? 'text-charcoal' : 'text-white'}`}
+            className="lg:hidden p-2 transition-colors text-charcoal"
             onClick={() => setIsMenuOpen(true)}
           >
             <Menu size={24} />
@@ -99,7 +98,7 @@ const Header: React.FC = () => {
               />
             </div>
             <div className="flex flex-col items-start">
-              <h1 className={`text-lg md:text-xl font-bold tracking-[0.15em] font-heading leading-none transition-colors ${isScrolled || !isHomePage || isMobile ? 'text-charcoal' : 'text-white'}`}>
+              <h1 className="text-lg md:text-xl font-bold tracking-[0.15em] font-heading leading-none text-charcoal">
                 ARHAM
               </h1>
               <span className="text-[8px] md:text-[9px] tracking-[0.35em] text-gold uppercase font-bold leading-none mt-0.5">ORNAMENTS</span>
@@ -114,7 +113,7 @@ const Header: React.FC = () => {
                 to={link.path}
                 className={`text-xs uppercase tracking-widest font-medium transition-all hover:text-gold ${location.pathname + location.search === link.path
                     ? 'text-gold'
-                    : isScrolled || !isHomePage ? 'text-charcoal' : 'text-white'
+                    : 'text-charcoal'
                   }`}
               >
                 {link.name}
@@ -125,7 +124,7 @@ const Header: React.FC = () => {
           {/* Actions */}
           <div className="flex items-center gap-1.5 md:gap-3">
             {isLoggedIn && (
-              <div className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gold/10 border border-gold/20 ${isScrolled || !isHomePage || isMobile ? 'text-charcoal' : 'text-white'}`}>
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gold/10 border border-gold/20 text-charcoal">
                 <Wallet size={16} className="text-gold" />
                 <span className="text-xs font-bold">₹{user?.walletBalance}</span>
               </div>
@@ -143,14 +142,14 @@ const Header: React.FC = () => {
               </button>
             )}
 
-            <button className={`p-2 transition-colors hover:text-gold ${isScrolled || !isHomePage || isMobile ? 'text-charcoal' : 'text-white'}`}>
+            <button className="p-2 transition-colors hover:text-gold text-charcoal">
               <Search size={20} />
             </button>
 
             {/* User Dropdown */}
             <div className="relative group">
               <button
-                className={`p-2 transition-colors hover:text-gold flex items-center gap-1 ${isScrolled || !isHomePage || isMobile ? 'text-charcoal' : 'text-white'}`}
+                className="p-2 transition-colors hover:text-gold flex items-center gap-1 text-charcoal"
               >
                 <User size={20} />
                 {isLoggedIn && <span className="text-[10px] hidden md:block">{user?.name?.split(' ')[0]}</span>}
@@ -194,7 +193,7 @@ const Header: React.FC = () => {
             {isLoggedIn && (
               <Link
                 to="/profile#notifications"
-                className={`p-2 relative transition-colors hover:text-gold ${isScrolled || !isHomePage || isMobile ? 'text-charcoal' : 'text-white'}`}
+                className="p-2 relative transition-colors hover:text-gold text-charcoal"
                 onClick={(e) => {
                   if (location.pathname === '/profile') {
                     e.preventDefault();
@@ -212,7 +211,7 @@ const Header: React.FC = () => {
             )}
             <Link
               to="/wishlist"
-              className={`hidden sm:block p-2 relative transition-colors hover:text-gold ${isScrolled || !isHomePage || isMobile ? 'text-charcoal' : 'text-white'}`}
+              className="hidden sm:block p-2 relative transition-colors hover:text-gold text-charcoal"
             >
               <Heart size={20} />
               {wishlist.length > 0 && (
@@ -221,7 +220,7 @@ const Header: React.FC = () => {
                 </span>
               )}
             </Link>
-            <Link to="/cart" className={`relative p-2 transition-colors hover:text-gold ${isScrolled || !isHomePage || isMobile ? 'text-charcoal' : 'text-white'}`}>
+            <Link to="/cart" className="relative p-2 transition-colors hover:text-gold text-charcoal">
               <ShoppingBag size={20} />
               {totalItems > 0 && (
                 <span className="absolute top-1 right-1 bg-gold text-white text-[9px] w-4 h-4 flex items-center justify-center rounded-full animate-bounce-in">

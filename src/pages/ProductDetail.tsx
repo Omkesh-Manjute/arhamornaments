@@ -179,146 +179,158 @@ const ProductDetail: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#FCFBF7]">
 
-      {/* ── MOBILE LAYOUT: split screen ── */}
-      <div className="lg:hidden flex flex-col h-screen overflow-hidden">
-        {/* Top: Image (55% height) with swipe */}
-        <div
-          className="relative bg-white overflow-hidden"
-          style={{ height: '52%' }}
-          onTouchStart={onTouchStart}
-          onTouchMove={onTouchMove}
-          onTouchEnd={onTouchEnd}
-        >
-          {/* Slides */}
-          <div
-            className="flex h-full transition-transform duration-300 ease-out"
-            style={{ transform: `translateX(-${currentImage * 100}%)` }}
-          >
+      {/* ── MOBILE LAYOUT: Responsive & Smooth ── */}
+      <div className="lg:hidden">
+        {/* Horizontal Image Slider */}
+        <div className="relative bg-white pt-4">
+          <div className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar h-[55vh]">
             {product.images?.map((img, i) => (
-              <div key={i} className="w-full h-full flex-shrink-0">
-                <img src={img} alt={product.name} className="w-full h-full object-cover" />
+              <div key={i} className="w-full h-full flex-shrink-0 snap-center px-4">
+                <div className="w-full h-full bg-white rounded-3xl overflow-hidden shadow-inner border border-gray-50">
+                  <img src={img} alt={product.name} className="w-full h-full object-contain p-4" />
+                </div>
               </div>
             ))}
           </div>
 
-          {/* Dot indicators */}
+          {/* Indicators */}
           {(product.images?.length || 0) > 1 && (
-            <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-10">
+            <div className="flex justify-center gap-2 mt-4 pb-2">
               {product.images?.map((_, i) => (
-                <div key={i} className={`h-1.5 rounded-full transition-all duration-300 ${i === currentImage ? 'w-5 bg-gold' : 'w-1.5 bg-white/60'}`} />
+                <div key={i} className={`h-1 rounded-full transition-all duration-300 ${i === currentImage ? 'w-6 bg-gold' : 'w-2 bg-gray-200'}`} />
               ))}
             </div>
           )}
 
-          {/* Badges */}
-          <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
-            {product.trending && <span className="bg-charcoal text-white text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full">Trending</span>}
-            {discount > 0 && <span className="bg-gold text-white text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full">{discount}% Off</span>}
+          {/* Floating Actions */}
+          <div className="absolute top-8 left-6 flex flex-col gap-2 z-20">
+            {product.trending && <span className="bg-charcoal text-white text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-lg">Trending</span>}
+            {discount > 0 && <span className="bg-[#de57e5] text-white text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-lg">{discount}% Off</span>}
           </div>
 
-          {/* Back button */}
-          <button onClick={() => window.history.back()} className="absolute top-4 right-4 w-9 h-9 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow z-10">
-            <span className="text-charcoal text-lg leading-none">‹</span>
+          <button onClick={() => window.history.back()} className="absolute top-8 right-6 w-10 h-10 bg-white shadow-xl rounded-full flex items-center justify-center z-20 text-charcoal active:scale-90 transition-transform">
+            <span className="text-2xl">‹</span>
           </button>
         </div>
 
-        {/* Bottom: Details card (scrollable) */}
-        <div className="flex-1 overflow-y-auto bg-[#FCFBF7] rounded-t-3xl -mt-6 z-10 shadow-2xl">
-          <div className="px-5 pt-5 pb-24 space-y-4">
-            {/* Handle bar */}
-            <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-2" />
+        {/* Content Section - Scrolls Naturally with Page */}
+        <div className="px-5 pt-8 pb-32 space-y-6">
+          {/* Title row */}
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-1">
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gold">{product.material} Collection</span>
+              <h1 className="text-3xl font-heading font-bold text-charcoal leading-tight">{product.name}</h1>
+            </div>
+            <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-2xl shadow-sm border border-gray-50">
+              <Star size={14} className="fill-gold text-gold" />
+              <span className="text-sm font-bold text-charcoal">{product.rating}</span>
+            </div>
+          </div>
 
-            {/* Title row */}
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gold">{product.material} Collection</span>
-                <h1 className="text-2xl font-heading font-bold text-charcoal leading-tight">{product.name}</h1>
+          {/* Price Card */}
+          <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-50 flex flex-col items-center text-center">
+            <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Estimated Price</p>
+            <div className="flex items-baseline gap-3">
+              <span className="text-4xl font-black text-charcoal tracking-tighter">{formatPrice(currentPrice * quantity)}</span>
+              {discount > 0 && <span className="text-sm text-gray-400 line-through font-medium">{formatPrice((product.originalPrice || 0) * quantity)}</span>}
+            </div>
+          </div>
+
+          {/* Interactive Actions Grid */}
+          <div className="grid grid-cols-4 gap-4">
+            <a href="tel:+919876543210" className="flex flex-col items-center gap-2 group">
+              <div className="w-14 h-14 rounded-2xl bg-white shadow-md flex items-center justify-center text-orange-500 active:bg-orange-500 active:text-white transition-all"><Phone size={22} /></div>
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Call</span>
+            </a>
+            <button onClick={() => toggleWishlist(product)} className="flex flex-col items-center gap-2 group">
+              <div className={`w-14 h-14 rounded-2xl shadow-md flex items-center justify-center transition-all ${isFavorite ? 'bg-[#de57e5] text-white' : 'bg-white text-gray-400'}`}><Heart size={22} className={isFavorite ? 'fill-current' : ''} /></div>
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Save</span>
+            </button>
+            <button onClick={handleWhatsAppEnquiry} className="flex flex-col items-center gap-2 group">
+              <div className="w-14 h-14 rounded-2xl bg-white shadow-md flex items-center justify-center text-green-600 active:bg-green-600 active:text-white transition-all"><MessageCircle size={22} /></div>
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">WhatsApp</span>
+            </button>
+            <button className="flex flex-col items-center gap-2 group">
+              <div className="w-14 h-14 rounded-2xl bg-white shadow-md flex items-center justify-center text-blue-500 active:bg-blue-50 active:text-white transition-all"><Share2 size={22} /></div>
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Share</span>
+            </button>
+          </div>
+
+          {/* Details Table */}
+          <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-50 space-y-4">
+             <h4 className="text-xs font-black uppercase tracking-widest text-gold border-b border-gray-50 pb-3">Product Details</h4>
+            {[
+              ['Design Number', product.designNo || 'N/A'],
+              ['Size / Length', product.size || '-:-'],
+              ['Gross Weight', `${product.grossWeight?.toFixed(3) || '0.000'} g`],
+              ['Net Weight', `${product.netWeight?.toFixed(3) || '0.000'} g`],
+              ['Labour %', `${product.laborCharges || '0'} %`],
+            ].map(([label, value]) => (
+              <div key={label} className="flex items-center justify-between text-sm">
+                <span className="text-gray-400 font-medium">{label}</span>
+                <span className="text-charcoal font-black">{value}</span>
               </div>
-              <div className="flex items-center gap-1 shrink-0 mt-1">
-                <Star size={12} className="fill-gold text-gold" />
-                <span className="text-xs font-bold text-charcoal">{product.rating}</span>
-              </div>
-            </div>
-
-            {/* Price */}
-            <div className="flex items-center justify-between bg-white rounded-2xl px-4 py-3 shadow-sm">
-              <span className="text-xl font-black text-gold">{formatPrice(currentPrice * quantity)}</span>
-              {discount > 0 && <span className="text-xs text-gray-400 line-through">{formatPrice((product.originalPrice || 0) * quantity)}</span>}
-            </div>
-
-            {/* Quick action buttons */}
-            <div className="grid grid-cols-4 gap-2">
-              <a href="tel:+919876543210" className="flex flex-col items-center gap-1">
-                <div className="w-11 h-11 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center text-orange-500"><Phone size={18} /></div>
-                <span className="text-[9px] font-bold text-gray-500 uppercase">Call</span>
-              </a>
-              <button onClick={() => toggleWishlist(product)} className="flex flex-col items-center gap-1">
-                <div className={`w-11 h-11 rounded-full border shadow-sm flex items-center justify-center ${isFavorite ? 'bg-red-500 text-white border-red-500' : 'bg-white border-gray-100 text-gray-400'}`}><Heart size={18} className={isFavorite ? 'fill-current' : ''} /></div>
-                <span className="text-[9px] font-bold text-gray-500 uppercase">Save</span>
-              </button>
-              <button onClick={handleWhatsAppEnquiry} className="flex flex-col items-center gap-1">
-                <div className="w-11 h-11 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center text-green-600"><MessageCircle size={18} /></div>
-                <span className="text-[9px] font-bold text-gray-500 uppercase">WhatsApp</span>
-              </button>
-              <button className="flex flex-col items-center gap-1">
-                <div className="w-11 h-11 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center text-blue-500"><Share2 size={18} /></div>
-                <span className="text-[9px] font-bold text-gray-500 uppercase">Share</span>
-              </button>
-            </div>
-
-            {/* Spec table */}
-            <div className="bg-white rounded-2xl px-4 py-3 shadow-sm space-y-2.5 text-sm">
-              {[
-                ['Design No.', product.designNo || 'N/A'],
-                ['Size', product.size || '-:-'],
-                ['Gross Weight', `${product.grossWeight?.toFixed(3) || '0.000'} g`],
-                ['Net Weight', `${product.netWeight?.toFixed(3) || '0.000'} g`],
-                ['Labour', `${product.laborCharges || '0'} %`],
-              ].map(([label, value]) => (
-                <div key={label} className="flex items-center justify-between border-b border-gray-50 pb-2 last:border-0 last:pb-0">
-                  <span className="text-gray-400 font-medium">{label}</span>
-                  <span className="text-charcoal font-black">{value}</span>
-                </div>
-              ))}
-              {/* Purity selector */}
+            ))}
+            
+            {/* Custom Selectors */}
+            <div className="pt-2 space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-gray-400 font-medium">Purity</span>
-                <div className="flex gap-1.5">
+                <span className="text-gray-400 font-medium text-sm">Purity</span>
+                <div className="flex gap-2">
                   {['18K', '22K', '24K'].map(p => (
                     <button key={p} onClick={() => setSelectedPurity(p)}
-                      className={`px-2.5 py-1 rounded-lg text-[10px] font-black border transition-all ${selectedPurity === p ? 'bg-gold text-white border-gold' : 'border-gray-200 text-gray-300'}`}>
+                      className={`px-3 py-1.5 rounded-xl text-[10px] font-black border transition-all ${selectedPurity === p ? 'bg-gold text-white border-gold' : 'border-gray-100 text-gray-400'}`}>
                       {p}
                     </button>
                   ))}
                 </div>
               </div>
-              {/* Quantity */}
               <div className="flex items-center justify-between">
-                <span className="text-gray-400 font-medium">Qty</span>
-                <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden">
-                  <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3 py-2 hover:bg-gray-50 text-gray-400"><Minus size={13} /></button>
-                  <span className="px-4 font-black text-sm border-x border-gray-200">{quantity}</span>
-                  <button onClick={() => setQuantity(quantity + 1)} className="px-3 py-2 hover:bg-gray-50 text-gray-400"><Plus size={13} /></button>
+                <span className="text-gray-400 font-medium text-sm">Order Quantity</span>
+                <div className="flex items-center bg-gray-50 rounded-xl px-2 py-1">
+                  <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="p-2 text-gray-400"><Minus size={14} /></button>
+                  <span className="px-4 font-black text-sm text-charcoal">{quantity}</span>
+                  <button onClick={() => setQuantity(quantity + 1)} className="p-2 text-gray-400"><Plus size={14} /></button>
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* CTA Buttons */}
-            <div className="flex gap-3 pt-1">
-              <button onClick={handleWhatsAppEnquiry} className="flex-1 py-3.5 bg-white border border-gray-200 text-charcoal rounded-xl font-black uppercase tracking-wider text-[10px] hover:border-gold hover:text-gold transition-all shadow-sm active:scale-95">
-                Get Quote
-              </button>
-              <button onClick={handleAddToCart} className="flex-1 py-3.5 bg-charcoal text-white rounded-xl font-black uppercase tracking-wider text-[10px] hover:bg-gold transition-all shadow-xl active:scale-95">
-                Add to Cart
-              </button>
-            </div>
+          {/* Sticky CTAs Container (Padding added to bottom above) */}
+          <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-gray-100 p-4 flex gap-3 z-[100]">
+            <button onClick={handleWhatsAppEnquiry} className="flex-1 py-4 bg-white border-2 border-charcoal text-charcoal rounded-2xl font-black uppercase tracking-widest text-[10px] active:scale-95 transition-transform shadow-sm">
+              Get Quote
+            </button>
+            <button onClick={handleAddToCart} className="flex-1 py-4 bg-charcoal text-white rounded-2xl font-black uppercase tracking-widest text-[10px] active:scale-95 transition-transform shadow-xl">
+              Add to Cart
+            </button>
+          </div>
 
-            {/* Trust badges */}
-            <div className="grid grid-cols-3 gap-2 pt-1">
-              {[[Shield, 'BIS Hallmarked'], [RotateCcw, 'Life Exchange'], [Truck, 'Insured Transit']].map(([Icon, label]) => (
-                <div key={label as string} className="flex flex-col items-center gap-1 bg-white rounded-xl py-3 shadow-sm">
-                  {React.createElement(Icon as React.ElementType, { size: 18, className: 'text-gold' })}
-                  <span className="text-[8px] font-black uppercase tracking-wider text-charcoal text-center">{label as string}</span>
+          {/* Trust Sections */}
+          <div className="grid grid-cols-3 gap-3 pt-4">
+            {[[Shield, 'Hallmarked'], [RotateCcw, 'Easy Exchange'], [Truck, 'Insured']].map(([Icon, label]) => (
+              <div key={label as string} className="flex flex-col items-center gap-2 bg-white rounded-2xl py-4 shadow-sm border border-gray-50">
+                {React.createElement(Icon as React.ElementType, { size: 20, className: 'text-gold' })}
+                <span className="text-[8px] font-black uppercase tracking-widest text-gray-400 text-center leading-tight">{label as string}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Description Section */}
+          <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-50">
+            <h4 className="text-xs font-black uppercase tracking-widest text-gold mb-4">About the Design</h4>
+            <p className="text-sm text-gray-500 leading-relaxed font-medium">
+              {product.description || "Every curve of this design is crafted with precision to reflect timeless elegance and modern grace. Perfect for occasions that demand a touch of luxury."}
+            </p>
+          </div>
+
+          {/* Add Related Products for Mobile too */}
+          <div className="pt-8 space-y-6">
+            <h2 className="text-xl font-heading font-bold text-charcoal">Complete The Look</h2>
+            <div className="flex overflow-x-auto gap-4 no-scrollbar pb-4 -mx-5 px-5">
+              {relatedProducts.map(p => (
+                <div key={p.id} className="w-[180px] flex-shrink-0">
+                  <ProductCard product={p} />
                 </div>
               ))}
             </div>

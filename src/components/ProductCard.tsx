@@ -1,8 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingBag, Heart, Star } from 'lucide-react';
+import { Heart, Star } from 'lucide-react';
 import { Product } from '../types';
-import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { formatPrice } from '../utils/whatsapp';
 import { usePrice } from '../context/PriceContext';
@@ -13,115 +12,100 @@ interface ProductCardProps {
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, hidePrice = false }) => {
-  const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { calculateProductPrice } = usePrice();
   
   const isFavorite = isInWishlist(product.id);
   const currentPrice = calculateProductPrice(product);
+  const originalPrice = currentPrice * 1.15; // Mock original price for discount display
 
   return (
-    <div className="relative group">
+    <div className="relative group bg-white">
       <Link 
         to={`/product/${product.id}`}
-        className="block bg-white rounded-[2rem] overflow-hidden transition-all duration-500 hover:shadow-2xl border border-gray-100"
+        className="block transition-all duration-300"
       >
         {/* Image Container */}
-        <div className="relative aspect-square overflow-hidden bg-gray-50">
+        <div className="relative aspect-square overflow-hidden rounded-xl bg-[#fdfdfd] border border-gray-50">
           <img
             src={product.images?.[0] || ''}
             alt={product.name}
-            className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-[1.5s]"
+            className="w-full h-full object-contain p-3 transition-transform duration-700 group-hover:scale-105"
             loading="lazy"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.onerror = null;
               target.src = 'https://via.placeholder.com/400x400?text=Jewellery';
-              // Alternatively, hide the image and show a fallback div (but difficult in simple img tag)
             }}
           />
           
-          {/* Subtle Badges */}
+          {/* Wishlist Button inside image */}
+          <button 
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              toggleWishlist(product);
+            }}
+            className="absolute top-3 right-3 p-1.5 transition-all z-20 group/heart"
+          >
+            <Heart 
+              size={20} 
+              className={`transition-all ${
+                isFavorite 
+                  ? 'fill-[#de57e5] text-[#de57e5] scale-110' 
+                  : 'text-gray-400 hover:text-[#de57e5]'
+              }`} 
+            />
+          </button>
+
           {product.trending && (
-            <div className="absolute top-4 left-4">
-              <span className="bg-white/90 backdrop-blur-md text-charcoal text-[9px] uppercase tracking-[0.2em] font-bold px-3 py-1 rounded-full shadow-sm border border-gray-100">
-                Trending
+            <div className="absolute top-3 left-0">
+              <span className="bg-[#f3e5f5] text-[#ab47bc] text-[9px] font-bold px-2 py-0.5 rounded-r-md shadow-sm">
+                TRENDING
               </span>
             </div>
           )}
-
         </div>
 
-        {/* Content */}
-        <div className="p-5 space-y-3">
+        {/* Content - Compact Style */}
+        <div className="mt-3 px-1 space-y-1">
+          {/* Price & Rating Row */}
           <div className="flex items-center justify-between">
-            <span className="text-[9px] uppercase tracking-[0.2em] text-gray-400 font-bold">
-              {product.category}
-            </span>
-            <div className="flex gap-0.5">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} size={8} className="fill-gold text-gold" />
-              ))}
+            {!hidePrice && (
+              <div className="flex items-baseline gap-2">
+                <span className="text-[15px] font-bold text-[#333]">
+                  {formatPrice(currentPrice)}
+                </span>
+                <span className="text-[11px] text-gray-400 line-through">
+                  {formatPrice(originalPrice)}
+                </span>
+              </div>
+            )}
+            <div className="flex items-center gap-1 bg-gray-50 px-1.5 py-0.5 rounded">
+              <span className="text-[11px] font-bold text-gray-600">4.7</span>
+              <Star size={10} className="fill-[#ffc107] text-[#ffc107]" />
+              <span className="text-[9px] text-gray-400 border-l border-gray-200 ml-1 pl-1">(12)</span>
             </div>
           </div>
           
-          <h3 className="font-heading text-lg font-bold text-charcoal group-hover:text-gold transition-colors line-clamp-1">
+          {/* Discount/Offer Tag */}
+          <p className="text-[11px] font-medium text-[#00a69c]">
+            15% OFF on Making Charge
+          </p>
+          
+          {/* Product Name - Minimal & Subtle */}
+          <h3 className="text-[11px] text-gray-500 font-medium truncate mt-1">
             {product.name}
           </h3>
-          
-          {/* Tech Specs Grid */}
-          {(product.grossWeight || product.netWeight) && (
-            <div className="grid grid-cols-2 gap-2 py-2 border-y border-gray-100/50">
-              {product.grossWeight && (
-                <div className="flex flex-col">
-                  <span className="text-[8px] uppercase text-gray-400 font-bold">Gross Wt</span>
-                  <span className="text-xs font-bold text-charcoal">{product.grossWeight.toFixed(3)}g</span>
-                </div>
-              )}
-              {product.netWeight && (
-                <div className="flex flex-col">
-                  <span className="text-[8px] uppercase text-gray-400 font-bold">Net Wt</span>
-                  <span className="text-xs font-bold text-charcoal">{product.netWeight.toFixed(3)}g</span>
-                </div>
-              )}
-            </div>
-          )}
 
-          {!hidePrice && (
-            <div className="flex items-center justify-between pt-1">
-              <p className="text-lg font-black text-charcoal tracking-tight">
-                {formatPrice(currentPrice)}
-              </p>
-              <button 
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  addToCart(product, 1);
-                }}
-                className="w-10 h-10 rounded-full bg-offwhite flex items-center justify-center hover:bg-gold hover:text-white transition-colors group/btn shadow-sm"
-              >
-                <ShoppingBag size={18} className="group-hover/btn:scale-110 transition-transform" />
-              </button>
-            </div>
+          {/* Weight Info - Very Small */}
+          {(product.grossWeight || product.netWeight) && (
+            <p className="text-[9px] text-gray-400 uppercase tracking-wider">
+              {product.grossWeight?.toFixed(2)}g | 22KT Gold
+            </p>
           )}
         </div>
       </Link>
-
-      {/* Wishlist Button */}
-      <button 
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          toggleWishlist(product);
-        }}
-        className={`absolute top-4 right-4 p-2.5 rounded-full shadow-md transition-all z-20 ${
-          isFavorite 
-            ? 'bg-red-500 text-white scale-110' 
-            : 'bg-white/80 backdrop-blur-md text-charcoal hover:bg-white'
-        }`}
-      >
-        <Heart size={16} className={isFavorite ? 'fill-current' : ''} />
-      </button>
     </div>
   );
 };

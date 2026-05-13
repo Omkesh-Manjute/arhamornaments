@@ -10,6 +10,8 @@ import CollectionSlider from '../components/CollectionSlider';
 import BestSellerSection from '../components/BestSellerSection';
 import ProductCard from '../components/ProductCard';
 import OccasionSection from '../components/OccasionSection';
+import LivePriceTicker from '../components/LivePriceTicker';
+import HeroSlider from '../components/HeroSlider';
 
 import { Product } from '../types';
 import { productService } from '../services/productService';
@@ -113,18 +115,18 @@ const HomePage: React.FC = () => {
 
 
   return (
-    <div className="min-h-screen overflow-x-hidden">
-      {/* Mobile-Only Top Section - Fixed Gap */}
-      <div className="lg:hidden pt-[88px] bg-white">
+    <div className="min-h-screen overflow-x-hidden bg-white">
+      {/* Search and Categories (Mobile) */}
+      <div className="lg:hidden bg-white border-b border-gray-50">
         <MobileSearchBar />
         <CategorySlider />
-        <MobileHeroSlider />
       </div>
 
-      {/* Heritage Hero Section - Desktop Only */}
-      <div className="hidden lg:block">
-        <HeritageHero />
-      </div>
+      {/* Hero Section */}
+      <HeroSlider />
+
+      {/* Live Market Price Section */}
+      <LivePriceTicker />
 
       {/* New Arrivals Section */}
       {loading ? (
