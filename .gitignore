@@ -34,3 +34,6 @@ dist-ssr
 # Agent directories
 .agents/
 .superdesign/
+
+# Temporary files
+~$*
