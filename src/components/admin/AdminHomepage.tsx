@@ -48,7 +48,9 @@ const AdminHomepage: React.FC = () => {
   const [config, setConfig] = useState<HomepageSectionConfig>({
     newArrivals: [],
     bestSellers: [],
-    trending: []
+    trending: [],
+    categories: [],
+    collections: []
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -83,6 +85,28 @@ const AdminHomepage: React.FC = () => {
     allProducts.forEach(p => map.set(p.id, p));
     return map;
   }, [allProducts]);
+
+  // Auto-detect categories from actual products (category name → first image + count)
+  const detectedCategories = useMemo(() => {
+    const catMap = new Map<string, { image: string; count: number }>();
+    allProducts.forEach(p => {
+      if (!p.category) return;
+      if (!catMap.has(p.category)) {
+        catMap.set(p.category, { image: p.images?.[0] || '', count: 1 });
+      } else {
+        catMap.get(p.category)!.count++;
+      }
+    });
+    return catMap;
+  }, [allProducts]);
+
+  // Get category names that haven't been added yet
+  const availableCategories = useMemo(() => {
+    const usedNames = new Set((config.categories || []).map(c => c.name.toLowerCase()));
+    return Array.from(detectedCategories.entries())
+      .filter(([name]) => !usedNames.has(name.toLowerCase()))
+      .map(([name, data]) => ({ name, ...data }));
+  }, [detectedCategories, config.categories]);
 
   // Filtered products for the picker
   const filteredProducts = useMemo(() => {
@@ -129,12 +153,22 @@ const AdminHomepage: React.FC = () => {
     });
   };
 
-  const addCategory = () => {
-    const newCat = { name: 'New Category', image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?q=80&w=800&auto=format&fit=crop', path: '/products' };
+  const [showCategoryPicker, setShowCategoryPicker] = useState(false);
+  const [showCollectionPicker, setShowCollectionPicker] = useState(false);
+
+  const addCategory = (catName: string) => {
+    const detected = detectedCategories.get(catName);
+    const displayName = catName.charAt(0).toUpperCase() + catName.slice(1).replace(/-/g, ' ');
+    const newCat = {
+      name: displayName,
+      image: detected?.image || '',
+      path: `/products?category=${catName}`
+    };
     setConfig(prev => ({
       ...prev,
       categories: [...(prev.categories || []), newCat]
     }));
+    setShowCategoryPicker(false);
   };
 
   const updateCategory = (index: number, updates: any) => {
@@ -152,12 +186,32 @@ const AdminHomepage: React.FC = () => {
     }));
   };
 
-  const addCollection = () => {
-    const newColl = { id: Date.now().toString(), name: 'New Collection', image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=800&auto=format&fit=crop', path: '/products' };
+  // For picking a product image for a category
+  const pickImageForCategory = (catIndex: number) => {
+    const cat = config.categories?.[catIndex];
+    if (!cat) return;
+    // Find a product in this category that has images
+    const catKey = cat.name.toLowerCase().replace(/ /g, '-');
+    const matchingProduct = allProducts.find(p =>
+      p.category?.toLowerCase() === catKey && p.images?.[0]
+    );
+    if (matchingProduct) {
+      updateCategory(catIndex, { image: matchingProduct.images[0] });
+    }
+  };
+
+  const addCollection = (product: Product) => {
+    const newColl = {
+      id: Date.now().toString(),
+      name: product.name || product.designNo || 'Collection Item',
+      image: product.images?.[0] || '',
+      path: `/products?category=${product.category}`
+    };
     setConfig(prev => ({
       ...prev,
       collections: [...(prev.collections || []), newColl]
     }));
+    setShowCollectionPicker(false);
   };
 
   const updateCollection = (index: number, updates: any) => {
@@ -449,126 +503,151 @@ const AdminHomepage: React.FC = () => {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h3 className="text-lg font-black text-blue-400">Featured Categories</h3>
-                <p className="text-gray-500 text-xs mt-1">Manage the "Curated Categories" grid on the homepage</p>
+                <p className="text-gray-500 text-xs mt-1">Categories auto-detect from your products with real images</p>
               </div>
               <button
-                onClick={addCategory}
-                className="flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-bold uppercase tracking-widest bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 transition-all"
+                onClick={() => setShowCategoryPicker(!showCategoryPicker)}
+                className={`flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${showCategoryPicker ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20'}`}
               >
-                <Plus size={14} />
-                Add Category
+                {showCategoryPicker ? <X size={14} /> : <Plus size={14} />}
+                {showCategoryPicker ? 'Close' : 'Add Category'}
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {(config.categories || []).map((cat, index) => (
-                <div key={index} className="bg-[#0D0D0D] border border-[#222222] rounded-2xl p-6 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-mono text-gray-600 uppercase tracking-widest">Category #{index + 1}</span>
-                    <button onClick={() => removeCategory(index)} className="text-gray-600 hover:text-red-400 transition-colors">
-                      <X size={16} />
-                    </button>
+            {showCategoryPicker && (
+              <div className="mb-6 bg-[#0D0D0D] border border-[#222222] rounded-2xl p-6">
+                <p className="text-gray-400 text-xs mb-4">Pick a category — images auto-fill from your inventory:</p>
+                {availableCategories.length === 0 ? (
+                  <p className="text-center text-gray-600 py-6 text-sm">All categories added ✓</p>
+                ) : (
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {availableCategories.map(cat => (
+                      <button key={cat.name} onClick={() => addCategory(cat.name)} className="flex flex-col items-center gap-3 p-4 rounded-xl bg-[#161616] border border-[#222222] hover:border-blue-500/40 hover:bg-blue-500/5 transition-all group">
+                        <div className="w-16 h-16 rounded-xl overflow-hidden bg-[#222222]">
+                          {cat.image ? <img src={cat.image} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-600"><ImageIcon size={20} /></div>}
+                        </div>
+                        <p className="text-sm font-bold text-white capitalize">{cat.name.replace(/-/g, ' ')}</p>
+                        <p className="text-[10px] text-gray-500">{cat.count} products</p>
+                      </button>
+                    ))}
                   </div>
-                  <div className="flex gap-4">
-                    <div className="w-24 h-24 rounded-xl overflow-hidden bg-[#161616] shrink-0 border border-white/5">
-                      <img src={cat.image} alt="" className="w-full h-full object-cover" />
+                )}
+              </div>
+            )}
+
+            {(config.categories || []).length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="w-20 h-20 rounded-3xl bg-blue-500/10 flex items-center justify-center mb-4"><GripVertical className="text-blue-400" size={24} /></div>
+                <p className="text-gray-400 font-bold mb-1">No categories added</p>
+                <p className="text-gray-600 text-xs max-w-sm">Click "Add Category" to pick from your product categories.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {(config.categories || []).map((cat, index) => (
+                  <div key={index} className="bg-[#0D0D0D] border border-[#222222] rounded-2xl p-5 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-mono text-gray-600 uppercase tracking-widest">Category #{index + 1}</span>
+                      <button onClick={() => removeCategory(index)} className="text-gray-600 hover:text-red-400 transition-colors"><X size={16} /></button>
                     </div>
-                    <div className="flex-1 space-y-3">
-                      <div>
-                        <label className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 block">Title</label>
-                        <input
-                          type="text"
-                          value={cat.name}
-                          onChange={e => updateCategory(index, { name: e.target.value })}
-                          className="w-full bg-[#161616] border border-[#222222] rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-blue-500"
-                        />
+                    <div className="flex gap-4">
+                      <div className="w-20 h-20 rounded-xl overflow-hidden bg-[#161616] shrink-0 border border-white/5 relative group/img">
+                        {cat.image ? <img src={cat.image} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-600"><ImageIcon size={18} /></div>}
+                        <button onClick={() => pickImageForCategory(index)} className="absolute inset-0 bg-black/60 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center" title="Auto-fill from products">
+                          <span className="text-[9px] text-white font-bold uppercase">Auto Pick</span>
+                        </button>
                       </div>
-                      <div>
-                        <label className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 block">Link Path</label>
-                        <input
-                          type="text"
-                          value={cat.path}
-                          onChange={e => updateCategory(index, { path: e.target.value })}
-                          className="w-full bg-[#161616] border border-[#222222] rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-blue-500"
-                        />
+                      <div className="flex-1 space-y-2">
+                        <div>
+                          <label className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 block">Title</label>
+                          <input type="text" value={cat.name} onChange={e => updateCategory(index, { name: e.target.value })} className="w-full bg-[#161616] border border-[#222222] rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-blue-500" />
+                        </div>
+                        <div>
+                          <label className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 block">Link Path</label>
+                          <input type="text" value={cat.path} onChange={e => updateCategory(index, { path: e.target.value })} className="w-full bg-[#161616] border border-[#222222] rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-blue-500" />
+                        </div>
                       </div>
                     </div>
+                    <div>
+                      <label className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 block">Image URL <span className="text-gray-600">(auto-filled or paste custom)</span></label>
+                      <input type="text" value={cat.image} onChange={e => updateCategory(index, { image: e.target.value })} className="w-full bg-[#161616] border border-[#222222] rounded-lg px-3 py-2 text-xs text-gray-400 outline-none focus:border-blue-500 font-mono" />
+                    </div>
                   </div>
-                  <div>
-                    <label className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 block">Image URL</label>
-                    <input
-                      type="text"
-                      value={cat.image}
-                      onChange={e => updateCategory(index, { image: e.target.value })}
-                      className="w-full bg-[#161616] border border-[#222222] rounded-lg px-3 py-2 text-xs text-gray-400 outline-none focus:border-blue-500 font-mono"
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </>
         ) : (
           <>
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h3 className="text-lg font-black text-rose-400">Collection Slider</h3>
-                <p className="text-gray-500 text-xs mt-1">Manage the top-level collection items (e.g. Earring types)</p>
+                <p className="text-gray-500 text-xs mt-1">Pick products from your inventory for the collection slider</p>
               </div>
               <button
-                onClick={addCollection}
-                className="flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-bold uppercase tracking-widest bg-rose-500/10 text-rose-400 border border-rose-500/20 hover:bg-rose-500/20 transition-all"
+                onClick={() => setShowCollectionPicker(!showCollectionPicker)}
+                className={`flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${showCollectionPicker ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20 hover:bg-rose-500/20'}`}
               >
-                <Plus size={14} />
-                Add Item
+                {showCollectionPicker ? <X size={14} /> : <Plus size={14} />}
+                {showCollectionPicker ? 'Close' : 'Add Item'}
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {(config.collections || []).map((item, index) => (
-                <div key={item.id} className="bg-[#0D0D0D] border border-[#222222] rounded-2xl p-6 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-mono text-gray-600 uppercase tracking-widest">Item #{index + 1}</span>
-                    <button onClick={() => removeCollection(index)} className="text-gray-600 hover:text-red-400 transition-colors">
-                      <X size={16} />
-                    </button>
-                  </div>
-                  <div className="flex gap-4">
-                    <div className="w-24 h-24 rounded-xl overflow-hidden bg-[#161616] shrink-0 border border-white/5">
-                      <img src={item.image} alt="" className="w-full h-full object-cover" />
-                    </div>
-                    <div className="flex-1 space-y-3">
-                      <div>
-                        <label className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 block">Title</label>
-                        <input
-                          type="text"
-                          value={item.name}
-                          onChange={e => updateCollection(index, { name: e.target.value })}
-                          className="w-full bg-[#161616] border border-[#222222] rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-rose-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 block">Link Path</label>
-                        <input
-                          type="text"
-                          value={item.path}
-                          onChange={e => updateCollection(index, { path: e.target.value })}
-                          className="w-full bg-[#161616] border border-[#222222] rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-rose-500"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 block">Image URL</label>
-                    <input
-                      type="text"
-                      value={item.image}
-                      onChange={e => updateCollection(index, { image: e.target.value })}
-                      className="w-full bg-[#161616] border border-[#222222] rounded-lg px-3 py-2 text-xs text-gray-400 outline-none focus:border-rose-500 font-mono"
-                    />
-                  </div>
+            {showCollectionPicker && (
+              <div className="mb-6 bg-[#0D0D0D] border border-[#222222] rounded-2xl p-6">
+                <div className="relative mb-4">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
+                  <input type="text" placeholder="Search products..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full pl-11 pr-4 py-3 bg-[#161616] border border-[#222222] rounded-xl text-white text-sm outline-none focus:border-rose-500 transition-colors placeholder:text-gray-600" autoFocus />
                 </div>
-              ))}
-            </div>
+                <div className="max-h-[320px] overflow-y-auto custom-scrollbar space-y-1">
+                  {allProducts.filter(p => { if (!searchQuery.trim()) return true; const q = searchQuery.toLowerCase(); return (p.name||'').toLowerCase().includes(q)||(p.designNo||'').toLowerCase().includes(q)||(p.category||'').toLowerCase().includes(q); }).slice(0,50).map(product => (
+                    <button key={product.id} onClick={() => addCollection(product)} className="w-full flex items-center gap-4 p-3 rounded-xl hover:bg-white/5 transition-colors group text-left">
+                      <div className="w-12 h-12 rounded-xl overflow-hidden bg-[#222222] shrink-0">
+                        {product.images?.[0] ? <img src={product.images[0]} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-600"><ImageIcon size={16} /></div>}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-white truncate">{product.name || product.designNo || product.id}</p>
+                        <p className="text-[10px] text-gray-500 uppercase tracking-wider">{product.category} • {product.designNo || '—'}</p>
+                      </div>
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity"><Plus size={16} className="text-rose-400" /></div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {(config.collections || []).length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="w-20 h-20 rounded-3xl bg-rose-500/10 flex items-center justify-center mb-4"><ImageIcon className="text-rose-400" size={24} /></div>
+                <p className="text-gray-400 font-bold mb-1">No collection items</p>
+                <p className="text-gray-600 text-xs max-w-sm">Click "Add Item" to pick products for the slider.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {(config.collections || []).map((item, index) => (
+                  <div key={item.id} className="bg-[#0D0D0D] border border-[#222222] rounded-2xl p-5 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-mono text-gray-600 uppercase tracking-widest">Item #{index + 1}</span>
+                      <button onClick={() => removeCollection(index)} className="text-gray-600 hover:text-red-400 transition-colors"><X size={16} /></button>
+                    </div>
+                    <div className="flex gap-4">
+                      <div className="w-20 h-20 rounded-xl overflow-hidden bg-[#161616] shrink-0 border border-white/5">
+                        {item.image ? <img src={item.image} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-600"><ImageIcon size={18} /></div>}
+                      </div>
+                      <div className="flex-1 space-y-2">
+                        <div>
+                          <label className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 block">Title</label>
+                          <input type="text" value={item.name} onChange={e => updateCollection(index, { name: e.target.value })} className="w-full bg-[#161616] border border-[#222222] rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-rose-500" />
+                        </div>
+                        <div>
+                          <label className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 block">Link Path</label>
+                          <input type="text" value={item.path} onChange={e => updateCollection(index, { path: e.target.value })} className="w-full bg-[#161616] border border-[#222222] rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-rose-500" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </>
         )}
       </div>
