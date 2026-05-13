@@ -161,15 +161,15 @@ const HomePage: React.FC = () => {
         </section>
       ) : null}
 
-      {/* Collection Slider - Earrings */}
+      {/* Collection Slider - Uses admin-configured items */}
       <CollectionSlider
         title="Stunning Every Ear"
         subtitle="Look at our brand new earring collection just for you"
-        banners={[
-          { image: "https://images.unsplash.com/photo-1635767798638-3e25273a8236?w=1200", title: "Stunning <br /> every Ear", link: "/products?category=earrings" },
-          { image: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=1200", title: "Handcrafted <br /> Elegance", link: "/products?category=earrings" },
-          { image: "https://images.unsplash.com/photo-1512163143273-bde0e3cc7407?w=1200", title: "Timeless <br /> Masterpieces", link: "/products?category=earrings" }
-        ]}
+        banners={earringCollection.slice(0, 3).map((item, i) => ({
+          image: item.image,
+          title: i === 0 ? "Stunning <br /> every Ear" : i === 1 ? "Handcrafted <br /> Elegance" : "Timeless <br /> Masterpieces",
+          link: item.path || '/products'
+        }))}
         items={earringCollection}
       />
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, Plus, X, Loader2, GripVertical, Star, Sparkles, TrendingUp, ChevronDown, Check, Image as ImageIcon } from 'lucide-react';
+import { Search, Plus, X, Loader2, GripVertical, Star, Sparkles, TrendingUp, ChevronDown, Check, Image as ImageIcon, Eye } from 'lucide-react';
 import { Product } from '../../types';
 import { productService } from '../../services/productService';
 import { homepageService, HomepageSectionConfig } from '../../services/homepageService';
@@ -58,6 +58,7 @@ const AdminHomepage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('newArrivals');
   const [showPicker, setShowPicker] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   // Load products and config
   useEffect(() => {
@@ -214,13 +215,6 @@ const AdminHomepage: React.FC = () => {
     setShowCollectionPicker(false);
   };
 
-  const updateCollection = (index: number, updates: any) => {
-    setConfig(prev => {
-      const newColls = [...(prev.collections || [])];
-      newColls[index] = { ...newColls[index], ...updates };
-      return { ...prev, collections: newColls };
-    });
-  };
 
   const removeCollection = (index: number) => {
     setConfig(prev => ({
@@ -264,18 +258,27 @@ const AdminHomepage: React.FC = () => {
           <h2 className="text-2xl font-black text-white tracking-tight">Homepage Sections</h2>
           <p className="text-gray-500 text-xs mt-1">Choose which products appear in each homepage section</p>
         </div>
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className={`px-8 py-3 rounded-2xl text-sm font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg ${
-            saveSuccess
-              ? 'bg-emerald-500 text-white shadow-emerald-500/20'
-              : 'bg-amber-500 hover:bg-amber-600 text-white shadow-amber-500/20'
-          }`}
-        >
-          {saving ? <Loader2 className="animate-spin" size={16} /> : saveSuccess ? <Check size={16} /> : null}
-          {saving ? 'Saving...' : saveSuccess ? 'Saved!' : 'Publish Changes'}
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowPreview(true)}
+            className="px-6 py-3 rounded-2xl text-sm font-black uppercase tracking-widest transition-all flex items-center gap-2 bg-[#222222] text-gray-300 hover:bg-[#333333] hover:text-white border border-[#333333]"
+          >
+            <Eye size={16} />
+            Preview
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className={`px-8 py-3 rounded-2xl text-sm font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg ${
+              saveSuccess
+                ? 'bg-emerald-500 text-white shadow-emerald-500/20'
+                : 'bg-amber-500 hover:bg-amber-600 text-white shadow-amber-500/20'
+            }`}
+          >
+            {saving ? <Loader2 className="animate-spin" size={16} /> : saveSuccess ? <Check size={16} /> : null}
+            {saving ? 'Saving...' : saveSuccess ? 'Saved!' : 'Publish Changes'}
+          </button>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -544,33 +547,19 @@ const AdminHomepage: React.FC = () => {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {(config.categories || []).map((cat, index) => (
-                  <div key={index} className="bg-[#0D0D0D] border border-[#222222] rounded-2xl p-5 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-mono text-gray-600 uppercase tracking-widest">Category #{index + 1}</span>
-                      <button onClick={() => removeCategory(index)} className="text-gray-600 hover:text-red-400 transition-colors"><X size={16} /></button>
+                  <div key={index} className="bg-[#0D0D0D] border border-[#222222] rounded-2xl p-4 flex items-center gap-4">
+                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-[#161616] shrink-0 border border-white/5 relative group/img">
+                      {cat.image ? <img src={cat.image} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-600"><ImageIcon size={18} /></div>}
+                      <button onClick={() => pickImageForCategory(index)} className="absolute inset-0 bg-black/60 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center" title="Refresh image from products">
+                        <span className="text-[9px] text-white font-bold uppercase">Refresh</span>
+                      </button>
                     </div>
-                    <div className="flex gap-4">
-                      <div className="w-20 h-20 rounded-xl overflow-hidden bg-[#161616] shrink-0 border border-white/5 relative group/img">
-                        {cat.image ? <img src={cat.image} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-600"><ImageIcon size={18} /></div>}
-                        <button onClick={() => pickImageForCategory(index)} className="absolute inset-0 bg-black/60 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center" title="Auto-fill from products">
-                          <span className="text-[9px] text-white font-bold uppercase">Auto Pick</span>
-                        </button>
-                      </div>
-                      <div className="flex-1 space-y-2">
-                        <div>
-                          <label className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 block">Title</label>
-                          <input type="text" value={cat.name} onChange={e => updateCategory(index, { name: e.target.value })} className="w-full bg-[#161616] border border-[#222222] rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-blue-500" />
-                        </div>
-                        <div>
-                          <label className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 block">Link Path</label>
-                          <input type="text" value={cat.path} onChange={e => updateCategory(index, { path: e.target.value })} className="w-full bg-[#161616] border border-[#222222] rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-blue-500" />
-                        </div>
-                      </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-white truncate">{cat.name}</p>
+                      <p className="text-[10px] text-gray-500 font-mono truncate">{cat.path}</p>
                     </div>
-                    <div>
-                      <label className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 block">Image URL <span className="text-gray-600">(auto-filled or paste custom)</span></label>
-                      <input type="text" value={cat.image} onChange={e => updateCategory(index, { image: e.target.value })} className="w-full bg-[#161616] border border-[#222222] rounded-lg px-3 py-2 text-xs text-gray-400 outline-none focus:border-blue-500 font-mono" />
-                    </div>
+                    <span className="text-[10px] text-gray-600 font-mono shrink-0">#{index + 1}</span>
+                    <button onClick={() => removeCategory(index)} className="text-gray-600 hover:text-red-400 transition-colors shrink-0"><X size={16} /></button>
                   </div>
                 ))}
               </div>
@@ -624,26 +613,16 @@ const AdminHomepage: React.FC = () => {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {(config.collections || []).map((item, index) => (
-                  <div key={item.id} className="bg-[#0D0D0D] border border-[#222222] rounded-2xl p-5 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-mono text-gray-600 uppercase tracking-widest">Item #{index + 1}</span>
-                      <button onClick={() => removeCollection(index)} className="text-gray-600 hover:text-red-400 transition-colors"><X size={16} /></button>
+                  <div key={item.id} className="bg-[#0D0D0D] border border-[#222222] rounded-2xl p-4 flex items-center gap-4">
+                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-[#161616] shrink-0 border border-white/5">
+                      {item.image ? <img src={item.image} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-600"><ImageIcon size={18} /></div>}
                     </div>
-                    <div className="flex gap-4">
-                      <div className="w-20 h-20 rounded-xl overflow-hidden bg-[#161616] shrink-0 border border-white/5">
-                        {item.image ? <img src={item.image} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-600"><ImageIcon size={18} /></div>}
-                      </div>
-                      <div className="flex-1 space-y-2">
-                        <div>
-                          <label className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 block">Title</label>
-                          <input type="text" value={item.name} onChange={e => updateCollection(index, { name: e.target.value })} className="w-full bg-[#161616] border border-[#222222] rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-rose-500" />
-                        </div>
-                        <div>
-                          <label className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 block">Link Path</label>
-                          <input type="text" value={item.path} onChange={e => updateCollection(index, { path: e.target.value })} className="w-full bg-[#161616] border border-[#222222] rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-rose-500" />
-                        </div>
-                      </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-white truncate">{item.name}</p>
+                      <p className="text-[10px] text-gray-500 font-mono truncate">{item.path}</p>
                     </div>
+                    <span className="text-[10px] text-gray-600 font-mono shrink-0">#{index + 1}</span>
+                    <button onClick={() => removeCollection(index)} className="text-gray-600 hover:text-red-400 transition-colors shrink-0"><X size={16} /></button>
                   </div>
                 ))}
               </div>
@@ -664,6 +643,85 @@ const AdminHomepage: React.FC = () => {
           </div>
         ))}
       </div>
+
+      {/* Preview Modal */}
+      {showPreview && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setShowPreview(false)}>
+          <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="sticky top-0 bg-white border-b border-gray-100 px-8 py-4 flex items-center justify-between rounded-t-3xl z-10">
+              <div>
+                <h3 className="font-bold text-charcoal text-lg">Homepage Preview</h3>
+                <p className="text-gray-400 text-xs">This is how your homepage sections will look</p>
+              </div>
+              <button onClick={() => setShowPreview(false)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={20} className="text-gray-500" /></button>
+            </div>
+
+            <div className="p-8 space-y-12">
+              {/* Collection Slider Preview */}
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.3em] text-amber-600 font-bold mb-1">Collection Slider</p>
+                <h4 className="text-2xl font-bold text-charcoal mb-4">Stunning Every Ear</h4>
+                {(config.collections || []).length > 0 ? (
+                  <div className="flex gap-4 overflow-x-auto pb-2">
+                    {(config.collections || []).map(item => (
+                      <div key={item.id} className="flex-shrink-0 w-36">
+                        <div className="aspect-[4/5] rounded-2xl overflow-hidden bg-gray-100 mb-2 border border-gray-100">
+                          {item.image ? <img src={item.image} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-300"><ImageIcon size={24} /></div>}
+                        </div>
+                        <p className="text-xs font-bold text-charcoal text-center truncate">{item.name}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : <p className="text-gray-400 text-sm italic">No collection items configured</p>}
+              </div>
+
+              {/* Categories Preview */}
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.3em] text-amber-600 font-bold mb-1">The Collection</p>
+                <h4 className="text-2xl font-bold text-charcoal mb-4">Curated Categories</h4>
+                {(config.categories || []).length > 0 ? (
+                  <div className="grid grid-cols-4 gap-4">
+                    {(config.categories || []).map((cat, i) => (
+                      <div key={i} className="text-center">
+                        <div className="aspect-[4/5] rounded-2xl overflow-hidden bg-gray-100 mb-2 border border-gray-100">
+                          {cat.image ? <img src={cat.image} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-300"><ImageIcon size={24} /></div>}
+                        </div>
+                        <p className="text-sm font-bold text-charcoal">{cat.name}</p>
+                        <p className="text-[9px] text-gray-400 uppercase tracking-widest">Explore Now</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : <p className="text-gray-400 text-sm italic">No categories configured</p>}
+              </div>
+
+              {/* Product Sections Preview */}
+              {SECTIONS.map(section => {
+                const ids = config[section.key] || [];
+                if (ids.length === 0) return null;
+                return (
+                  <div key={section.key}>
+                    <p className="text-[10px] uppercase tracking-[0.3em] text-amber-600 font-bold mb-1">{section.label}</p>
+                    <div className="grid grid-cols-4 gap-3">
+                      {ids.slice(0, 8).map(id => {
+                        const p = productMap.get(id);
+                        if (!p) return null;
+                        return (
+                          <div key={id} className="text-center">
+                            <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 mb-2 border border-gray-100">
+                              {p.images?.[0] ? <img src={p.images[0]} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-300"><ImageIcon size={20} /></div>}
+                            </div>
+                            <p className="text-[10px] font-bold text-charcoal truncate">{p.name || p.designNo}</p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
