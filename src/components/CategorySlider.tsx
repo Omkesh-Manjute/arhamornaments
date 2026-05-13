@@ -1,29 +1,61 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { productService } from '../services/productService';
 
-interface Category {
+// Fallback category order (used for sorting, not images)
+const CATEGORY_ORDER = [
+  'earrings', 'rings', 'bracelets', 'necklaces', 'bangles',
+  'pendants', 'pendant-sets', 'nose-jewelry', 'chain-sets',
+  'mangalsutra', 'chains', 'gold-coins'
+];
+
+interface DynamicCategory {
   id: string;
   name: string;
   image: string;
   path: string;
 }
 
-const categories: Category[] = [
-  { id: 'earrings', name: 'Earrings', image: '/images/products/earrings.png', path: '/products?category=earrings' },
-  { id: 'rings', name: 'Rings', image: '/images/products/engagement_ring.png', path: '/products?category=rings' },
-  { id: 'bracelets', name: 'Bracelets', image: '/images/products/filigree_gold_bangles.png', path: '/products?category=bracelets' },
-  { id: 'necklaces', name: 'Necklaces', image: '/images/products/necklaces_category.png', path: '/products?category=necklaces' },
-  { id: 'bangles', name: 'Bangles', image: '/images/products/temple_gold_kangan.png', path: '/products?category=bangles' },
-  { id: 'pendants', name: 'Pendants', image: '/images/products/heart_diamond_pendant.png', path: '/products?category=pendants' },
-  { id: 'pendant-sets', name: 'Pendant Sets', image: '/images/products/peacock_fusion.png', path: '/products?category=pendant-sets' },
-  { id: 'nose-jewelry', name: 'Nose Jewelry', image: '/images/products/antique_floral.png', path: '/products?category=nose-jewelry' },
-  { id: 'chain-sets', name: 'Chain Sets', image: '/images/products/chain_sets_category.png', path: '/products?category=chain-sets' },
-  { id: 'mangalsutra', name: 'Mangalsutra', image: '/images/products/antique_floral.png', path: '/products?category=mangalsutra' },
-  { id: 'chains', name: 'Chains', image: '/images/products/chains_category.png', path: '/products?category=chains' },
-  { id: 'gold-coins', name: 'Gold Coins', image: '/images/products/gold_coin_2.jpg', path: '/products?category=coins' },
-];
-
 const CategorySlider: React.FC = () => {
+  const [categories, setCategories] = useState<DynamicCategory[]>([]);
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const products = await productService.getAllProducts();
+        // Build categories from real product data
+        const catMap = new Map<string, string>();
+        products.forEach(p => {
+          if (p.category && !catMap.has(p.category) && p.images?.[0]) {
+            catMap.set(p.category, p.images[0]);
+          }
+        });
+
+        const dynamicCats: DynamicCategory[] = Array.from(catMap.entries())
+          .sort(([a], [b]) => {
+            const aIdx = CATEGORY_ORDER.indexOf(a);
+            const bIdx = CATEGORY_ORDER.indexOf(b);
+            return (aIdx === -1 ? 999 : aIdx) - (bIdx === -1 ? 999 : bIdx);
+          })
+          .map(([key, image]) => ({
+            id: key,
+            name: key.charAt(0).toUpperCase() + key.slice(1).replace(/-/g, ' '),
+            image,
+            path: `/products?category=${key}`
+          }));
+
+        if (dynamicCats.length > 0) {
+          setCategories(dynamicCats);
+        }
+      } catch (error) {
+        console.error('Failed to load categories:', error);
+      }
+    };
+    loadCategories();
+  }, []);
+
+  if (categories.length === 0) return null;
+
   return (
     <div className="w-full bg-white py-2 border-b border-gray-100 overflow-hidden">
       <div className="flex overflow-x-auto no-scrollbar gap-4 px-4 md:px-8 pb-2">
