@@ -179,7 +179,7 @@ const ProductDetail: React.FC = () => {
           <div className="space-y-6">
             <div className="relative aspect-square rounded-[3rem] overflow-hidden bg-white shadow-2xl group">
               <img
-                src={product.images[currentImage]}
+                src={product.images?.[currentImage] || ''}
                 alt={product.name}
                 className="w-full h-full object-contain p-8 transition-transform duration-1000 group-hover:scale-105"
               />
@@ -201,7 +201,7 @@ const ProductDetail: React.FC = () => {
 
             {/* Thumbnails */}
             <div className="flex gap-4 justify-center">
-              {product.images.map((img, index) => (
+              {product.images?.map((img, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentImage(index)}
@@ -333,15 +333,6 @@ const ProductDetail: React.FC = () => {
                 </div>
               </div>
 
-              {/* Description Input */}
-              <div className="pt-4">
-                <div className="relative">
-                  <textarea 
-                    placeholder="Description"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-gold focus:ring-1 focus:ring-gold outline-none transition-all text-sm resize-none h-12"
-                  />
-                </div>
-              </div>
             </div>
 
             {/* Price & Action */}
@@ -361,16 +352,6 @@ const ProductDetail: React.FC = () => {
                 </button>
               </div>
 
-              {/* Loyalty Preview */}
-              <div className="bg-gold/5 p-4 rounded-2xl border border-gold/10 flex items-center gap-4">
-                <div className="w-10 h-10 bg-gold text-white rounded-full flex items-center justify-center shadow-md">
-                  <Award size={20} />
-                </div>
-                <div>
-                  <h4 className="text-[9px] font-black uppercase tracking-widest text-gold">Elite Rewards</h4>
-                  <p className="text-[10px] text-charcoal/70 mt-0.5">Earn <b>{Math.round((currentPrice * quantity)/100)}</b> points</p>
-                </div>
-              </div>
             </div>
 
             {/* Trust Badges */}

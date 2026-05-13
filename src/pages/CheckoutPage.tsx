@@ -360,7 +360,7 @@ const CheckoutPage: React.FC = () => {
                     <div key={item.product.id} className="flex gap-4 group">
                       <div className="w-20 h-20 rounded-2xl overflow-hidden border border-white/10 shrink-0">
                         <img
-                          src={item.product.images[0]}
+                          src={item.product?.images?.[0] || ''}
                           alt={item.product.name}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                         />

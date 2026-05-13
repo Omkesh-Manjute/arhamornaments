@@ -29,7 +29,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hidePrice = false })
         {/* Image Container */}
         <div className="relative aspect-square overflow-hidden bg-gray-50">
           <img
-            src={product.images[0]}
+            src={product.images?.[0] || ''}
             alt={product.name}
             className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-[1.5s]"
             loading="lazy"

@@ -26,12 +26,22 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>(() => {
     const saved = localStorage.getItem('cart');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const parsed = saved ? JSON.parse(saved) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
   });
 
   const [giftOptions, setGiftOptions] = useState<GiftOptions>(() => {
     const saved = localStorage.getItem('giftOptions');
-    return saved ? JSON.parse(saved) : defaultGiftOptions;
+    try {
+      const parsed = saved ? JSON.parse(saved) : defaultGiftOptions;
+      return parsed && typeof parsed === 'object' ? parsed : defaultGiftOptions;
+    } catch {
+      return defaultGiftOptions;
+    }
   });
 
   const [walletRedemption, setWalletRedemption] = useState({ isRedeemed: false });
@@ -44,6 +54,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const addToCart = useCallback((product: Product, quantity: number = 1, metadata?: { selectedPurity?: string, selectedQuality?: string }) => {
     setItems(prev => {
       const existingIndex = prev.findIndex(item => 
+        item && item.product &&
         item.product.id === product.id && 
         item.selectedPurity === metadata?.selectedPurity &&
         item.selectedDiamondQuality === metadata?.selectedQuality
@@ -71,7 +82,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const removeFromCart = useCallback((productId: string) => {
     setItems(prev => {
-      const newItems = prev.filter(item => item.product.id !== productId);
+      const newItems = prev.filter(item => item && item.product && item.product.id !== productId);
       saveToStorage(newItems, giftOptions);
       return newItems;
     });
@@ -84,7 +95,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
     setItems(prev => {
       const newItems = prev.map(item =>
-        item.product.id === productId ? { ...item, quantity } : item
+        item && item.product && item.product.id === productId ? { ...item, quantity } : item
       );
       saveToStorage(newItems, giftOptions);
       return newItems;
@@ -111,9 +122,9 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setWalletRedemption(prev => ({ isRedeemed: !prev.isRedeemed }));
   }, []);
 
-  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+  const totalItems = items.reduce((sum, item) => sum + (item?.quantity || 0), 0);
   const giftCharges = giftOptions.isGift && giftOptions.wrapType === 'luxury' ? 499 : 0;
-  const totalPrice = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0) + giftCharges;
+  const totalPrice = items.reduce((sum, item) => sum + (item?.product?.price || 0) * (item?.quantity || 0), 0) + giftCharges;
 
   return (
     <CartContext.Provider value={{

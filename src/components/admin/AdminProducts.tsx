@@ -266,7 +266,11 @@ const AdminProducts: React.FC<AdminProductsProps> = ({ onEditProduct }) => {
                               </div>
                               <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-xl overflow-hidden border border-white/5 bg-black/40">
-                                  <img src={firstP.images?.[0]} alt="" className="w-full h-full object-cover opacity-50" />
+                                  <img 
+                                    src={firstP.images?.[0] || 'https://via.placeholder.com/400?text=No+Image'} 
+                                    alt="" 
+                                    className="w-full h-full object-cover opacity-50" 
+                                  />
                                 </div>
                                 <div>
                                   <p className="font-black text-white text-sm tracking-tight">{groupName}</p>
@@ -289,7 +293,12 @@ const AdminProducts: React.FC<AdminProductsProps> = ({ onEditProduct }) => {
                             <td className="px-6 py-4 pl-16">
                               <div className="flex items-center gap-4">
                                 <div className="w-12 h-12 rounded-2xl overflow-hidden border border-[#333333] bg-[#0D0D0D] shrink-0 group-hover:border-amber-500/30 transition-colors">
-                                  <img src={p.images?.[0] || (p as any).image} alt={p.name} loading="lazy" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all group-hover:scale-110 duration-500" />
+                                  <img 
+                                    src={p.images?.[0] || (p as any).image || 'https://via.placeholder.com/400?text=No+Image'} 
+                                    alt={p.name} 
+                                    loading="lazy" 
+                                    className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all group-hover:scale-110 duration-500" 
+                                  />
                                 </div>
                                 <div className="min-w-0">
                                   <p className="font-bold text-gray-200 text-xs truncate group-hover:text-white transition-colors">{p.name}</p>
