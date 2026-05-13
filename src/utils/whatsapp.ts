@@ -4,14 +4,15 @@ import { Product, CartItem } from '../types';
 const WHATSAPP_NUMBER = '919371504182';
 
 export const generateProductEnquiryMessage = (product: Product): string => {
+  const price = product?.price || 0;
   const message = `Hi! I'm interested in this product from ARHAM ORNAMENTS:
 
-*${product.name}*
-Price: ₹${product.price.toLocaleString('en-IN')}
-Category: ${product.category}
-Material: ${product.material}
+*${product?.name || 'Product'}*
+Price: ₹${price.toLocaleString('en-IN')}
+Category: ${product?.category || ''}
+Material: ${product?.material || ''}
 
-Product Link: ${window.location.origin}/product/${product.id}
+Product Link: ${window.location.origin}/product/${product?.id}
 
 Please share more details about availability and customization options.`;
 
@@ -23,11 +24,16 @@ export const generateCartOrderMessage = (items: CartItem[], customerDetails?: {
   phone: string;
   address: string;
 }, discountAmount: number = 0): string => {
-  const itemsList = items.map(item => 
-    `• ${item.product.name} x${item.quantity} - ₹${(item.product.price * item.quantity).toLocaleString('en-IN')}`
-  ).join('\n');
+  // Filter out invalid items before building message
+  const validItems = items.filter(item => item && item.product);
+  const itemsList = validItems.map(item => {
+    const price = item.product?.price || 0;
+    const name = item.product?.name || 'Product';
+    const qty = item.quantity || 1;
+    return `• ${name} x${qty} - ₹${(price * qty).toLocaleString('en-IN')}`;
+  }).join('\n');
 
-  const total = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const total = validItems.reduce((sum, item) => sum + (item.product?.price || 0) * (item.quantity || 1), 0);
 
   let message = `Hello! I want to place an order from ARHAM ORNAMENTS:
 
@@ -63,8 +69,9 @@ export const openWhatsApp = (message: string): void => {
   window.open(url, '_blank');
 };
 
-export const formatPrice = (price: number): string => {
-  return `₹${price.toLocaleString('en-IN')}`;
+export const formatPrice = (price: number | undefined | null): string => {
+  const safePrice = typeof price === 'number' && !isNaN(price) ? price : 0;
+  return `₹${safePrice.toLocaleString('en-IN')}`;
 };
 
 export const calculateDiscount = (original: number, current: number): number => {

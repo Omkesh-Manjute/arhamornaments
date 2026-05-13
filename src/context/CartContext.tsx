@@ -10,6 +10,7 @@ interface CartContextType {
   updateGiftOptions: (options: Partial<GiftOptions>) => void;
   clearCart: () => void;
   totalPrice: number;
+  totalItems: number;
   walletRedemption: { isRedeemed: boolean };
   toggleWalletRedemption: () => void;
 }
@@ -28,7 +29,9 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const saved = localStorage.getItem('cart');
     try {
       const parsed = saved ? JSON.parse(saved) : [];
-      return Array.isArray(parsed) ? parsed : [];
+      if (!Array.isArray(parsed)) return [];
+      // Filter out invalid items (missing product or product.id)
+      return parsed.filter(item => item && item.product && item.product.id);
     } catch {
       return [];
     }

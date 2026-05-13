@@ -90,11 +90,30 @@ const CartPage: React.FC = () => {
                     {/* Image */}
                     <div className="flex gap-4 sm:block">
                       <Link to={`/product/${item.product?.id}`} className="flex-shrink-0 w-24 h-24 sm:w-40 sm:h-40 rounded-2xl overflow-hidden shadow-md group-hover:scale-105 transition-transform duration-500">
-                        <img
-                          src={item.product?.images?.[0] || ''}
-                          alt={item.product?.name || 'Product'}
-                          className="w-full h-full object-cover"
-                        />
+                        {item.product?.images?.[0] ? (
+                          <img
+                            src={item.product.images[0]}
+                            alt={item.product?.name || 'Product'}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              const target = e.currentTarget;
+                              target.onerror = null;
+                              target.style.display = 'none';
+                              const parent = target.parentElement;
+                              if (parent) {
+                                parent.style.background = 'linear-gradient(135deg, #f5f0e8 0%, #e8dcc8 100%)';
+                                parent.style.display = 'flex';
+                                parent.style.alignItems = 'center';
+                                parent.style.justifyContent = 'center';
+                                parent.innerHTML += '<span style="font-size:2rem">💍</span>';
+                              }
+                            }}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center" style={{background: 'linear-gradient(135deg, #f5f0e8 0%, #e8dcc8 100%)'}}>
+                            <span style={{fontSize: '2rem'}}>💍</span>
+                          </div>
+                        )}
                       </Link>
 
                       {/* Mobile Title Area (Shown only on mobile to save space) */}
