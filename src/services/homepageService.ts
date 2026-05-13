@@ -1,9 +1,22 @@
 import { db } from '../lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
+export interface HomeCategory {
+  name: string;
+  image: string;
+  path: string;
+}
+
+export interface HomeCollectionItem {
+  id: string;
+  name: string;
+  image: string;
+  path: string;
+}
+
 /**
  * Homepage Section Configuration stored in Firestore.
- * Allows admin to select which products go in which homepage section.
+ * Allows admin to select which products and categories go in which homepage section.
  */
 export interface HomepageSectionConfig {
   /** Product IDs for the "New Arrivals" section */
@@ -12,6 +25,10 @@ export interface HomepageSectionConfig {
   bestSellers: string[];
   /** Product IDs for the "Trending" section */
   trending: string[];
+  /** Featured categories */
+  categories: HomeCategory[];
+  /** Collection items (e.g. for the earring slider) */
+  collections: HomeCollectionItem[];
   /** Last updated timestamp */
   updatedAt?: string;
 }
@@ -34,7 +51,7 @@ export const homepageService = {
       console.error('Failed to fetch homepage config:', error);
     }
     // Default empty config
-    return { newArrivals: [], bestSellers: [], trending: [] };
+    return { newArrivals: [], bestSellers: [], trending: [], categories: [], collections: [] };
   },
 
   /**

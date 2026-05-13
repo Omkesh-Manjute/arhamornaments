@@ -12,13 +12,15 @@ import ProductCard from '../components/ProductCard';
 
 import { Product } from '../types';
 import { productService } from '../services/productService';
-import { homepageService } from '../services/homepageService';
+import { homepageService, HomeCategory, HomeCollectionItem } from '../services/homepageService';
 import { Loader2 } from 'lucide-react';
 
 const HomePage: React.FC = () => {
   const [newArrivals, setNewArrivals] = useState<Product[]>([]);
   const [bestSellers, setBestSellers] = useState<Product[]>([]);
   const [trendingProducts, setTrendingProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<HomeCategory[]>([]);
+  const [earringCollection, setEarringCollection] = useState<HomeCollectionItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -57,11 +59,42 @@ const HomePage: React.FC = () => {
             ? configuredTrending
             : allProducts.filter(p => p.trending).slice(0, 8)
         );
+
+        // 5. Handle Categories and Collections
+        const defaultEarringCollection = [
+          { id: '1', name: 'Jhumkas', image: 'https://images.unsplash.com/photo-1635767798638-3e25273a8236?w=400', path: '/products?category=earrings&type=jhumka' },
+          { id: '2', name: 'Drops', image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400', path: '/products?category=earrings&type=drop' },
+          { id: '3', name: 'Studs', image: 'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?w=400', path: '/products?category=earrings&type=stud' },
+        ];
+
+        const defaultCategories = [
+          { name: 'Rings', image: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=800', path: '/products?category=rings' },
+          { name: 'Earrings', image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=800', path: '/products?category=earrings' },
+          { name: 'Necklaces', image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=800', path: '/products?category=necklaces' },
+          { name: 'Bangles', image: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=800', path: '/products?category=bangles' },
+          { name: 'Bracelets', image: 'https://images.unsplash.com/photo-1611085583191-a3b1a6a2e24d?w=800', path: '/products?category=bracelets' },
+          { name: 'Nose Jewelry', image: 'https://images.unsplash.com/photo-1620656798579-1984d7e909ba?w=800', path: '/products?category=nose-jewelry' },
+          { name: 'Pendants', image: 'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?w=800', path: '/products?category=pendants' },
+          { name: 'Chain Sets', image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800', path: '/products?category=chain-sets' },
+        ];
+
+        setEarringCollection(config.collections?.length > 0 ? config.collections : defaultEarringCollection);
+        setCategories(config.categories?.length > 0 ? config.categories : defaultCategories);
+
       } catch (error) {
         console.error("Failed to load home page products:", error);
         // Ultimate fallback: use static data
         setNewArrivals(products.slice(0, 4));
         setBestSellers(products.filter(p => p.featured).slice(0, 4));
+        setEarringCollection([
+          { id: '1', name: 'Jhumkas', image: 'https://images.unsplash.com/photo-1635767798638-3e25273a8236?w=400', path: '/products?category=earrings&type=jhumka' },
+          { id: '2', name: 'Drops', image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400', path: '/products?category=earrings&type=drop' },
+          { id: '3', name: 'Studs', image: 'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?w=400', path: '/products?category=earrings&type=stud' },
+        ]);
+        setCategories([
+          { name: 'Rings', image: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=800', path: '/products?category=rings' },
+          { name: 'Earrings', image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=800', path: '/products?category=earrings' },
+        ]);
       } finally {
         setLoading(false);
       }
@@ -69,22 +102,6 @@ const HomePage: React.FC = () => {
     loadHomeData();
   }, []);
 
-  const earringCollection = [
-    { id: '1', name: 'Jhumkas', image: 'https://images.unsplash.com/photo-1635767798638-3e25273a8236?w=400', path: '/products?category=earrings&type=jhumka' },
-    { id: '2', name: 'Drops', image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400', path: '/products?category=earrings&type=drop' },
-    { id: '3', name: 'Studs', image: 'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?w=400', path: '/products?category=earrings&type=stud' },
-  ];
-
-  const categories = [
-    { name: 'Rings', image: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=800', path: '/products?category=rings' },
-    { name: 'Earrings', image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=800', path: '/products?category=earrings' },
-    { name: 'Necklaces', image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=800', path: '/products?category=necklaces' },
-    { name: 'Bangles', image: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=800', path: '/products?category=bangles' },
-    { name: 'Bracelets', image: 'https://images.unsplash.com/photo-1611085583191-a3b1a6a2e24d?w=800', path: '/products?category=bracelets' },
-    { name: 'Nose Jewelry', image: 'https://images.unsplash.com/photo-1620656798579-1984d7e909ba?w=800', path: '/products?category=nose-jewelry' },
-    { name: 'Pendants', image: 'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?w=800', path: '/products?category=pendants' },
-    { name: 'Chain Sets', image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800', path: '/products?category=chain-sets' },
-  ];
 
   return (
     <div className="min-h-screen overflow-x-hidden">

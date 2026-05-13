@@ -5,6 +5,7 @@ import { productService } from '../../services/productService';
 import { homepageService, HomepageSectionConfig } from '../../services/homepageService';
 
 type SectionKey = 'newArrivals' | 'bestSellers' | 'trending';
+type TabType = SectionKey | 'categories' | 'collections';
 
 interface SectionMeta {
   key: SectionKey;
@@ -52,7 +53,7 @@ const AdminHomepage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeSection, setActiveSection] = useState<SectionKey>('newArrivals');
+  const [activeTab, setActiveTab] = useState<TabType>('newArrivals');
   const [showPicker, setShowPicker] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
@@ -85,7 +86,8 @@ const AdminHomepage: React.FC = () => {
 
   // Filtered products for the picker
   const filteredProducts = useMemo(() => {
-    const selectedIds = new Set(config[activeSection]);
+    if (activeTab === 'categories' || activeTab === 'collections') return [];
+    const selectedIds = new Set(config[activeTab as SectionKey]);
     return allProducts
       .filter(p => !selectedIds.has(p.id))
       .filter(p => {
@@ -97,13 +99,14 @@ const AdminHomepage: React.FC = () => {
           (p.category || '').toLowerCase().includes(q)
         );
       });
-  }, [allProducts, config, activeSection, searchQuery]);
+  }, [allProducts, config, activeTab, searchQuery]);
 
   // Add a product to the active section
   const addProduct = (productId: string) => {
+    if (activeTab === 'categories' || activeTab === 'collections') return;
     setConfig(prev => ({
       ...prev,
-      [activeSection]: [...prev[activeSection], productId]
+      [activeTab as SectionKey]: [...prev[activeTab as SectionKey], productId]
     }));
   };
 
@@ -124,6 +127,52 @@ const AdminHomepage: React.FC = () => {
       [arr[index], arr[swapIdx]] = [arr[swapIdx], arr[index]];
       return { ...prev, [section]: arr };
     });
+  };
+
+  const addCategory = () => {
+    const newCat = { name: 'New Category', image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?q=80&w=800&auto=format&fit=crop', path: '/products' };
+    setConfig(prev => ({
+      ...prev,
+      categories: [...(prev.categories || []), newCat]
+    }));
+  };
+
+  const updateCategory = (index: number, updates: any) => {
+    setConfig(prev => {
+      const newCats = [...(prev.categories || [])];
+      newCats[index] = { ...newCats[index], ...updates };
+      return { ...prev, categories: newCats };
+    });
+  };
+
+  const removeCategory = (index: number) => {
+    setConfig(prev => ({
+      ...prev,
+      categories: (prev.categories || []).filter((_, i) => i !== index)
+    }));
+  };
+
+  const addCollection = () => {
+    const newColl = { id: Date.now().toString(), name: 'New Collection', image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=800&auto=format&fit=crop', path: '/products' };
+    setConfig(prev => ({
+      ...prev,
+      collections: [...(prev.collections || []), newColl]
+    }));
+  };
+
+  const updateCollection = (index: number, updates: any) => {
+    setConfig(prev => {
+      const newColls = [...(prev.collections || [])];
+      newColls[index] = { ...newColls[index], ...updates };
+      return { ...prev, collections: newColls };
+    });
+  };
+
+  const removeCollection = (index: number) => {
+    setConfig(prev => ({
+      ...prev,
+      collections: (prev.collections || []).filter((_, i) => i !== index)
+    }));
   };
 
   // Save config
@@ -150,7 +199,8 @@ const AdminHomepage: React.FC = () => {
     );
   }
 
-  const activeMeta = SECTIONS.find(s => s.key === activeSection)!;
+  const isProductTab = activeTab === 'newArrivals' || activeTab === 'bestSellers' || activeTab === 'trending';
+  const activeMeta = isProductTab ? SECTIONS.find(s => s.key === activeTab)! : null;
 
   return (
     <div className="space-y-8">
@@ -174,14 +224,14 @@ const AdminHomepage: React.FC = () => {
         </button>
       </div>
 
-      {/* Section Tabs */}
-      <div className="flex gap-3">
+      {/* Tabs */}
+      <div className="flex gap-3 overflow-x-auto pb-2 custom-scrollbar">
         {SECTIONS.map(section => (
           <button
             key={section.key}
-            onClick={() => { setActiveSection(section.key); setShowPicker(false); }}
-            className={`flex items-center gap-3 px-6 py-4 rounded-2xl transition-all font-bold text-sm ${
-              activeSection === section.key
+            onClick={() => { setActiveTab(section.key); setShowPicker(false); }}
+            className={`flex items-center gap-3 px-6 py-4 rounded-2xl transition-all font-bold text-sm shrink-0 ${
+              activeTab === section.key
                 ? `${section.bgColor} text-white shadow-lg`
                 : 'bg-[#161616] border border-[#222222] text-gray-400 hover:text-white hover:border-[#333333]'
             }`}
@@ -189,173 +239,337 @@ const AdminHomepage: React.FC = () => {
             {section.icon}
             {section.label}
             <span className={`ml-1 text-xs px-2 py-0.5 rounded-full ${
-              activeSection === section.key ? 'bg-white/20' : 'bg-white/5'
+              activeTab === section.key ? 'bg-white/20' : 'bg-white/5'
             }`}>
-              {config[section.key].length}
+              {config[section.key]?.length || 0}
             </span>
           </button>
         ))}
+        
+        <button
+          onClick={() => { setActiveTab('categories'); setShowPicker(false); }}
+          className={`flex items-center gap-3 px-6 py-4 rounded-2xl transition-all font-bold text-sm shrink-0 ${
+            activeTab === 'categories'
+              ? 'bg-blue-500 text-white shadow-lg'
+              : 'bg-[#161616] border border-[#222222] text-gray-400 hover:text-white hover:border-[#333333]'
+          }`}
+        >
+          <GripVertical size={18} />
+          Featured Categories
+          <span className={`ml-1 text-xs px-2 py-0.5 rounded-full ${
+            activeTab === 'categories' ? 'bg-white/20' : 'bg-white/5'
+          }`}>
+            {config.categories?.length || 0}
+          </span>
+        </button>
+
+        <button
+          onClick={() => { setActiveTab('collections'); setShowPicker(false); }}
+          className={`flex items-center gap-3 px-6 py-4 rounded-2xl transition-all font-bold text-sm shrink-0 ${
+            activeTab === 'collections'
+              ? 'bg-rose-500 text-white shadow-lg'
+              : 'bg-[#161616] border border-[#222222] text-gray-400 hover:text-white hover:border-[#333333]'
+          }`}
+        >
+          <ImageIcon size={18} />
+          Collection Slider
+          <span className={`ml-1 text-xs px-2 py-0.5 rounded-full ${
+            activeTab === 'collections' ? 'bg-white/20' : 'bg-white/5'
+          }`}>
+            {config.collections?.length || 0}
+          </span>
+        </button>
       </div>
 
-      {/* Active Section Content */}
+      {/* Active Tab Content */}
       <div className="bg-[#161616] border border-[#222222] rounded-[2rem] p-8">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h3 className={`text-lg font-black ${activeMeta.color}`}>{activeMeta.label}</h3>
-            <p className="text-gray-500 text-xs mt-1">{activeMeta.description}</p>
-          </div>
-          <button
-            onClick={() => setShowPicker(!showPicker)}
-            className={`flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${
-              showPicker
-                ? 'bg-red-500/10 text-red-400 border border-red-500/20'
-                : `${activeMeta.bgColor}/10 ${activeMeta.color} border border-current/20`
-            }`}
-          >
-            {showPicker ? <X size={14} /> : <Plus size={14} />}
-            {showPicker ? 'Close' : 'Add Products'}
-          </button>
-        </div>
-
-        {/* Product Picker Modal */}
-        {showPicker && (
-          <div className="mb-8 bg-[#0D0D0D] border border-[#222222] rounded-2xl p-6">
-            <div className="relative mb-4">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
-              <input
-                type="text"
-                placeholder="Search products by name, design number, or category..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 bg-[#161616] border border-[#222222] rounded-xl text-white text-sm outline-none focus:border-amber-500 transition-colors placeholder:text-gray-600"
-                autoFocus
-              />
+        {isProductTab && activeMeta ? (
+          <>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className={`text-lg font-black ${activeMeta.color}`}>{activeMeta.label}</h3>
+                <p className="text-gray-500 text-xs mt-1">{activeMeta.description}</p>
+              </div>
+              <button
+                onClick={() => setShowPicker(!showPicker)}
+                className={`flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${
+                  showPicker
+                    ? 'bg-red-500/10 text-red-400 border border-red-500/20'
+                    : `${activeMeta.bgColor}/10 ${activeMeta.color} border border-current/20`
+                }`}
+              >
+                {showPicker ? <X size={14} /> : <Plus size={14} />}
+                {showPicker ? 'Close' : 'Add Products'}
+              </button>
             </div>
-            <div className="max-h-[320px] overflow-y-auto custom-scrollbar space-y-1">
-              {filteredProducts.length === 0 ? (
-                <p className="text-center text-gray-600 py-8 text-sm">No products found</p>
-              ) : (
-                filteredProducts.map(product => (
-                  <button
-                    key={product.id}
-                    onClick={() => addProduct(product.id)}
-                    className="w-full flex items-center gap-4 p-3 rounded-xl hover:bg-white/5 transition-colors group text-left"
-                  >
-                    <div className="w-12 h-12 rounded-xl overflow-hidden bg-[#222222] shrink-0">
-                      {product.images?.[0] ? (
-                        <img src={product.images[0]} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-600">
-                          <ImageIcon size={16} />
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-white truncate">{product.name || product.designNo || product.id}</p>
-                      <p className="text-[10px] text-gray-500 uppercase tracking-wider">{product.category} • {product.designNo || '—'}</p>
-                    </div>
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Plus size={16} className={activeMeta.color} />
-                    </div>
-                  </button>
-                ))
-              )}
-            </div>
-          </div>
-        )}
 
-        {/* Selected Products List */}
-        {config[activeSection].length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className={`w-20 h-20 rounded-3xl ${activeMeta.bgColor}/10 flex items-center justify-center mb-4`}>
-              <span className={activeMeta.color}>{activeMeta.icon}</span>
-            </div>
-            <p className="text-gray-400 font-bold mb-1">No products assigned</p>
-            <p className="text-gray-600 text-xs max-w-sm">Click "Add Products" above to choose which products appear in this section on the homepage.</p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {config[activeSection].map((productId, index) => {
-              const product = productMap.get(productId);
-              if (!product) {
-                return (
-                  <div key={productId} className="flex items-center gap-4 p-4 bg-red-500/5 border border-red-500/10 rounded-xl">
-                    <span className="text-red-400 text-xs font-mono">Missing: {productId}</span>
-                    <button
-                      onClick={() => removeProduct(activeSection, productId)}
-                      className="ml-auto text-red-400 hover:text-red-300 transition-colors"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                );
-              }
-
-              return (
-                <div
-                  key={productId}
-                  className="flex items-center gap-4 p-4 bg-[#0D0D0D] border border-[#222222] rounded-xl hover:border-[#333333] transition-colors group"
-                >
-                  {/* Position */}
-                  <span className="text-[10px] font-mono font-bold text-gray-600 w-6 text-center shrink-0">
-                    #{index + 1}
-                  </span>
-
-                  {/* Move Buttons */}
-                  <div className="flex flex-col gap-0.5 shrink-0">
-                    <button
-                      onClick={() => moveProduct(activeSection, index, 'up')}
-                      disabled={index === 0}
-                      className="text-gray-600 hover:text-white disabled:opacity-20 transition-colors p-0.5"
-                    >
-                      <ChevronDown size={12} className="rotate-180" />
-                    </button>
-                    <button
-                      onClick={() => moveProduct(activeSection, index, 'down')}
-                      disabled={index === config[activeSection].length - 1}
-                      className="text-gray-600 hover:text-white disabled:opacity-20 transition-colors p-0.5"
-                    >
-                      <ChevronDown size={12} />
-                    </button>
-                  </div>
-
-                  {/* Image */}
-                  <div className="w-14 h-14 rounded-xl overflow-hidden bg-[#222222] shrink-0">
-                    {product.images?.[0] ? (
-                      <img src={product.images[0]} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-600">
-                        <ImageIcon size={18} />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-white truncate">{product.name || product.designNo || product.id}</p>
-                    <p className="text-[10px] text-gray-500 uppercase tracking-wider">
-                      {product.category} • {product.material} • {product.designNo || '—'}
-                    </p>
-                  </div>
-
-                  {/* Stock badge */}
-                  <span className={`text-[9px] font-bold uppercase tracking-widest px-3 py-1 rounded-full ${
-                    product.inStock ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
-                  }`}>
-                    {product.inStock ? 'In Stock' : 'Out'}
-                  </span>
-
-                  {/* Remove */}
-                  <button
-                    onClick={() => removeProduct(activeSection, productId)}
-                    className="p-2 text-gray-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
-                  >
-                    <X size={14} />
-                  </button>
+            {/* Product Picker Modal */}
+            {showPicker && (
+              <div className="mb-8 bg-[#0D0D0D] border border-[#222222] rounded-2xl p-6">
+                <div className="relative mb-4">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
+                  <input
+                    type="text"
+                    placeholder="Search products by name, design number, or category..."
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    className="w-full pl-11 pr-4 py-3 bg-[#161616] border border-[#222222] rounded-xl text-white text-sm outline-none focus:border-amber-500 transition-colors placeholder:text-gray-600"
+                    autoFocus
+                  />
                 </div>
-              );
-            })}
-          </div>
+                <div className="max-h-[320px] overflow-y-auto custom-scrollbar space-y-1">
+                  {filteredProducts.length === 0 ? (
+                    <p className="text-center text-gray-600 py-8 text-sm">No products found</p>
+                  ) : (
+                    filteredProducts.map(product => (
+                      <button
+                        key={product.id}
+                        onClick={() => addProduct(product.id)}
+                        className="w-full flex items-center gap-4 p-3 rounded-xl hover:bg-white/5 transition-colors group text-left"
+                      >
+                        <div className="w-12 h-12 rounded-xl overflow-hidden bg-[#222222] shrink-0">
+                          {product.images?.[0] ? (
+                            <img src={product.images[0]} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-600">
+                              <ImageIcon size={16} />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-white truncate">{product.name || product.designNo || product.id}</p>
+                          <p className="text-[10px] text-gray-500 uppercase tracking-wider">{product.category} • {product.designNo || '—'}</p>
+                        </div>
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Plus size={16} className={activeMeta.color} />
+                        </div>
+                      </button>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Selected Products List */}
+            {config[activeTab as SectionKey]?.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className={`w-20 h-20 rounded-3xl ${activeMeta.bgColor}/10 flex items-center justify-center mb-4`}>
+                  <span className={activeMeta.color}>{activeMeta.icon}</span>
+                </div>
+                <p className="text-gray-400 font-bold mb-1">No products assigned</p>
+                <p className="text-gray-600 text-xs max-w-sm">Click "Add Products" above to choose which products appear in this section on the homepage.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {config[activeTab as SectionKey]?.map((productId, index) => {
+                  const product = productMap.get(productId);
+                  if (!product) {
+                    return (
+                      <div key={productId} className="flex items-center gap-4 p-4 bg-red-500/5 border border-red-500/10 rounded-xl">
+                        <span className="text-red-400 text-xs font-mono">Missing: {productId}</span>
+                        <button
+                          onClick={() => removeProduct(activeTab as SectionKey, productId)}
+                          className="ml-auto text-red-400 hover:text-red-300 transition-colors"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div
+                      key={productId}
+                      className="flex items-center gap-4 p-4 bg-[#0D0D0D] border border-[#222222] rounded-xl hover:border-[#333333] transition-colors group"
+                    >
+                      {/* Position */}
+                      <span className="text-[10px] font-mono font-bold text-gray-600 w-6 text-center shrink-0">
+                        #{index + 1}
+                      </span>
+
+                      {/* Move Buttons */}
+                      <div className="flex flex-col gap-0.5 shrink-0">
+                        <button
+                          onClick={() => moveProduct(activeTab as SectionKey, index, 'up')}
+                          disabled={index === 0}
+                          className="text-gray-600 hover:text-white disabled:opacity-20 transition-colors p-0.5"
+                        >
+                          <ChevronDown size={12} className="rotate-180" />
+                        </button>
+                        <button
+                          onClick={() => moveProduct(activeTab as SectionKey, index, 'down')}
+                          disabled={index === config[activeTab as SectionKey].length - 1}
+                          className="text-gray-600 hover:text-white disabled:opacity-20 transition-colors p-0.5"
+                        >
+                          <ChevronDown size={12} />
+                        </button>
+                      </div>
+
+                      {/* Image */}
+                      <div className="w-14 h-14 rounded-xl overflow-hidden bg-[#222222] shrink-0">
+                        {product.images?.[0] ? (
+                          <img src={product.images[0]} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-600">
+                            <ImageIcon size={18} />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-white truncate">{product.name || product.designNo || product.id}</p>
+                        <p className="text-[10px] text-gray-500 uppercase tracking-wider">
+                          {product.category} • {product.material} • {product.designNo || '—'}
+                        </p>
+                      </div>
+
+                      {/* Stock badge */}
+                      <span className={`text-[9px] font-bold uppercase tracking-widest px-3 py-1 rounded-full ${
+                        product.inStock ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
+                      }`}>
+                        {product.inStock ? 'In Stock' : 'Out'}
+                      </span>
+
+                      {/* Remove */}
+                      <button
+                        onClick={() => removeProduct(activeTab as SectionKey, productId)}
+                        className="p-2 text-gray-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
+        ) : activeTab === 'categories' ? (
+          <>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-lg font-black text-blue-400">Featured Categories</h3>
+                <p className="text-gray-500 text-xs mt-1">Manage the "Curated Categories" grid on the homepage</p>
+              </div>
+              <button
+                onClick={addCategory}
+                className="flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-bold uppercase tracking-widest bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 transition-all"
+              >
+                <Plus size={14} />
+                Add Category
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {(config.categories || []).map((cat, index) => (
+                <div key={index} className="bg-[#0D0D0D] border border-[#222222] rounded-2xl p-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-mono text-gray-600 uppercase tracking-widest">Category #{index + 1}</span>
+                    <button onClick={() => removeCategory(index)} className="text-gray-600 hover:text-red-400 transition-colors">
+                      <X size={16} />
+                    </button>
+                  </div>
+                  <div className="flex gap-4">
+                    <div className="w-24 h-24 rounded-xl overflow-hidden bg-[#161616] shrink-0 border border-white/5">
+                      <img src={cat.image} alt="" className="w-full h-full object-cover" />
+                    </div>
+                    <div className="flex-1 space-y-3">
+                      <div>
+                        <label className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 block">Title</label>
+                        <input
+                          type="text"
+                          value={cat.name}
+                          onChange={e => updateCategory(index, { name: e.target.value })}
+                          className="w-full bg-[#161616] border border-[#222222] rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 block">Link Path</label>
+                        <input
+                          type="text"
+                          value={cat.path}
+                          onChange={e => updateCategory(index, { path: e.target.value })}
+                          className="w-full bg-[#161616] border border-[#222222] rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-blue-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 block">Image URL</label>
+                    <input
+                      type="text"
+                      value={cat.image}
+                      onChange={e => updateCategory(index, { image: e.target.value })}
+                      className="w-full bg-[#161616] border border-[#222222] rounded-lg px-3 py-2 text-xs text-gray-400 outline-none focus:border-blue-500 font-mono"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-lg font-black text-rose-400">Collection Slider</h3>
+                <p className="text-gray-500 text-xs mt-1">Manage the top-level collection items (e.g. Earring types)</p>
+              </div>
+              <button
+                onClick={addCollection}
+                className="flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-bold uppercase tracking-widest bg-rose-500/10 text-rose-400 border border-rose-500/20 hover:bg-rose-500/20 transition-all"
+              >
+                <Plus size={14} />
+                Add Item
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {(config.collections || []).map((item, index) => (
+                <div key={item.id} className="bg-[#0D0D0D] border border-[#222222] rounded-2xl p-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-mono text-gray-600 uppercase tracking-widest">Item #{index + 1}</span>
+                    <button onClick={() => removeCollection(index)} className="text-gray-600 hover:text-red-400 transition-colors">
+                      <X size={16} />
+                    </button>
+                  </div>
+                  <div className="flex gap-4">
+                    <div className="w-24 h-24 rounded-xl overflow-hidden bg-[#161616] shrink-0 border border-white/5">
+                      <img src={item.image} alt="" className="w-full h-full object-cover" />
+                    </div>
+                    <div className="flex-1 space-y-3">
+                      <div>
+                        <label className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 block">Title</label>
+                        <input
+                          type="text"
+                          value={item.name}
+                          onChange={e => updateCollection(index, { name: e.target.value })}
+                          className="w-full bg-[#161616] border border-[#222222] rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-rose-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 block">Link Path</label>
+                        <input
+                          type="text"
+                          value={item.path}
+                          onChange={e => updateCollection(index, { path: e.target.value })}
+                          className="w-full bg-[#161616] border border-[#222222] rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-rose-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 block">Image URL</label>
+                    <input
+                      type="text"
+                      value={item.image}
+                      onChange={e => updateCollection(index, { image: e.target.value })}
+                      className="w-full bg-[#161616] border border-[#222222] rounded-lg px-3 py-2 text-xs text-gray-400 outline-none focus:border-rose-500 font-mono"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
 
