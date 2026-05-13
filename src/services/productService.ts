@@ -53,7 +53,7 @@ export const productService = {
       const { id, images, ...rest } = product;
       const newProduct = {
         ...rest,
-        name: idx === 0 ? product.name : `${product.name} (${idx + 1})`,
+        name: product.name,
         images: [imgUrl],
         designNo: product.designNo ? `${product.designNo}-${idx + 1}` : '',
       };

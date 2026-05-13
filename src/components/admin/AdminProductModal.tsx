@@ -127,6 +127,7 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
       if (results.length > 0) {
         setFormData(prev => ({ ...prev, images: [...prev.images, ...results] }));
       }
+      setUploadQueue([]); // Clear queue after adding to formData
     } catch (e) {
       console.error("Upload batch failed", e);
     } finally {
@@ -153,23 +154,38 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
 
     setLoading(true);
     const uploadedUrls = uploadQueue.filter(q => q.url).map(q => q.url!);
-    const allImages = [...formData.images, ...uploadedUrls];
+    // Use Set to strictly prevent duplicate URLs
+    const allImages = Array.from(new Set([...formData.images, ...uploadedUrls]));
 
     try {
-      if (multiProductMode && allImages.length > 1 && !product) {
+      if (multiProductMode && allImages.length > 1) {
         const productsToCreate: Product[] = allImages.map((imgUrl, idx) => ({
           id: `${formData.name.toLowerCase().replace(/\s+/g, '-')}-${idx}-${Date.now().toString().slice(-4)}`,
-          name: idx === 0 ? formData.name : `${formData.name} (${idx + 1})`,
-          price: Number(formData.price),
+          name: formData.name,
+          price: calculatedPrice > 0 ? calculatedPrice : Number(formData.price),
           category: formData.category as any,
           material: formData.material as any,
-          images: [imgUrl],
-          inStock: formData.inStock,
+          purity: formData.purity,
+          occasion: formData.occasion as any,
           description: formData.description,
-          rating: 4.5,
-          reviews: 0
+          images: [imgUrl],
+          grossWeight: formData.grossWeight ? Number(formData.grossWeight) : undefined,
+          netWeight: formData.netWeight ? Number(formData.netWeight) : undefined,
+          laborCharges: formData.laborCharges ? Number(formData.laborCharges) : undefined,
+          inStock: formData.inStock,
+          featured: formData.featured,
+          trending: formData.trending,
+          batchNo: formData.batchNo,
+          designNo: formData.designNo ? `${formData.designNo}-${idx + 1}` : '',
+          rating: product?.rating || 4.5,
+          reviews: product?.reviews || 0
         }));
         await productService.bulkUpload(productsToCreate);
+
+        // Delete original if it exists
+        if (product?.id) {
+          await productService.deleteProduct(product.id);
+        }
       } else {
         const productData: Product = {
           id: product?.id || `${formData.name.toLowerCase().replace(/\s+/g, '-')}-${Date.now().toString().slice(-4)}`,
@@ -284,7 +300,7 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
                     <button onClick={() => removeImage(url)} className="absolute inset-0 bg-red-500/80 text-white opacity-0 group-hover:opacity-100 transition flex items-center justify-center"><Trash2 size={16} /></button>
                   </div>
                 ))}
-                {uploadQueue.map(q => (
+                {uploadQueue.filter(q => !q.url).map(q => (
                   <div key={q.id} className="aspect-square rounded-xl bg-white/5 border border-white/10 flex items-center justify-center relative overflow-hidden">
                     <div className="absolute inset-0 bg-amber-500/20" style={{ height: `${q.progress}%`, top: 'auto', bottom: 0 }}></div>
                     <Loader2 className="animate-spin text-amber-500" size={16} />
@@ -292,7 +308,7 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
                 ))}
               </div>
 
-              {!product && formData.images.length > 1 && (
+              {formData.images.length > 1 && (
                 <div className="bg-amber-500/5 border border-amber-500/20 p-5 rounded-2xl">
                   <label className="flex items-center gap-4 cursor-pointer">
                     <div className="relative">

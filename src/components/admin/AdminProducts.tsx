@@ -318,6 +318,15 @@ const AdminProducts: React.FC<AdminProductsProps> = ({ onEditProduct }) => {
                             </td>
                             <td className="px-6 py-4">
                               <div className="flex gap-1 justify-end">
+                                {p.images && p.images.length > 1 && (
+                                  <button 
+                                    onClick={(e) => { e.stopPropagation(); handleSplit(p); }} 
+                                    className="p-2 text-amber-500 hover:bg-amber-500/5 rounded-lg transition" 
+                                    title="Split into individual products"
+                                  >
+                                    <Layers size={14} />
+                                  </button>
+                                )}
                                 <Link to={`/product/${p.id}`} className="p-2 text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition" title="Preview"><Eye size={14} /></Link>
                                 <button onClick={(e) => { e.stopPropagation(); onEditProduct(p); }} className="p-2 text-gray-500 hover:text-amber-500 hover:bg-amber-500/5 rounded-lg transition" title="Edit Product"><Edit size={14} /></button>
                                 <button onClick={(e) => { e.stopPropagation(); handleDelete(p.id); }} className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-500/5 rounded-lg transition" title="Delete"><Trash2 size={14} /></button>
