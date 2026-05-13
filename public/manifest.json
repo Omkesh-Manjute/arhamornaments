@@ -1,6 +1,6 @@
 {
-  "name": "Shree Jewels - Premium Jewellery Store",
-  "short_name": "Shree Jewels",
+  "name": "Arham Ornaments - Premium Jewellery Store",
+  "short_name": "Arham Ornaments",
   "description": "Discover exquisite jewellery collections - Rings, Necklaces, Earrings & more",
   "start_url": "/",
   "display": "standalone",
@@ -9,10 +9,14 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💎</text></svg>",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "src": "/images/logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
     }
   ]
 }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { productService } from '../services/productService';
 
 const MobileHeroSlider: React.FC = () => {
@@ -63,12 +64,21 @@ const MobileHeroSlider: React.FC = () => {
         style={{ transform: `translateX(-${currentIndex * 100}%)` }}
       >
         {images.map((img, idx) => (
-          <div key={idx} className="w-full h-full flex-shrink-0">
+          <div key={idx} className="w-full h-full flex-shrink-0 relative">
             <img 
               src={img} 
               alt={`Slide ${idx + 1}`} 
               className="w-full h-full object-cover"
             />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex flex-col justify-end p-6 pb-12">
+              <span className="text-gold uppercase tracking-[0.4em] text-[10px] font-bold mb-2 animate-fadeIn">New Collection</span>
+              <h2 className="text-3xl font-heading text-white font-bold leading-tight mb-4">
+                Timeless <br /> Elegance
+              </h2>
+              <Link to="/products" className="bg-white text-charcoal px-6 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest w-fit shadow-lg">
+                Shop Now
+              </Link>
+            </div>
           </div>
         ))}
       </div>

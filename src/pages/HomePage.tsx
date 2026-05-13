@@ -9,6 +9,7 @@ import MobileHeroSlider from '../components/MobileHeroSlider';
 import CollectionSlider from '../components/CollectionSlider';
 import BestSellerSection from '../components/BestSellerSection';
 import ProductCard from '../components/ProductCard';
+import OccasionSection from '../components/OccasionSection';
 
 import { Product } from '../types';
 import { productService } from '../services/productService';
@@ -160,6 +161,8 @@ const HomePage: React.FC = () => {
           </div>
         </section>
       ) : null}
+
+      <OccasionSection />
 
       {/* Collection Slider - Uses admin-configured items */}
       <CollectionSlider

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, ShoppingBag, Menu, User, Heart, Wallet, Settings, LogOut, ChevronRight, Gift, Bell } from 'lucide-react';
+import { Search, ShoppingBag, Menu, User, Heart, Wallet, Settings, LogOut, ChevronRight, Gift, Bell, Download, X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useUser } from '../context/UserContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -14,6 +14,10 @@ const Header: React.FC = () => {
   const { wishlist } = useWishlist();
   const location = useLocation();
   const navigate = useNavigate();
+
+  // PWA Install State
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -30,6 +34,33 @@ const Header: React.FC = () => {
     };
   }, []);
 
+  // PWA Install Prompt
+  useEffect(() => {
+    const handler = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallBanner(true);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+
+    // Hide if already installed
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setShowInstallBanner(false);
+    }
+
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setShowInstallBanner(false);
+    }
+    setDeferredPrompt(null);
+  };
+
   const navLinks = [
     { name: 'New In', path: '/products?filter=new' },
     { name: 'Necklaces', path: '/products?category=necklaces' },
@@ -44,27 +75,35 @@ const Header: React.FC = () => {
   const isHomePage = location.pathname === '/';
 
   return (
-    <header 
-      className={`fixed top-[36px] left-0 right-0 z-50 transition-all duration-500 ${
-        isScrolled || !isHomePage ? 'bg-white shadow-md py-2' : 'bg-white lg:bg-transparent py-2 lg:py-6'
-      } ${!isHomePage || isScrolled ? 'border-b border-gray-100' : ''}`}
+    <header
+      className={`fixed top-[36px] left-0 right-0 z-50 transition-all duration-500 ${isScrolled || !isHomePage ? 'bg-white shadow-md py-1.5' : 'bg-white lg:bg-transparent py-1.5 lg:py-4'
+        } ${!isHomePage || isScrolled ? 'border-b border-gray-100' : ''}`}
     >
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         <div className="flex items-center justify-between">
           {/* Mobile Menu Button */}
-          <button 
+          <button
             className={`lg:hidden p-2 transition-colors ${isScrolled || !isHomePage || isMobile ? 'text-charcoal' : 'text-white'}`}
             onClick={() => setIsMenuOpen(true)}
           >
             <Menu size={24} />
           </button>
 
-          {/* Logo */}
-          <Link to="/" className="flex flex-col items-center">
-            <h1 className={`text-xl md:text-2xl font-bold tracking-[0.2em] font-heading leading-tight transition-colors ${isScrolled || !isHomePage || isMobile ? 'text-charcoal' : 'text-white'}`}>
-              ARHAM
-            </h1>
-            <span className="text-[10px] tracking-[0.4em] text-gold uppercase -mt-1">ORNAMENTS</span>
+          {/* Logo with Image */}
+          <Link to="/" className="flex items-center gap-2.5 group">
+            <div className="w-9 h-9 md:w-11 md:h-11 flex-shrink-0 transition-transform duration-500 group-hover:scale-105">
+              <img
+                src="/images/logo.png?v=1.1"
+                alt="Arham Ornaments"
+                className="w-full h-full object-contain drop-shadow-sm"
+              />
+            </div>
+            <div className="flex flex-col items-start">
+              <h1 className={`text-lg md:text-xl font-bold tracking-[0.15em] font-heading leading-none transition-colors ${isScrolled || !isHomePage || isMobile ? 'text-charcoal' : 'text-white'}`}>
+                ARHAM
+              </h1>
+              <span className="text-[8px] md:text-[9px] tracking-[0.35em] text-gold uppercase font-bold leading-none mt-0.5">ORNAMENTS</span>
+            </div>
           </Link>
 
           {/* Desktop Navigation */}
@@ -73,11 +112,10 @@ const Header: React.FC = () => {
               <Link
                 key={link.name}
                 to={link.path}
-                className={`text-xs uppercase tracking-widest font-medium transition-all hover:text-gold ${
-                  location.pathname + location.search === link.path 
-                    ? 'text-gold' 
+                className={`text-xs uppercase tracking-widest font-medium transition-all hover:text-gold ${location.pathname + location.search === link.path
+                    ? 'text-gold'
                     : isScrolled || !isHomePage ? 'text-charcoal' : 'text-white'
-                }`}
+                  }`}
               >
                 {link.name}
               </Link>
@@ -85,26 +123,39 @@ const Header: React.FC = () => {
           </nav>
 
           {/* Actions */}
-          <div className="flex items-center gap-2 md:gap-4">
+          <div className="flex items-center gap-1.5 md:gap-3">
             {isLoggedIn && (
               <div className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gold/10 border border-gold/20 ${isScrolled || !isHomePage || isMobile ? 'text-charcoal' : 'text-white'}`}>
                 <Wallet size={16} className="text-gold" />
                 <span className="text-xs font-bold">₹{user?.walletBalance}</span>
               </div>
             )}
+
+            {/* PWA Install Button - Desktop */}
+            {showInstallBanner && (
+              <button
+                onClick={handleInstallClick}
+                className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-gold to-gold-dark text-white text-[10px] font-bold uppercase tracking-wider shadow-lg shadow-gold/25 hover:shadow-gold/40 transition-all transform hover:scale-105 active:scale-95"
+                title="Install Arham Ornaments App"
+              >
+                <Download size={14} />
+                <span>Get App</span>
+              </button>
+            )}
+
             <button className={`p-2 transition-colors hover:text-gold ${isScrolled || !isHomePage || isMobile ? 'text-charcoal' : 'text-white'}`}>
               <Search size={20} />
             </button>
-            
+
             {/* User Dropdown */}
             <div className="relative group">
-              <button 
+              <button
                 className={`p-2 transition-colors hover:text-gold flex items-center gap-1 ${isScrolled || !isHomePage || isMobile ? 'text-charcoal' : 'text-white'}`}
               >
                 <User size={20} />
                 {isLoggedIn && <span className="text-[10px] hidden md:block">{user?.name?.split(' ')[0]}</span>}
               </button>
-              
+
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top-right group-hover:translate-y-0 translate-y-2 z-[60]">
                 {isLoggedIn ? (
                   <>
@@ -119,7 +170,7 @@ const Header: React.FC = () => {
                       <Link to="/admin" className="flex items-center gap-3 px-3 py-2 text-sm text-gray-600 hover:bg-offwhite rounded-xl transition">
                         <Settings size={16} /> Admin Panel
                       </Link>
-                      <button 
+                      <button
                         onClick={() => logout()}
                         className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-500 hover:bg-red-50 rounded-xl transition mt-1"
                       >
@@ -141,7 +192,7 @@ const Header: React.FC = () => {
             </div>
 
             {isLoggedIn && (
-              <Link 
+              <Link
                 to="/profile#notifications"
                 className={`p-2 relative transition-colors hover:text-gold ${isScrolled || !isHomePage || isMobile ? 'text-charcoal' : 'text-white'}`}
                 onClick={(e) => {
@@ -159,7 +210,7 @@ const Header: React.FC = () => {
                 )}
               </Link>
             )}
-            <Link 
+            <Link
               to="/wishlist"
               className={`hidden sm:block p-2 relative transition-colors hover:text-gold ${isScrolled || !isHomePage || isMobile ? 'text-charcoal' : 'text-white'}`}
             >
@@ -182,20 +233,68 @@ const Header: React.FC = () => {
         </div>
       </div>
 
+      {/* Mobile PWA Install Banner - Slides down below header */}
+      {showInstallBanner && isMobile && (
+        <div className="lg:hidden bg-gradient-to-r from-[#0D4449] via-[#1a5c63] to-[#0D4449] border-t border-gold/20 px-4 py-2.5 flex items-center justify-between animate-slideDown">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center overflow-hidden p-1">
+              <img src="/images/logo.png?v=1.1" alt="Arham" className="w-full h-full object-contain" />
+            </div>
+            <div>
+              <p className="text-white text-xs font-bold">Arham Ornaments</p>
+              <p className="text-white/50 text-[9px]">Install app for best experience</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleInstallClick}
+              className="px-4 py-1.5 rounded-full bg-gold text-white text-[10px] font-bold uppercase tracking-wider shadow-lg shadow-gold/30 active:scale-95 transition-transform"
+            >
+              Install
+            </button>
+            <button
+              onClick={() => setShowInstallBanner(false)}
+              className="p-1 text-white/40 hover:text-white transition-colors"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Mobile Drawer */}
-      <div 
-        className={`fixed inset-0 bg-black/50 z-[60] transition-opacity duration-300 lg:hidden ${
-          isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        }`}
+      <div
+        className={`fixed inset-0 bg-black/50 z-[60] transition-opacity duration-300 lg:hidden ${isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+          }`}
         onClick={() => setIsMenuOpen(false)}
       />
-      <div 
-        className={`fixed top-0 left-0 bottom-0 w-[85%] max-w-[360px] bg-[#f8f8f8] z-[70] transition-transform duration-300 lg:hidden flex flex-col ${
-          isMenuOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+      <div
+        className={`fixed top-0 left-0 bottom-0 w-[85%] max-w-[360px] bg-[#f8f8f8] z-[70] transition-transform duration-300 lg:hidden flex flex-col ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
       >
-        {/* Profile Header */}
+        {/* Profile Header with Logo */}
         <div className="bg-white p-5 border-b shadow-sm relative overflow-hidden">
+          {/* Logo Banner at top of drawer */}
+          <div className="flex items-center gap-3 mb-5 pb-4 border-b border-gray-100">
+            <div className="w-10 h-10 flex-shrink-0">
+              <img src="/images/logo.png?v=1.1" alt="Arham Ornaments" className="w-full h-full object-contain" />
+            </div>
+            <div className="flex flex-col">
+              <h2 className="text-base font-bold tracking-[0.12em] font-heading text-charcoal leading-none">ARHAM</h2>
+              <span className="text-[7px] tracking-[0.3em] text-gold uppercase font-bold leading-none mt-0.5">ORNAMENTS</span>
+            </div>
+            {/* Install button in drawer header */}
+            {showInstallBanner && (
+              <button
+                onClick={handleInstallClick}
+                className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gold text-white text-[9px] font-bold uppercase tracking-wider shadow-md active:scale-95 transition-transform"
+              >
+                <Download size={12} />
+                <span>Install</span>
+              </button>
+            )}
+          </div>
+
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-full bg-[#fdf2f2] flex items-center justify-center border border-[#f5e1e1] overflow-hidden">
@@ -211,7 +310,7 @@ const Header: React.FC = () => {
                 <h3 className="text-xl font-bold text-charcoal">Hi {isLoggedIn ? user?.name?.split(' ')[0] : 'Guest'}!</h3>
               </div>
             </div>
-            <button 
+            <button
               onClick={() => setIsMenuOpen(false)}
               className="w-9 h-9 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center text-[#8B2323] transition-transform hover:scale-105"
             >
@@ -226,7 +325,7 @@ const Header: React.FC = () => {
               <button className="px-4 py-1.5 rounded-md text-gray-400 font-bold text-sm">$</button>
             </div>
 
-            <button 
+            <button
               onClick={() => {
                 setIsMenuOpen(false);
                 window.dispatchEvent(new CustomEvent('open-lucky-wheel'));
@@ -235,7 +334,7 @@ const Header: React.FC = () => {
             >
               <div className="text-center leading-tight">
                 <Gift size={20} className="text-gold mx-auto mb-1 group-hover:bounce" />
-                <p className="text-[9px] font-bold text-gold uppercase tracking-tighter">Spin<br/>& Win</p>
+                <p className="text-[9px] font-bold text-gold uppercase tracking-tighter">Spin<br />& Win</p>
               </div>
               <div className="absolute top-1 right-1 w-2.5 h-2.5 bg-gold rounded-full border-2 border-white shadow-sm animate-pulse" />
             </button>
@@ -304,7 +403,7 @@ const Header: React.FC = () => {
             ))}
 
             {/* Spin & Win Section */}
-            <button 
+            <button
               onClick={() => {
                 setIsMenuOpen(false);
                 window.dispatchEvent(new CustomEvent('open-lucky-wheel'));
