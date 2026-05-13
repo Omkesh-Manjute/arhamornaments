@@ -123,6 +123,24 @@ export const productService = {
     const productsRef = collection(db, 'products');
     const q = query(productsRef, where('featured', '==', true), limit(count));
     const snap = await getDocs(q);
+    const featured = snap.docs.map(d => ({ id: d.id, ...d.data() } as Product));
+    
+    // Fallback: If no featured products, just get the latest ones
+    if (featured.length === 0) {
+      return this.getRecentProducts(count);
+    }
+    
+    return featured;
+  },
+
+  /**
+   * Get the most recently added products.
+   */
+  async getRecentProducts(count: number = 8): Promise<Product[]> {
+    const productsRef = collection(db, 'products');
+    // Note: This uses default ordering if createdAt index isn't set up yet
+    const q = query(productsRef, limit(count));
+    const snap = await getDocs(q);
     return snap.docs.map(d => ({ id: d.id, ...d.data() } as Product));
   },
 

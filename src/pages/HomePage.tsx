@@ -8,48 +8,82 @@ import CategorySlider from '../components/CategorySlider';
 import MobileHeroSlider from '../components/MobileHeroSlider';
 import CollectionSlider from '../components/CollectionSlider';
 import BestSellerSection from '../components/BestSellerSection';
+import ProductCard from '../components/ProductCard';
 
 import { Product } from '../types';
 import { productService } from '../services/productService';
+import { homepageService } from '../services/homepageService';
 import { Loader2 } from 'lucide-react';
 
 const HomePage: React.FC = () => {
-  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [newArrivals, setNewArrivals] = useState<Product[]>([]);
+  const [bestSellers, setBestSellers] = useState<Product[]>([]);
+  const [trendingProducts, setTrendingProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     setIsVisible(true);
-    const loadFeatured = async () => {
+    const loadHomeData = async () => {
       try {
-        const featured = await productService.getFeaturedProducts(8);
-        setFeaturedProducts(featured.length > 0 ? featured : products.filter(p => p.featured).slice(0, 4));
+        // 1. Load admin-configured sections
+        const config = await homepageService.getSectionConfig();
+        // 2. Load all products once
+        const allProducts = await productService.getAllProducts();
+        const productMap = new Map<string, Product>();
+        allProducts.forEach(p => productMap.set(p.id, p));
+
+        // 3. Resolve configured product IDs → actual products
+        const resolveProducts = (ids: string[]): Product[] =>
+          ids.map(id => productMap.get(id)).filter(Boolean) as Product[];
+
+        const configuredNewArrivals = resolveProducts(config.newArrivals);
+        const configuredBestSellers = resolveProducts(config.bestSellers);
+        const configuredTrending = resolveProducts(config.trending);
+
+        // 4. Use configured products, fallback to automatic selection if admin hasn't set anything
+        setNewArrivals(
+          configuredNewArrivals.length > 0
+            ? configuredNewArrivals
+            : allProducts.slice(0, 8) // Show first 8 products as fallback
+        );
+        setBestSellers(
+          configuredBestSellers.length > 0
+            ? configuredBestSellers
+            : allProducts.filter(p => p.featured).slice(0, 8)
+        );
+        setTrendingProducts(
+          configuredTrending.length > 0
+            ? configuredTrending
+            : allProducts.filter(p => p.trending).slice(0, 8)
+        );
       } catch (error) {
-        console.error("Failed to load featured products:", error);
-        setFeaturedProducts(products.filter(p => p.featured).slice(0, 4));
+        console.error("Failed to load home page products:", error);
+        // Ultimate fallback: use static data
+        setNewArrivals(products.slice(0, 4));
+        setBestSellers(products.filter(p => p.featured).slice(0, 4));
       } finally {
         setLoading(false);
       }
     };
-    loadFeatured();
+    loadHomeData();
   }, []);
 
-
   const earringCollection = [
-    { id: '1', name: 'Jhumkas', image: '/images/products/earrings.png', path: '/products?category=earrings&type=jhumka' },
-    { id: '2', name: 'Drops', image: '/images/products/drops_earrings.png', path: '/products?category=earrings&type=drop' },
-    { id: '3', name: 'Studs', image: '/images/products/antique_floral.png', path: '/products?category=earrings&type=stud' },
+    { id: '1', name: 'Jhumkas', image: 'https://images.unsplash.com/photo-1635767798638-3e25273a8236?w=400', path: '/products?category=earrings&type=jhumka' },
+    { id: '2', name: 'Drops', image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400', path: '/products?category=earrings&type=drop' },
+    { id: '3', name: 'Studs', image: 'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?w=400', path: '/products?category=earrings&type=stud' },
   ];
 
   const categories = [
-    { name: 'Rings', image: '/images/products/rings_category.png', path: '/products?category=rings' },
-    { name: 'Earrings', image: '/images/products/earrings_category.png', path: '/products?category=earrings' },
-    { name: 'Necklaces', image: '/images/products/necklaces_category.png', path: '/products?category=necklaces' },
-    { name: 'Bangles', image: '/images/products/bangles_category.png', path: '/products?category=bangles' },
-    { name: 'Bracelets', image: '/images/products/bracelets_category.png', path: '/products?category=bracelets' },
-    { name: 'Nose Jewelry', image: '/images/products/nose_jewelry_category.png', path: '/products?category=nose-jewelry' },
-    { name: 'Pendants', image: '/images/products/pendants_category.png', path: '/products?category=pendants' },
-    { name: 'Chain Sets', image: '/images/products/chain_sets_category.png', path: '/products?category=chain-sets' },
+    { name: 'Rings', image: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=800', path: '/products?category=rings' },
+    { name: 'Earrings', image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=800', path: '/products?category=earrings' },
+    { name: 'Necklaces', image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=800', path: '/products?category=necklaces' },
+    { name: 'Bangles', image: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=800', path: '/products?category=bangles' },
+    { name: 'Bracelets', image: 'https://images.unsplash.com/photo-1611085583191-a3b1a6a2e24d?w=800', path: '/products?category=bracelets' },
+    { name: 'Nose Jewelry', image: 'https://images.unsplash.com/photo-1620656798579-1984d7e909ba?w=800', path: '/products?category=nose-jewelry' },
+    { name: 'Pendants', image: 'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?w=800', path: '/products?category=pendants' },
+    { name: 'Chain Sets', image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800', path: '/products?category=chain-sets' },
   ];
 
   return (
@@ -66,7 +100,43 @@ const HomePage: React.FC = () => {
         <HeritageHero />
       </div>
 
-      {/* Collection Slider - New */}
+      {/* New Arrivals Section */}
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-20">
+          <Loader2 className="animate-spin text-gold" size={40} />
+          <p className="text-gray-400 text-xs uppercase tracking-widest mt-4">Loading Products...</p>
+        </div>
+      ) : newArrivals.length > 0 ? (
+        <section className="px-4 md:px-8 py-16 bg-offwhite">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-12 space-y-3">
+              <span className="text-gold uppercase tracking-[0.4em] text-[10px] font-bold block">Just Arrived</span>
+              <h2 className="text-3xl md:text-5xl font-heading font-bold text-charcoal">New Arrivals</h2>
+              <p className="text-gray-500 text-sm md:text-base font-medium">Explore our freshest handcrafted additions</p>
+              <div className="flex justify-center py-2">
+                <div className="w-24 h-px bg-gradient-to-r from-transparent via-gold to-transparent"></div>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {newArrivals.map((product) => (
+                <div key={product.id}>
+                  <ProductCard product={product} />
+                </div>
+              ))}
+            </div>
+            <div className="mt-8 flex justify-center">
+              <Link
+                to="/products"
+                className="group flex items-center gap-2 text-charcoal font-bold uppercase tracking-[0.2em] text-[10px] hover:text-gold transition-colors pb-2 border-b-2 border-charcoal/10 hover:border-gold"
+              >
+                View All Products →
+              </Link>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {/* Collection Slider - Earrings */}
       <CollectionSlider
         title="Stunning Every Ear"
         subtitle="Look at our brand new earring collection just for you"
@@ -106,12 +176,46 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
+      {/* Best Sellers Section */}
+      {!loading && bestSellers.length > 0 && (
+        <BestSellerSection
+          title="Gold Best Sellers"
+          subtitle="Our most loved handcrafted gold masterpieces"
+          bannerImage="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=1200"
+          bannerLink="/products?category=necklaces"
+          products={bestSellers}
+        />
+      )}
+
+      {/* Trending Section */}
+      {!loading && trendingProducts.length > 0 && (
+        <section className="px-4 md:px-8 py-16 bg-gradient-to-b from-white to-offwhite">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-12 space-y-3">
+              <span className="text-purple-500 uppercase tracking-[0.4em] text-[10px] font-bold block">What's Hot</span>
+              <h2 className="text-3xl md:text-5xl font-heading font-bold text-charcoal">Trending Now</h2>
+              <p className="text-gray-500 text-sm md:text-base font-medium">The pieces everyone is talking about</p>
+              <div className="flex justify-center py-2">
+                <div className="w-24 h-px bg-gradient-to-r from-transparent via-purple-400 to-transparent"></div>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {trendingProducts.map((product) => (
+                <div key={product.id}>
+                  <ProductCard product={product} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Stunning Split Promo Section */}
       <section className="px-4 md:px-8 py-16">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10">
           {/* Left Promo */}
           <div className="relative h-[550px] rounded-[3.5rem] overflow-hidden group shadow-2xl">
-            <img src="/images/promo_collection.png" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt="Collection" />
+            <img src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=1200" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt="Collection" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-12 space-y-6">
               <span className="text-gold uppercase tracking-[0.4em] text-[10px] font-bold">New Arrivals</span>
               <h2 className="text-4xl md:text-5xl font-heading text-white font-bold leading-tight">
@@ -125,7 +229,7 @@ const HomePage: React.FC = () => {
           </div>
           {/* Right Promo */}
           <div className="relative h-[550px] rounded-[3.5rem] overflow-hidden group shadow-2xl">
-            <img src="/images/promo_wedding.png" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt="Elegance" />
+            <img src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=1200" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt="Elegance" />
             <div className="absolute inset-0 bg-gradient-to-t from-emerald-950/90 via-black/20 to-transparent flex flex-col justify-end p-12 space-y-6 items-end text-right">
               <span className="text-gold uppercase tracking-[0.4em] text-[10px] font-bold">Wedding Special</span>
               <h2 className="text-4xl md:text-5xl font-heading text-white font-bold leading-tight">
@@ -140,23 +244,6 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Best Sellers Section - Tanishq Style */}
-      {loading ? (
-        <div className="flex flex-col items-center justify-center py-20">
-          <Loader2 className="animate-spin text-gold" size={40} />
-          <p className="text-gray-400 text-xs uppercase tracking-widest mt-4">Fetching Best Sellers...</p>
-        </div>
-      ) : (
-        <BestSellerSection
-          title="Gold Best Sellers"
-          subtitle="Look at our gold collection curated just for you"
-          bannerImage="/images/products/necklaces_category.png"
-          bannerLink="/products?category=gold"
-          products={featuredProducts}
-        />
-      )}
-
-
       {/* Featured Spotlight (Floating Elements) */}
       <section className="px-4 md:px-8 py-24 bg-charcoal relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
@@ -170,7 +257,7 @@ const HomePage: React.FC = () => {
         <div className="max-w-7xl mx-auto relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
           <div className="relative">
             <div className="aspect-square rounded-[4rem] overflow-hidden border-2 border-gold/30 p-4 animate-float">
-              <img src="/images/products/lion_head.png" className="w-full h-full object-cover rounded-[3rem]" alt="Spotlight" />
+              <img src="https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=800" className="w-full h-full object-cover rounded-[3rem]" alt="Spotlight" />
             </div>
             <div className="absolute -bottom-10 -right-10 bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-[2rem] shadow-2xl glass hidden md:block">
               <p className="text-gold font-heading text-3xl font-bold mb-1">Masterpiece</p>

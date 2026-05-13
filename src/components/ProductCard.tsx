@@ -33,6 +33,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hidePrice = false })
             alt={product.name}
             className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-[1.5s]"
             loading="lazy"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.onerror = null;
+              target.src = 'https://via.placeholder.com/400x400?text=Jewellery';
+              // Alternatively, hide the image and show a fallback div (but difficult in simple img tag)
+            }}
           />
           
           {/* Subtle Badges */}

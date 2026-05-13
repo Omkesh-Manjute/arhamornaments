@@ -17,8 +17,9 @@ import AdminNotifications from '../components/admin/AdminNotifications';
 import AdminAuditLogs from '../components/admin/AdminAuditLogs';
 import AdminProducts from '../components/admin/AdminProducts';
 import AdminProductModal from '../components/admin/AdminProductModal';
+import AdminHomepage from '../components/admin/AdminHomepage';
 
-type TabType = 'dashboard' | 'products' | 'banners' | 'coupons' | 'rates' | 'promotions' | 'customers' | 'notifications' | 'logs';
+type TabType = 'dashboard' | 'products' | 'homepage' | 'banners' | 'coupons' | 'rates' | 'promotions' | 'customers' | 'notifications' | 'logs';
 
 const CATEGORIES = [
   'bangles', 'bracelets', 'chain-sets', 'chains', 'earrings', 'kadas',
@@ -143,10 +144,11 @@ const AdminPage: React.FC = () => {
   const menuItems = [
     { id: 'dashboard', label: 'Overview', icon: TrendingUp },
     { id: 'products', label: 'Inventory', icon: Package },
+    { id: 'homepage', label: 'Homepage Setup', icon: Gem },
     { id: 'rates', label: 'Market Rates', icon: DollarSign },
-    { id: 'promotions', label: 'Growth Hub', icon: Gem },
+    { id: 'promotions', label: 'Growth Hub', icon: Settings },
     { id: 'customers', label: 'Members', icon: Users },
-    { id: 'coupons', label: 'Discounts', icon: Settings },
+    { id: 'coupons', label: 'Discounts', icon: DollarSign },
     { id: 'notifications', label: 'Broadcast', icon: Bell },
     { id: 'logs', label: 'Audit Logs', icon: History },
   ];
@@ -223,6 +225,7 @@ const AdminPage: React.FC = () => {
           <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             {activeTab === 'dashboard' && <AdminDashboard sendNotification={() => setActiveTab('notifications')} />}
             {activeTab === 'products' && <AdminProducts onEditProduct={openEdit} />}
+            {activeTab === 'homepage' && <AdminHomepage />}
             {activeTab === 'banners' && <AdminBanners />}
             {activeTab === 'coupons' && <AdminCoupons />}
             {activeTab === 'rates' && <AdminMarketRates />}
