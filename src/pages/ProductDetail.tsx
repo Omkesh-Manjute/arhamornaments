@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { Heart, Share2, Star, Truck, Shield, RotateCcw, MessageCircle, Minus, Plus, Award, Phone } from 'lucide-react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { Heart, Share2, Star, Truck, Shield, RotateCcw, MessageCircle, Minus, Plus, Phone } from 'lucide-react';
 import { products as staticProducts } from '../data/products';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -12,14 +12,13 @@ import { Product } from '../types';
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentImage, setCurrentImage] = useState(0);
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const [quantity, setQuantity] = useState(1);
-  const [selectedPurity, setSelectedPurity] = useState<string>('');
-  const [selectedQuality, setSelectedQuality] = useState<string>('');
+  const [selectedPurity, setSelectedPurity] = useState<string>('22K');
+  const [selectedQuality, setSelectedQuality] = useState<string>('VS');
   const [dbProducts, setDbProducts] = useState<Product[]>([]);
   
   const { addToCart } = useCart();
@@ -67,15 +66,20 @@ const ProductDetail: React.FC = () => {
     fetchAll();
   }, []);
 
-  // Initialize selections when product loads
+  // Update defaults when product loads
   React.useEffect(() => {
     if (product) {
-      setSelectedPurity(product.purity || (product.material === 'gold' ? '22K' : ''));
-      setSelectedQuality(product.diamondQuality || 'VS');
+      if (product.purity) setSelectedPurity(product.purity);
+      else if (product.material === 'gold') setSelectedPurity('22K');
     }
   }, [product]);
 
-  // AI Recommendations logic
+  const relatedProducts = useMemo(() => {
+    if (!product) return [];
+    const source = dbProducts.length > 0 ? dbProducts : staticProducts;
+    return source.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
+  }, [product?.id, product?.category, dbProducts]);
+
   const completeTheLook = useMemo(() => {
     if (!product) return [];
     const source = dbProducts.length > 0 ? dbProducts : staticProducts;
@@ -89,42 +93,12 @@ const ProductDetail: React.FC = () => {
       .slice(0, 4);
   }, [product?.id, product?.category, dbProducts]);
 
-  const relatedProducts = useMemo(() => {
-    if (!product) return [];
-    const source = dbProducts.length > 0 ? dbProducts : staticProducts;
-    let related = source.filter(p => p.category === product.category && p.id !== product.id);
-    if (related.length === 0) {
-      related = source.filter(p => p.id !== product.id && (p.trending || p.featured));
-    }
-    return related.slice(0, 4);
-  }, [product?.id, product?.category, dbProducts]);
-
-  // Recently Viewed Logic moved to top
-  const [recentlyViewed, setRecentlyViewed] = useState<any[]>([]);
-
-  React.useEffect(() => {
-    if (product) {
-      const stored = localStorage.getItem('recentlyViewed');
-      let viewedIds: string[] = stored ? JSON.parse(stored) : [];
-      viewedIds = viewedIds.filter(vId => vId !== product.id);
-      const source = dbProducts.length > 0 ? dbProducts : staticProducts;
-      const viewedProducts = viewedIds
-        .map(vId => source.find(p => p.id === vId))
-        .filter((p): p is any => !!p)
-        .slice(0, 4);
-      setRecentlyViewed(viewedProducts);
-      viewedIds.unshift(product.id);
-      const limitedIds = viewedIds.slice(0, 10);
-      localStorage.setItem('recentlyViewed', JSON.stringify(limitedIds));
-    }
-  }, [product?.id]);
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FCFBF7]">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-gold border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-gold font-bold animate-pulse uppercase tracking-widest text-[10px]">Loading Luxury...</p>
+          <p className="text-gold font-bold uppercase tracking-widest text-[10px]">Loading Luxury...</p>
         </div>
       </div>
     );
@@ -134,10 +108,9 @@ const ProductDetail: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FCFBF7]">
         <div className="text-center space-y-6">
-          <span className="text-8xl block animate-bounce">😕</span>
+          <span className="text-8xl block">😕</span>
           <h2 className="text-3xl font-heading font-bold text-charcoal">Product Not Found</h2>
-          <p className="text-gray-500 max-w-xs mx-auto">The item you're looking for might have been moved or is no longer available.</p>
-          <Link to="/products" className="inline-block px-10 py-4 bg-gold text-white rounded-full font-black uppercase tracking-widest text-xs shadow-xl hover:scale-105 transition-transform">
+          <Link to="/products" className="inline-block px-10 py-4 bg-gold text-white rounded-full font-black uppercase tracking-widest text-xs">
             Browse All Products
           </Link>
         </div>
@@ -146,7 +119,85 @@ const ProductDetail: React.FC = () => {
   }
 
   const currentPrice = calculateProductPrice(product, selectedPurity);
-  const discount = product.originalPrice ? calculateDiscount(product.originalPrice, currentPrice) : 0;
+
+  // Recently Viewed Logic
+  const [recentlyViewed, setRecentlyViewed] = useState<Product[]>([]);
+
+  React.useEffect(() => {
+    if (product) {
+      const stored = localStorage.getItem('recentlyViewed');
+      let viewedIds: string[] = stored ? JSON.parse(stored) : [];
+      viewedIds = viewedIds.filter(vId => vId !== product.id);
+      const source = dbProducts.length > 0 ? dbProducts : staticProducts;
+      const viewedProducts = viewedIds
+        .map(vId => source.find(p => p.id === vId))
+        .filter((p): p is Product => !!p)
+        .slice(0, 4);
+      setRecentlyViewed(viewedProducts);
+      viewedIds.unshift(product.id);
+      localStorage.setItem('recentlyViewed', JSON.stringify(viewedIds.slice(0, 10)));
+    }
+  }, [product?.id, dbProducts]);
+
+  // Navigation between products logic
+  const siblingProducts = useMemo(() => {
+    if (!product) return [];
+    const source = dbProducts.length > 0 ? dbProducts : staticProducts;
+    return source.filter(p => p.category === product.category);
+  }, [product?.category, dbProducts]);
+
+  const navigateToSibling = (direction: 'next' | 'prev') => {
+    if (siblingProducts.length <= 1) return;
+    const currentIndex = siblingProducts.findIndex(p => p.id === product?.id);
+    if (currentIndex === -1) return;
+
+    let nextIndex;
+    if (direction === 'next') {
+      nextIndex = (currentIndex + 1) % siblingProducts.length;
+    } else {
+      nextIndex = (currentIndex - 1 + siblingProducts.length) % siblingProducts.length;
+    }
+    
+    const nextProduct = siblingProducts[nextIndex];
+    if (nextProduct && nextProduct.id !== product?.id) {
+      setCurrentImage(0);
+      navigate(`/product/${nextProduct.id}`);
+    }
+  };
+
+  // Touch handlers
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+  const handleTouchMove = (e: React.TouchEvent) => setTouchEnd(e.targetTouches[0].clientX);
+  const handleTouchEnd = (isImageArea: boolean) => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isSwipe = Math.abs(distance) > 70;
+    
+    if (isSwipe) {
+      const imagesCount = product?.images?.length || 1;
+      
+      if (isImageArea && imagesCount > 1) {
+        // If swiping on images, try to cycle images first
+        if (distance > 0 && currentImage < imagesCount - 1) {
+          setCurrentImage(prev => prev + 1);
+          return;
+        } else if (distance < 0 && currentImage > 0) {
+          setCurrentImage(prev => prev - 1);
+          return;
+        }
+      }
+      
+      // If at boundaries or on details area, change product
+      if (distance > 0) navigateToSibling('next');
+      else navigateToSibling('prev');
+    }
+  };
 
   const handleWhatsAppEnquiry = () => {
     const message = generateProductEnquiryMessage({ ...product, price: currentPrice });
@@ -154,45 +205,37 @@ const ProductDetail: React.FC = () => {
   };
 
   const handleAddToCart = () => {
-    addToCart(product, quantity, {
-      selectedPurity,
-      selectedQuality
-    });
-  };
-
-  const minSwipeDistance = 50;
-  const onTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-  const onTouchMove = (e: React.TouchEvent) => setTouchEnd(e.targetTouches[0].clientX);
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
-    const images = product?.images || [];
-    if (Math.abs(distance) >= minSwipeDistance) {
-      if (distance > 0) setCurrentImage(i => Math.min(i + 1, images.length - 1));
-      else setCurrentImage(i => Math.max(i - 1, 0));
-    }
+    addToCart(product, quantity, { selectedPurity, selectedQuality });
   };
 
   return (
-    <div className="min-h-screen bg-[#FCFBF7]">
-
-      {/* ── MOBILE LAYOUT: Responsive & Smooth ── */}
+    <div 
+      className="min-h-screen bg-[#FCFBF7]"
+      key={product.id}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={() => handleTouchEnd(false)}
+    >
+      {/* MOBILE LAYOUT */}
       <div className="lg:hidden">
-        {/* Horizontal Image Slider */}
-        <div className="relative bg-white pt-4">
-          <div className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar h-[55vh]">
+        {/* Simple Horizontal Slider */}
+        <div 
+          className="relative bg-white pt-4"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={(e) => {
+            e.stopPropagation();
+            handleTouchEnd(true);
+          }}
+        >
+          <div className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar h-[50vh]">
             {product.images?.map((img, i) => (
               <div key={i} className="w-full h-full flex-shrink-0 snap-center px-4">
-                <div className="w-full h-full bg-white rounded-3xl overflow-hidden shadow-inner border border-gray-50">
-                  <img src={img} alt={product.name} className="w-full h-full object-contain p-4" />
-                </div>
+                <img src={img} alt="" className="w-full h-full object-contain p-4" />
               </div>
             ))}
           </div>
-
+          
           {/* Indicators */}
           {(product.images?.length || 0) > 1 && (
             <div className="flex justify-center gap-2 mt-4 pb-2">
@@ -202,243 +245,74 @@ const ProductDetail: React.FC = () => {
             </div>
           )}
 
-          {/* Floating Actions */}
-          <div className="absolute top-8 left-6 flex flex-col gap-2 z-20">
-            {product.trending && <span className="bg-charcoal text-white text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-lg">Trending</span>}
-            {discount > 0 && <span className="bg-[#de57e5] text-white text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-lg">{discount}% Off</span>}
-          </div>
-
-          <button onClick={() => window.history.back()} className="absolute top-8 right-6 w-10 h-10 bg-white shadow-xl rounded-full flex items-center justify-center z-20 text-charcoal active:scale-90 transition-transform">
-            <span className="text-2xl">‹</span>
+          <button onClick={() => navigate(-1)} className="absolute top-8 right-6 w-10 h-10 bg-white shadow-lg rounded-full flex items-center justify-center">
+            ‹
           </button>
         </div>
 
-        {/* Content Section - Scrolls Naturally with Page */}
+        {/* Details Section */}
         <div className="px-5 pt-8 pb-32 space-y-6">
-          {/* Title row */}
-          <div className="flex items-start justify-between gap-4">
-            <div className="space-y-1">
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gold">{product.material} Collection</span>
-              <h1 className="text-3xl font-heading font-bold text-charcoal leading-tight">{product.name}</h1>
-            </div>
-            <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-2xl shadow-sm border border-gray-50">
-              <Star size={14} className="fill-gold text-gold" />
-              <span className="text-sm font-bold text-charcoal">{product.rating}</span>
-            </div>
+          <div>
+            <span className="text-[10px] font-black uppercase text-gold">{product.material} Collection</span>
+            <h1 className="text-3xl font-heading font-bold text-charcoal">{product.name}</h1>
           </div>
 
-          {/* Price Card */}
-          <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-50 flex flex-col items-center text-center">
-            <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Estimated Price</p>
-            <div className="flex items-baseline gap-3">
-              <span className="text-4xl font-black text-charcoal tracking-tighter">{formatPrice(currentPrice * quantity)}</span>
-              {discount > 0 && <span className="text-sm text-gray-400 line-through font-medium">{formatPrice((product.originalPrice || 0) * quantity)}</span>}
-            </div>
-          </div>
-
-          {/* Interactive Actions Grid */}
-          <div className="grid grid-cols-4 gap-4">
-            <a href="tel:+919876543210" className="flex flex-col items-center gap-2 group">
-              <div className="w-14 h-14 rounded-2xl bg-white shadow-md flex items-center justify-center text-orange-500 active:bg-orange-500 active:text-white transition-all"><Phone size={22} /></div>
-              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Call</span>
-            </a>
-            <button onClick={() => toggleWishlist(product)} className="flex flex-col items-center gap-2 group">
-              <div className={`w-14 h-14 rounded-2xl shadow-md flex items-center justify-center transition-all ${isFavorite ? 'bg-[#de57e5] text-white' : 'bg-white text-gray-400'}`}><Heart size={22} className={isFavorite ? 'fill-current' : ''} /></div>
-              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Save</span>
-            </button>
-            <button onClick={handleWhatsAppEnquiry} className="flex flex-col items-center gap-2 group">
-              <div className="w-14 h-14 rounded-2xl bg-white shadow-md flex items-center justify-center text-green-600 active:bg-green-600 active:text-white transition-all"><MessageCircle size={22} /></div>
-              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">WhatsApp</span>
-            </button>
-            <button className="flex flex-col items-center gap-2 group">
-              <div className="w-14 h-14 rounded-2xl bg-white shadow-md flex items-center justify-center text-blue-500 active:bg-blue-50 active:text-white transition-all"><Share2 size={22} /></div>
-              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Share</span>
-            </button>
+          <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-50 text-center">
+            <span className="text-4xl font-black text-charcoal">{formatPrice(currentPrice * quantity)}</span>
           </div>
 
           {/* Details Table */}
           <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-50 space-y-4">
-             <h4 className="text-xs font-black uppercase tracking-widest text-gold border-b border-gray-50 pb-3">Product Details</h4>
+            <h4 className="text-xs font-black uppercase text-gold">Product Details</h4>
             {[
-              ['Design Number', product.designNo || 'N/A'],
-              ['Size / Length', product.size || '-:-'],
+              ['Design No.', product.designNo || 'N/A'],
               ['Gross Weight', `${product.grossWeight?.toFixed(3) || '0.000'} g`],
               ['Net Weight', `${product.netWeight?.toFixed(3) || '0.000'} g`],
-              ['Labour %', `${product.laborCharges || '0'} %`],
             ].map(([label, value]) => (
-              <div key={label} className="flex items-center justify-between text-sm">
-                <span className="text-gray-400 font-medium">{label}</span>
+              <div key={label} className="flex justify-between text-sm">
+                <span className="text-gray-400">{label}</span>
                 <span className="text-charcoal font-black">{value}</span>
               </div>
             ))}
-            
-            {/* Custom Selectors */}
-            <div className="pt-2 space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-400 font-medium text-sm">Purity</span>
-                <div className="flex gap-2">
-                  {['18K', '22K', '24K'].map(p => (
-                    <button key={p} onClick={() => setSelectedPurity(p)}
-                      className={`px-3 py-1.5 rounded-xl text-[10px] font-black border transition-all ${selectedPurity === p ? 'bg-gold text-white border-gold' : 'border-gray-100 text-gray-400'}`}>
-                      {p}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-400 font-medium text-sm">Order Quantity</span>
-                <div className="flex items-center bg-gray-50 rounded-xl px-2 py-1">
-                  <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="p-2 text-gray-400"><Minus size={14} /></button>
-                  <span className="px-4 font-black text-sm text-charcoal">{quantity}</span>
-                  <button onClick={() => setQuantity(quantity + 1)} className="p-2 text-gray-400"><Plus size={14} /></button>
-                </div>
-              </div>
-            </div>
           </div>
 
-          {/* Sticky CTAs Container (Padding added to bottom above) */}
-          <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-gray-100 p-4 flex gap-3 z-[100]">
-            <button onClick={handleWhatsAppEnquiry} className="flex-1 py-4 bg-white border-2 border-charcoal text-charcoal rounded-2xl font-black uppercase tracking-widest text-[10px] active:scale-95 transition-transform shadow-sm">
-              Get Quote
-            </button>
-            <button onClick={handleAddToCart} className="flex-1 py-4 bg-charcoal text-white rounded-2xl font-black uppercase tracking-widest text-[10px] active:scale-95 transition-transform shadow-xl">
-              Add to Cart
-            </button>
-          </div>
-
-          {/* Trust Sections */}
-          <div className="grid grid-cols-3 gap-3 pt-4">
-            {[[Shield, 'Hallmarked'], [RotateCcw, 'Easy Exchange'], [Truck, 'Insured']].map(([Icon, label]) => (
-              <div key={label as string} className="flex flex-col items-center gap-2 bg-white rounded-2xl py-4 shadow-sm border border-gray-50">
-                {React.createElement(Icon as React.ElementType, { size: 20, className: 'text-gold' })}
-                <span className="text-[8px] font-black uppercase tracking-widest text-gray-400 text-center leading-tight">{label as string}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Description Section */}
-          <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-50">
-            <h4 className="text-xs font-black uppercase tracking-widest text-gold mb-4">About the Design</h4>
-            <p className="text-sm text-gray-500 leading-relaxed font-medium">
-              {product.description || "Every curve of this design is crafted with precision to reflect timeless elegance and modern grace. Perfect for occasions that demand a touch of luxury."}
-            </p>
-          </div>
-
-          {/* Add Related Products for Mobile too */}
-          <div className="pt-8 space-y-6">
-            <h2 className="text-xl font-heading font-bold text-charcoal">Complete The Look</h2>
-            <div className="flex overflow-x-auto gap-4 no-scrollbar pb-4 -mx-5 px-5">
-              {relatedProducts.map(p => (
-                <div key={p.id} className="w-[180px] flex-shrink-0">
-                  <ProductCard product={p} />
-                </div>
-              ))}
-            </div>
+          {/* Actions */}
+          <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 flex gap-3 z-50">
+            <button onClick={handleWhatsAppEnquiry} className="flex-1 py-4 bg-white border-2 border-charcoal text-charcoal rounded-2xl font-black">Get Quote</button>
+            <button onClick={handleAddToCart} className="flex-1 py-4 bg-charcoal text-white rounded-2xl font-black">Add to Cart</button>
           </div>
         </div>
       </div>
 
-      {/* ── DESKTOP LAYOUT ── */}
-      <div className="hidden lg:block">
-        {/* Breadcrumb */}
-        <div className="bg-white border-b border-gray-100">
-          <div className="max-w-7xl mx-auto px-6 py-4">
-            <div className="flex items-center gap-3 text-[10px] uppercase tracking-[0.2em] font-black text-gray-400">
-              <Link to="/" className="hover:text-gold">Home</Link>
-              <span className="text-gray-200">/</span>
-              <Link to="/products" className="hover:text-gold">Products</Link>
-              <span className="text-gray-200">/</span>
-              <span className="text-gold truncate">{product.name}</span>
+      {/* DESKTOP LAYOUT (SIMPLIFIED FOR STABILITY) */}
+      <div className="hidden lg:block max-w-7xl mx-auto px-6 py-12">
+        <div className="grid grid-cols-2 gap-16">
+          <div className="aspect-square rounded-[3rem] overflow-hidden bg-white shadow-2xl">
+            <img src={product.images?.[currentImage] || ''} alt="" className="w-full h-full object-contain p-8" />
+          </div>
+          <div className="space-y-10">
+            <h1 className="text-5xl font-heading font-bold text-charcoal">{product.name}</h1>
+            <p className="text-4xl font-black text-gold">{formatPrice(currentPrice * quantity)}</p>
+            <div className="flex gap-4">
+              <button onClick={handleWhatsAppEnquiry} className="flex-1 py-5 bg-white border border-gray-200 text-charcoal rounded-xl font-black">Get Quote</button>
+              <button onClick={handleAddToCart} className="flex-1 py-5 bg-charcoal text-white rounded-xl font-black">Add to Cart</button>
             </div>
           </div>
         </div>
-        <div className="max-w-7xl mx-auto px-6 py-12">
-          <div className="grid grid-cols-2 gap-16">
-            {/* Gallery */}
-            <div className="space-y-6">
-              <div
-                className="relative aspect-square rounded-[3rem] overflow-hidden bg-white shadow-2xl group"
-                onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}
-              >
-                <img src={product.images?.[currentImage] || ''} alt={product.name} className="w-full h-full object-contain p-8 transition-transform duration-1000 group-hover:scale-105" />
-                <div className="absolute top-8 left-8 flex flex-col gap-3">
-                  {product.trending && <span className="bg-charcoal text-white text-[9px] font-black uppercase tracking-[0.3em] px-5 py-2 rounded-full shadow-xl">Trending Now</span>}
-                  {discount > 0 && <span className="bg-gold text-white text-[9px] font-black uppercase tracking-[0.3em] px-5 py-2 rounded-full shadow-xl">{discount}% Exclusive Offer</span>}
-                </div>
-              </div>
-              <div className="flex gap-4 justify-center">
-                {product.images?.map((img, index) => (
-                  <button key={index} onClick={() => setCurrentImage(index)}
-                    className={`w-20 h-24 rounded-2xl overflow-hidden border-2 transition-all duration-500 ${index === currentImage ? 'border-gold scale-110 shadow-lg' : 'border-transparent opacity-60 hover:opacity-100'}`}>
-                    <img src={img} alt="" className="w-full h-full object-cover" />
-                  </button>
-                ))}
-              </div>
-            </div>
-            {/* Info */}
-            <div className="flex flex-col space-y-10">
-              <div className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <span className="text-[11px] font-black uppercase tracking-[0.4em] text-gold">{product.material} Collection</span>
-                  <div className="h-px flex-1 bg-gray-100" />
-                  <div className="flex items-center gap-1"><Star size={12} className="fill-gold text-gold" /><span className="text-xs font-bold text-charcoal">{product.rating}</span></div>
-                </div>
-                <h1 className="text-5xl font-heading font-bold text-charcoal leading-tight">{product.name}</h1>
-                <p className="text-gray-500 font-medium leading-relaxed max-w-lg">{product.description}</p>
-              </div>
-              <div className="grid grid-cols-4 gap-4 py-6 border-y border-gray-100">
-                <a href="tel:+919876543210" className="flex flex-col items-center gap-2 group"><div className="w-12 h-12 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition-all"><Phone size={20} /></div><span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Call</span></a>
-                <button onClick={() => toggleWishlist(product)} className="flex flex-col items-center gap-2 group"><div className={`w-12 h-12 rounded-full border border-gray-100 shadow-sm flex items-center justify-center transition-all ${isFavorite ? 'bg-red-500 text-white border-red-500' : 'bg-white text-gray-400 group-hover:bg-red-50 group-hover:text-red-500'}`}><Heart size={20} className={isFavorite ? 'fill-current' : ''} /></div><span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Favorite</span></button>
-                <button onClick={handleWhatsAppEnquiry} className="flex flex-col items-center gap-2 group"><div className="w-12 h-12 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center text-green-600 group-hover:bg-green-600 group-hover:text-white transition-all"><MessageCircle size={20} /></div><span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Whatsapp</span></button>
-                <button className="flex flex-col items-center gap-2 group"><div className="w-12 h-12 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all"><Share2 size={20} /></div><span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Share</span></button>
-              </div>
-              <div className="space-y-4 py-6">
-                <div className="grid grid-cols-3 gap-2 text-sm">
-                  <span className="text-gray-400 font-medium">Design No.</span><span className="text-gray-400 font-medium text-center">:</span><span className="text-charcoal font-black uppercase">{product.designNo || 'N/A'}</span>
-                  <span className="text-gray-400 font-medium">Size</span><span className="text-gray-400 font-medium text-center">:</span><span className="text-charcoal font-black">{product.size || '-:-'}</span>
-                  <span className="text-gray-400 font-medium">Purity</span><span className="text-gray-400 font-medium text-center">:</span>
-                  <div className="flex gap-2">{['18K', '22K', '24K'].map(p => <span key={p} className={`px-2 py-0.5 rounded text-[10px] font-black border transition-all ${selectedPurity === p ? 'bg-gold text-white border-gold' : 'border-gray-200 text-gray-300 opacity-50'}`}>{p}</span>)}</div>
-                  <span className="text-gray-400 font-medium">Gross Weight</span><span className="text-gray-400 font-medium text-center">:</span><span className="text-charcoal font-black">{product.grossWeight?.toFixed(3) || '0.000'}</span>
-                  <span className="text-gray-400 font-medium">Net Weight</span><span className="text-gray-400 font-medium text-center">:</span><span className="text-charcoal font-black">{product.netWeight?.toFixed(3) || '0.000'}</span>
-                  <span className="text-gray-400 font-medium">Lbr %</span><span className="text-gray-400 font-medium text-center">:</span><span className="text-charcoal font-black">{product.laborCharges || '0'} %</span>
-                  <span className="text-gray-400 font-medium">Total Amount</span><span className="text-gray-400 font-medium text-center">:</span><span className="text-gold font-black text-lg">{formatPrice(currentPrice * quantity)}</span>
-                  <span className="text-gray-400 font-medium">Order Pcs</span><span className="text-gray-400 font-medium text-center">:</span>
-                  <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden h-10">
-                    <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3 hover:bg-gray-50 transition-colors text-gray-400"><Minus size={14} /></button>
-                    <span className="px-4 font-black text-sm border-x border-gray-200 min-w-[3rem] text-center">{quantity}</span>
-                    <button onClick={() => setQuantity(quantity + 1)} className="px-3 hover:bg-gray-50 transition-colors text-gray-400"><Plus size={14} /></button>
-                  </div>
-                </div>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <button onClick={handleWhatsAppEnquiry} className="flex-1 py-5 bg-white border border-gray-200 text-charcoal rounded-xl font-black uppercase tracking-widest text-[11px] hover:border-gold hover:text-gold transition-all shadow-sm active:scale-95">Get Quote</button>
-                <button onClick={handleAddToCart} className="flex-1 py-5 bg-charcoal text-white rounded-xl font-black uppercase tracking-widest text-[11px] hover:bg-gold transition-all shadow-xl active:scale-95">Add to Cart</button>
-              </div>
-              <div className="grid grid-cols-3 gap-8 pt-8">
-                <div className="flex flex-col items-center text-center space-y-2"><Shield className="text-gold" size={24} /><span className="text-[9px] font-black uppercase tracking-widest text-charcoal">BIS Hallmarked</span></div>
-                <div className="flex flex-col items-center text-center space-y-2"><RotateCcw className="text-gold" size={24} /><span className="text-[9px] font-black uppercase tracking-widest text-charcoal">Life Exchange</span></div>
-                <div className="flex flex-col items-center text-center space-y-2"><Truck className="text-gold" size={24} /><span className="text-[9px] font-black uppercase tracking-widest text-charcoal">Insured Transit</span></div>
-              </div>
-            </div>
-          </div>
 
-          {/* Related sections */}
-          {completeTheLook.length > 0 && (
-            <div className="mt-32 space-y-12">
-              <div className="text-center space-y-2"><h4 className="text-gold text-[10px] font-black uppercase tracking-[0.4em]">Curated Set</h4><h2 className="text-4xl font-heading font-bold text-charcoal">Complete The Look</h2><div className="w-12 h-1 bg-gold mx-auto mt-4" /></div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">{completeTheLook.map(p => <ProductCard key={p.id} product={p} />)}</div>
-            </div>
-          )}
+        {/* Related sections */}
+        {completeTheLook.length > 0 && (
           <div className="mt-32 space-y-12">
             <div className="text-center space-y-2"><h4 className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em]">Collection</h4><h2 className="text-4xl font-heading font-bold text-charcoal">Related Products</h2><div className="w-12 h-1 bg-gold mx-auto mt-4" /></div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">{relatedProducts.map(p => <ProductCard key={p.id} product={p} />)}</div>
           </div>
-          {recentlyViewed.length > 0 && (
-            <div className="mt-32 space-y-12">
-              <div className="text-center space-y-2"><h4 className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em]">History</h4><h2 className="text-4xl font-heading font-bold text-charcoal">Recently Viewed</h2><div className="w-12 h-1 bg-gold mx-auto mt-4" /></div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">{recentlyViewed.map(p => <ProductCard key={p.id} product={p} />)}</div>
-            </div>
-          )}
+        )}
+        {recentlyViewed.length > 0 && (
+          <div className="mt-32 space-y-12">
+            <div className="text-center space-y-2"><h4 className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em]">History</h4><h2 className="text-4xl font-heading font-bold text-charcoal">Recently Viewed</h2><div className="w-12 h-1 bg-gold mx-auto mt-4" /></div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">{recentlyViewed.map(p => <ProductCard key={p.id} product={p} />)}</div>
+          </div>
+        )}
         </div>
       </div>
     </div>
