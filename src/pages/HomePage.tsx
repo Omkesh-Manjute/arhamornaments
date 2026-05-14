@@ -331,7 +331,7 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* Trust Badges - Luxury Style */}
-      <section className="px-4 md:px-8 py-20 bg-offwhite">
+      <section className="hidden md:block px-4 md:px-8 py-20 bg-offwhite">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-16">
           <div className="flex flex-col items-center text-center group">
             <div className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-2xl md:rounded-3xl flex items-center justify-center text-gold shadow-sm border border-gray-100 group-hover:scale-110 transition-transform duration-500 mb-4 md:mb-6">

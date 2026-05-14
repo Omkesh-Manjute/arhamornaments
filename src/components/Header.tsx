@@ -7,6 +7,9 @@ import { useWishlist } from '../context/WishlistContext';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [openMetal, setOpenMetal] = useState(false);
+  const [openCollections, setOpenCollections] = useState(false);
+  const [openCategories, setOpenCategories] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   const { totalItems } = useCart();
@@ -341,9 +344,21 @@ const Header: React.FC = () => {
                   <p className="text-lg font-black text-charcoal">₹{user?.walletBalance || 0}</p>
                 </div>
               </div>
-              <div className="flex bg-[#f5f5f5] rounded-lg p-1 border border-gray-100 scale-90 origin-right">
-                <button className="px-3 py-1 rounded-md bg-white shadow-sm text-[#8B2323] font-bold text-xs">₹</button>
-                <button className="px-3 py-1 rounded-md text-gray-400 font-bold text-xs">$</button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    window.dispatchEvent(new CustomEvent('open-lucky-wheel'));
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gold text-white shadow-md hover:bg-gold-dark transition-all active:scale-95 group"
+                >
+                  <Gift size={14} className="group-hover:rotate-12 transition-transform" />
+                  <span className="text-[10px] font-black uppercase tracking-wider">Spin</span>
+                </button>
+                <div className="flex bg-[#f5f5f5] rounded-lg p-1 border border-gray-100 scale-90 origin-right">
+                  <button className="px-3 py-1 rounded-md bg-white shadow-sm text-[#8B2323] font-bold text-xs">₹</button>
+                  <button className="px-3 py-1 rounded-md text-gray-400 font-bold text-xs">$</button>
+                </div>
               </div>
             </div>
           </div>
@@ -353,21 +368,74 @@ const Header: React.FC = () => {
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2">
           {/* Main Categories */}
           <div className="space-y-1">
-            {[
-              { label: 'All Jewellery', path: '/products' },
-              { label: 'Metal', path: '/products?filter=metal' },
-              { label: 'Collections', path: '/products?filter=collections' }
-            ].map((item) => (
-              <Link
-                key={item.label}
-                to={item.path}
-                className="flex items-center justify-between p-4 bg-white rounded-xl shadow-[0_2px_4px_rgba(0,0,0,0.02)] border border-white hover:border-gray-100 transition-all active:scale-[0.98]"
-                onClick={() => setIsMenuOpen(false)}
+            <Link
+              to="/products"
+              className="flex items-center justify-between p-4 bg-white rounded-xl shadow-[0_2px_4px_rgba(0,0,0,0.02)] border border-white hover:border-gray-100 transition-all active:scale-[0.98]"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <span className="text-sm font-semibold text-charcoal">All Jewellery</span>
+              <ChevronRight size={18} className="text-gray-300" />
+            </Link>
+
+            {/* Metal Submenu */}
+            <div>
+              <button
+                onClick={() => setOpenMetal(!openMetal)}
+                className="w-full flex items-center justify-between p-4 bg-white rounded-xl shadow-[0_2px_4px_rgba(0,0,0,0.02)] border border-white hover:border-gray-100 transition-all active:scale-[0.98]"
               >
-                <span className="text-sm font-semibold text-charcoal">{item.label}</span>
-                <ChevronRight size={18} className="text-gray-300" />
-              </Link>
-            ))}
+                <span className="text-sm font-semibold text-charcoal">Metal</span>
+                <ChevronRight size={18} className={`text-gray-300 transition-transform duration-300 ${openMetal ? 'rotate-90' : ''}`} />
+              </button>
+              {openMetal && (
+                <div className="mt-1 ml-4 space-y-1 overflow-hidden animate-slideDown">
+                  {[
+                    { label: 'Gold', path: '/products?metal=gold' },
+                    { label: 'Silver', path: '/products?metal=silver' },
+                    { label: 'Diamond', path: '/products?metal=diamond' }
+                  ].map((sub) => (
+                    <Link
+                      key={sub.label}
+                      to={sub.path}
+                      className="flex items-center gap-3 p-3 text-xs font-bold text-gray-500 hover:text-gold transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <div className="w-1.5 h-1.5 rounded-full bg-gold/30" />
+                      {sub.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Collections Submenu */}
+            <div>
+              <button
+                onClick={() => setOpenCollections(!openCollections)}
+                className="w-full flex items-center justify-between p-4 bg-white rounded-xl shadow-[0_2px_4px_rgba(0,0,0,0.02)] border border-white hover:border-gray-100 transition-all active:scale-[0.98]"
+              >
+                <span className="text-sm font-semibold text-charcoal">Collections</span>
+                <ChevronRight size={18} className={`text-gray-300 transition-transform duration-300 ${openCollections ? 'rotate-90' : ''}`} />
+              </button>
+              {openCollections && (
+                <div className="mt-1 ml-4 space-y-1 overflow-hidden animate-slideDown">
+                  {[
+                    { label: 'Bridal Collection', path: '/products?filter=bridal' },
+                    { label: 'Antique Heritage', path: '/products?filter=antique' },
+                    { label: 'Everyday Wear', path: '/products?filter=everyday' }
+                  ].map((sub) => (
+                    <Link
+                      key={sub.label}
+                      to={sub.path}
+                      className="flex items-center gap-3 p-3 text-xs font-bold text-gray-500 hover:text-gold transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <div className="w-1.5 h-1.5 rounded-full bg-gold/30" />
+                      {sub.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Men & Kids Section */}
@@ -388,49 +456,48 @@ const Header: React.FC = () => {
             ))}
           </div>
 
-          {/* Jewellery Categories Section */}
+          {/* Jewellery Categories Section - Collapsible */}
           <div className="space-y-1 pb-8">
-            <h4 className="text-[11px] font-bold text-[#8B2323] uppercase tracking-[0.15em] px-4 mb-3 mt-4">Categories</h4>
-            {[
-              { label: 'Necklaces', path: '/products?category=necklaces' },
-              { label: 'Earrings', path: '/products?category=earrings' },
-              { label: 'Rings', path: '/products?category=rings' },
-              { label: 'Pendants', path: '/products?category=pendants' },
-              { label: 'Mangalsutra', path: '/products?category=mangalsutra' },
-              { label: 'Bangles', path: '/products?category=bangles' }
-            ].map((item) => (
-              <Link
-                key={item.label}
-                to={item.path}
-                className="flex items-center justify-between p-4 bg-white rounded-xl shadow-[0_2px_4px_rgba(0,0,0,0.02)] border border-white hover:border-gray-100 transition-all active:scale-[0.98]"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <span className="text-sm font-semibold text-charcoal">{item.label}</span>
-                <ChevronRight size={18} className="text-gray-300" />
-              </Link>
-            ))}
-
-            {/* Spin & Win Section */}
             <button
-              onClick={() => {
-                setIsMenuOpen(false);
-                window.dispatchEvent(new CustomEvent('open-lucky-wheel'));
-              }}
-              className="w-full mt-6 flex items-center justify-between p-5 bg-gradient-to-r from-gold/20 via-gold/5 to-white rounded-2xl border border-gold/30 shadow-lg transition-all active:scale-[0.98] group"
+              onClick={() => setOpenCategories(!openCategories)}
+              className="w-full flex items-center justify-between px-4 py-4 mt-4"
             >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-gold flex items-center justify-center text-white shadow-xl group-hover:rotate-12 transition-transform">
-                  <Gift size={24} />
-                </div>
-                <div className="text-left">
-                  <p className="text-sm font-black text-charcoal uppercase tracking-wider">Spin & Win Rewards</p>
-                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Assured prizes up to ₹500</p>
-                </div>
-              </div>
-              <div className="w-8 h-8 rounded-full bg-gold/10 flex items-center justify-center text-gold">
-                <ChevronRight size={18} />
-              </div>
+              <h4 className="text-[11px] font-bold text-[#8B2323] uppercase tracking-[0.15em]">Categories</h4>
+              <ChevronRight size={14} className={`text-[#8B2323] transition-transform duration-300 ${openCategories ? 'rotate-90' : ''}`} />
             </button>
+
+            {openCategories && (
+              <div className="space-y-1 overflow-hidden animate-slideDown">
+                {[
+                  { label: 'Necklaces', path: '/products?category=necklaces' },
+                  { label: 'Earrings', path: '/products?category=earrings' },
+                  { label: 'Rings', path: '/products?category=rings' },
+                  { label: 'Pendants', path: '/products?category=pendants' },
+                  { label: 'Mangalsutra', path: '/products?category=mangalsutra' },
+                  { label: 'Bangles', path: '/products?category=bangles' }
+                ].map((item) => (
+                  <Link
+                    key={item.label}
+                    to={item.path}
+                    className="flex items-center justify-between p-4 bg-white rounded-xl shadow-[0_2px_4px_rgba(0,0,0,0.02)] border border-white hover:border-gray-100 transition-all active:scale-[0.98]"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <span className="text-sm font-semibold text-charcoal">{item.label}</span>
+                    <ChevronRight size={18} className="text-gray-300" />
+                  </Link>
+                ))}
+              </div>
+            )}
+
+            {/* About & Support Link */}
+            <Link
+              to="/support"
+              className="w-full flex items-center justify-between p-4 bg-white rounded-xl shadow-[0_2px_4px_rgba(0,0,0,0.02)] border border-white hover:border-gray-100 transition-all active:scale-[0.98] mt-4"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <h4 className="text-[11px] font-bold text-[#8B2323] uppercase tracking-[0.15em]">About & Support</h4>
+              <ChevronRight size={18} className="text-gray-300" />
+            </Link>
 
             {isLoggedIn && (
               <button

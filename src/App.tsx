@@ -18,6 +18,7 @@ import PrivacyPage from './pages/PrivacyPage';
 import FAQPage from './pages/FAQPage';
 import ReturnsPage from './pages/ReturnsPage';
 import EducationPage from './pages/EducationPage';
+import SupportPage from './pages/SupportPage';
 import LuckyWheel from './components/LuckyWheel';
 import { WishlistProvider } from './context/WishlistContext';
 import { PriceProvider } from './context/PriceContext';
@@ -27,12 +28,14 @@ import LivePriceTicker from './components/LivePriceTicker';
 const AppContent: React.FC = () => {
   const location = useLocation();
   const isAdminPage = location.pathname.startsWith('/admin');
+  const isSupportPage = location.pathname === '/support';
+  const hideHeaderFooter = isAdminPage || isSupportPage;
 
   return (
     <div className="min-h-screen flex flex-col">
-      {!isAdminPage && <Header />}
+      {!hideHeaderFooter && <Header />}
       
-      <main className="flex-1 pt-[64px] md:pt-[72px]">
+      <main className={`flex-1 ${!hideHeaderFooter ? 'pt-[64px] md:pt-[72px]' : ''}`}>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/products" element={<ProductListing />} />
@@ -43,10 +46,8 @@ const AppContent: React.FC = () => {
           <Route path="/category/:category" element={<ProductListing />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/about" element={<AboutPage />} />
-          <Route path="/terms" element={<TermsPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/support" element={<SupportPage />} />
           <Route path="/faq" element={<FAQPage />} />
-          <Route path="/support" element={<FAQPage />} />
           <Route path="/return" element={<ReturnsPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/account" element={<ProfilePage />} />
@@ -55,7 +56,7 @@ const AppContent: React.FC = () => {
         </Routes>
       </main>
 
-      {!isAdminPage && <Footer />}
+      {!hideHeaderFooter && <Footer />}
       {!isAdminPage && <LuckyWheel />}
     </div>
   );

@@ -4,7 +4,7 @@ import { Mail, Phone } from 'lucide-react';
 
 const Footer: React.FC = () => {
   return (
-    <footer className="bg-charcoal text-white pt-20 pb-10 border-t border-gold/10">
+    <footer className="hidden md:block bg-charcoal text-white pt-20 pb-10 border-t border-gold/10">
       <div className="max-w-7xl mx-auto px-6 md:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-12 lg:gap-8 pb-16 border-b border-white/5">
           {/* Brand Column - Full width on mobile */}
@@ -37,8 +37,8 @@ const Footer: React.FC = () => {
             </div>
           </div>
 
-          {/* Link Columns - 2 columns on mobile */}
-          <div className="col-span-1 lg:col-span-3 grid grid-cols-2 md:grid-cols-3 gap-8">
+          {/* Link Columns - Hidden on mobile, visible on tablet+ */}
+          <div className="hidden md:grid col-span-1 lg:col-span-3 grid-cols-2 md:grid-cols-3 gap-8">
             {/* Menu Column */}
             <div className="space-y-6">
               <h4 className="text-[11px] uppercase tracking-[0.3em] font-black text-gold">Menu</h4>
