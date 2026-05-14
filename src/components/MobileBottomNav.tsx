@@ -22,7 +22,7 @@ const MobileBottomNav: React.FC = () => {
   };
 
   return (
-    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[60] bg-white/80 backdrop-blur-xl border-t border-gray-100 px-2 py-2 shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
+    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[60] bg-white/80 backdrop-blur-xl border-t border-gray-100 px-2 py-2 shadow-[0_-10px_30px_rgba(0,0,0,0.05)]" style={{ webkitBackdropFilter: 'blur(20px)' }}>
       <div className="max-w-md mx-auto flex justify-between items-center relative">
         {navItems.map((item) => {
           const active = isActive(item.path);
