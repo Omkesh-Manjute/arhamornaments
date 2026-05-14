@@ -93,6 +93,36 @@ const ProductDetail: React.FC = () => {
       .slice(0, 4);
   }, [product?.id, product?.category, dbProducts]);
 
+  // Recently Viewed Logic
+  const [recentlyViewed, setRecentlyViewed] = useState<Product[]>([]);
+
+  React.useEffect(() => {
+    if (product) {
+      const stored = localStorage.getItem('recentlyViewed');
+      let viewedIds: string[] = stored ? JSON.parse(stored) : [];
+      viewedIds = viewedIds.filter(vId => vId !== product.id);
+      const source = dbProducts.length > 0 ? dbProducts : staticProducts;
+      const viewedProducts = viewedIds
+        .map(vId => source.find(p => p.id === vId))
+        .filter((p): p is Product => !!p)
+        .slice(0, 4);
+      setRecentlyViewed(viewedProducts);
+      viewedIds.unshift(product.id);
+      localStorage.setItem('recentlyViewed', JSON.stringify(viewedIds.slice(0, 10)));
+    }
+  }, [product?.id, dbProducts]);
+
+  // Navigation between products logic
+  const siblingProducts = useMemo(() => {
+    if (!product) return [];
+    const source = dbProducts.length > 0 ? dbProducts : staticProducts;
+    return source.filter(p => p.category === product.category);
+  }, [product?.category, dbProducts]);
+
+  // Touch handlers
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FCFBF7]">
@@ -120,32 +150,8 @@ const ProductDetail: React.FC = () => {
 
   const currentPrice = calculateProductPrice(product, selectedPurity);
 
-  // Recently Viewed Logic
-  const [recentlyViewed, setRecentlyViewed] = useState<Product[]>([]);
-
-  React.useEffect(() => {
-    if (product) {
-      const stored = localStorage.getItem('recentlyViewed');
-      let viewedIds: string[] = stored ? JSON.parse(stored) : [];
-      viewedIds = viewedIds.filter(vId => vId !== product.id);
-      const source = dbProducts.length > 0 ? dbProducts : staticProducts;
-      const viewedProducts = viewedIds
-        .map(vId => source.find(p => p.id === vId))
-        .filter((p): p is Product => !!p)
-        .slice(0, 4);
-      setRecentlyViewed(viewedProducts);
-      viewedIds.unshift(product.id);
-      localStorage.setItem('recentlyViewed', JSON.stringify(viewedIds.slice(0, 10)));
-    }
-  }, [product?.id, dbProducts]);
 
   // Navigation between products logic
-  const siblingProducts = useMemo(() => {
-    if (!product) return [];
-    const source = dbProducts.length > 0 ? dbProducts : staticProducts;
-    return source.filter(p => p.category === product.category);
-  }, [product?.category, dbProducts]);
-
   const navigateToSibling = (direction: 'next' | 'prev') => {
     if (siblingProducts.length <= 1) return;
     const currentIndex = siblingProducts.findIndex(p => p.id === product?.id);
@@ -165,9 +171,7 @@ const ProductDetail: React.FC = () => {
     }
   };
 
-  // Touch handlers
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
 
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchEnd(null);
