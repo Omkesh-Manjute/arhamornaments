@@ -1,4 +1,6 @@
 import React, { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Heart, Share2, Star, Truck, Shield, RotateCcw, MessageCircle, Minus, Plus, Phone } from 'lucide-react';
 import { products as staticProducts } from '../data/products';
@@ -20,6 +22,8 @@ const ProductDetail: React.FC = () => {
   const [selectedPurity, setSelectedPurity] = useState<string>('22K');
   const [selectedQuality, setSelectedQuality] = useState<string>('VS');
   const [dbProducts, setDbProducts] = useState<Product[]>([]);
+  const [direction, setDirection] = useState(0);
+
   
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
@@ -31,7 +35,8 @@ const ProductDetail: React.FC = () => {
   React.useEffect(() => {
     const fetchProduct = async () => {
       if (!id) return;
-      setLoading(true);
+      if (!product) setLoading(true);
+
       
       try {
         const dbProduct = await productService.getProductById(id);
@@ -123,7 +128,7 @@ const ProductDetail: React.FC = () => {
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
-  if (loading) {
+  if (loading && !product) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FCFBF7]">
         <div className="flex flex-col items-center gap-4">
@@ -152,9 +157,11 @@ const ProductDetail: React.FC = () => {
 
 
   // Navigation between products logic
-  const navigateToSibling = (direction: 'next' | 'prev') => {
+  const navigateToSibling = (dir: 'next' | 'prev') => {
+    setDirection(dir === 'next' ? 1 : -1);
     if (siblingProducts.length <= 1) return;
     const currentIndex = siblingProducts.findIndex(p => p.id === product?.id);
+
     if (currentIndex === -1) return;
 
     let nextIndex;
@@ -213,13 +220,42 @@ const ProductDetail: React.FC = () => {
   };
 
   return (
-    <div 
-      className="min-h-screen bg-[#FCFBF7]"
-      key={product.id}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={() => handleTouchEnd(false)}
-    >
+    <div className="min-h-screen bg-[#FCFBF7] overflow-x-hidden">
+      <AnimatePresence mode="wait" custom={direction}>
+        <motion.div 
+          key={product.id}
+          custom={direction}
+          variants={{
+            enter: (direction: number) => ({
+              x: direction > 0 ? '100%' : direction < 0 ? '-100%' : 0,
+              opacity: 0,
+              scale: 0.95
+            }),
+            center: {
+              x: 0,
+              opacity: 1,
+              scale: 1
+            },
+            exit: (direction: number) => ({
+              x: direction > 0 ? '-100%' : direction < 0 ? '100%' : 0,
+              opacity: 0,
+              scale: 0.95
+            })
+          }}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          transition={{
+            x: { type: "spring", stiffness: 300, damping: 30 },
+            opacity: { duration: 0.2 },
+            scale: { duration: 0.3 }
+          }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={() => handleTouchEnd(false)}
+        >
+
+
       {/* MOBILE LAYOUT */}
       <div className="lg:hidden">
         {/* Simple Horizontal Slider */}
@@ -317,8 +353,10 @@ const ProductDetail: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">{recentlyViewed.map(p => <ProductCard key={p.id} product={p} />)}</div>
           </div>
         )}
-      </div>
-    </div>
+        </div>
+      </motion.div>
+    </AnimatePresence>
+  </div>
   );
 };
 
