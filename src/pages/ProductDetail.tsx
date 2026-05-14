@@ -291,17 +291,28 @@ const ProductDetail: React.FC = () => {
                 <h1 className="text-3xl font-heading font-bold text-charcoal">{product.name}</h1>
               </div>
 
-              <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-50 text-center">
+              <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-50 flex items-center justify-between">
                 <span className="text-4xl font-black text-charcoal">{formatPrice(currentPrice * quantity)}</span>
+                <div className="flex items-center border border-gray-100 rounded-xl overflow-hidden scale-90">
+                  <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="p-2 hover:bg-gray-50 text-gray-400">
+                    <Minus size={14} />
+                  </button>
+                  <span className="px-3 py-1 font-black text-charcoal border-x border-gray-50 min-w-[2rem] text-center text-sm">{quantity}</span>
+                  <button onClick={() => setQuantity(quantity + 1)} className="p-2 hover:bg-gray-50 text-gray-400">
+                    <Plus size={14} />
+                  </button>
+                </div>
               </div>
 
               {/* Details Table */}
               <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-50 space-y-4">
-                <h4 className="text-xs font-black uppercase text-gold">Product Details</h4>
+                <h4 className="text-xs font-black uppercase text-gold">Product Specifications</h4>
                 {[
                   ['Design No.', product.designNo || 'N/A'],
                   ['Gross Weight', `${product.grossWeight?.toFixed(3) || '0.000'} g`],
                   ['Net Weight', `${product.netWeight?.toFixed(3) || '0.000'} g`],
+                  ['Material', product.material.toUpperCase()],
+                  ['Purity', product.purity || (product.material === 'gold' ? '22K' : 'N/A')],
                 ].map(([label, value]) => (
                   <div key={label} className="flex justify-between text-sm">
                     <span className="text-gray-400">{label}</span>
@@ -309,6 +320,13 @@ const ProductDetail: React.FC = () => {
                   </div>
                 ))}
               </div>
+
+              {product.description && (
+                <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-50 space-y-4">
+                  <h4 className="text-xs font-black uppercase text-gold">Description</h4>
+                  <p className="text-sm text-gray-600 leading-relaxed">{product.description}</p>
+                </div>
+              )}
 
               {/* Actions */}
               <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 flex gap-3 z-50">
@@ -319,18 +337,98 @@ const ProductDetail: React.FC = () => {
           </div>
 
           {/* DESKTOP LAYOUT */}
-          <div className="hidden lg:block max-w-7xl mx-auto px-6 py-12">
-            <div className="grid grid-cols-2 gap-16">
-              <div className="aspect-square rounded-[3rem] overflow-hidden bg-white shadow-2xl">
-                <img src={product.images?.[currentImage] || ''} alt="" className="w-full h-full object-contain p-8" />
-              </div>
-              <div className="space-y-10">
-                <h1 className="text-5xl font-heading font-bold text-charcoal">{product.name}</h1>
-                <p className="text-4xl font-black text-gold">{formatPrice(currentPrice * quantity)}</p>
-                <div className="flex gap-4">
-                  <button onClick={handleWhatsAppEnquiry} className="flex-1 py-5 bg-white border border-gray-200 text-charcoal rounded-xl font-black">Get Quote</button>
-                  <button onClick={handleAddToCart} className="flex-1 py-5 bg-charcoal text-white rounded-xl font-black">Add to Cart</button>
+          <div className="hidden lg:block max-w-7xl mx-auto px-6 py-8">
+            <div className="grid grid-cols-2 gap-12 items-start">
+              {/* Left: Sticky Image Gallery */}
+              <div className="sticky top-24 space-y-4">
+                <div className="aspect-[4/5] rounded-[2rem] overflow-hidden bg-white shadow-xl border border-gray-100">
+                  <img src={product.images?.[currentImage] || ''} alt="" className="w-full h-full object-contain p-4" />
                 </div>
+                {/* Thumbnails */}
+                {(product.images?.length || 0) > 1 && (
+                  <div className="flex gap-3 overflow-x-auto no-scrollbar py-2">
+                    {product.images?.map((img, i) => (
+                      <button 
+                        key={i} 
+                        onClick={() => setCurrentImage(i)}
+                        className={`w-20 h-20 rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 ${i === currentImage ? 'border-gold shadow-md' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                      >
+                        <img src={img} alt="" className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Right: Product Details */}
+              <div className="space-y-6 pt-4">
+                <div className="space-y-2">
+                  <span className="text-[10px] font-black uppercase text-gold tracking-[0.4em]">{product.material} Collection</span>
+                  <h1 className="text-4xl font-heading font-bold text-charcoal leading-tight">{product.name}</h1>
+                </div>
+                
+                <div className="flex items-center justify-between pb-6 border-b border-gray-100">
+                  <div className="space-y-1">
+                    <p className="text-3xl font-black text-charcoal">{formatPrice(currentPrice * quantity)}</p>
+                    {product.originalPrice && (
+                      <p className="text-lg text-gray-400 line-through">{formatPrice(product.originalPrice)}</p>
+                    )}
+                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Qty</span>
+                    <div className="flex items-center border-2 border-gray-100 rounded-xl overflow-hidden bg-white">
+                      <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="p-2 hover:bg-gray-50 text-gray-400 transition-colors"><Minus size={14} /></button>
+                      <span className="px-4 font-black text-charcoal min-w-[2.5rem] text-center">{quantity}</span>
+                      <button onClick={() => setQuantity(quantity + 1)} className="p-2 hover:bg-gray-50 text-gray-400 transition-colors"><Plus size={14} /></button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Product Specifications - MOVED UP */}
+                <div className="space-y-4">
+                  <h4 className="text-[10px] font-black uppercase text-gold tracking-[0.3em]">Product Specifications</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      ['Design No.', product.designNo || 'N/A'],
+                      ['Gross Weight', `${product.grossWeight?.toFixed(3) || '0.000'} g`],
+                      ['Net Weight', `${product.netWeight?.toFixed(3) || '0.000'} g`],
+                      ['Purity', product.purity || (product.material === 'gold' ? '22K' : 'N/A')],
+                    ].map(([label, value]) => (
+                      <div key={label} className="p-4 bg-white rounded-2xl border border-gray-50 shadow-sm flex flex-col gap-1 hover:shadow-md transition-shadow duration-300">
+                        <span className="text-[9px] uppercase font-black text-gray-400 tracking-widest">{label}</span>
+                        <p className="text-charcoal font-bold">{value}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Trust Badges */}
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { icon: Shield, label: 'BIS Hallmarked' },
+                    { icon: Truck, label: 'Free Shipping' },
+                    { icon: RotateCcw, label: 'Easy Returns' }
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center gap-2 p-3 bg-[#F9F8F3] rounded-xl border border-gray-100">
+                      <item.icon size={14} className="text-gold" />
+                      <span className="text-[9px] font-black uppercase tracking-wider text-gray-500">{item.label}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Actions - MOVED DOWN */}
+                <div className="flex gap-4 pt-2">
+                  <button onClick={handleWhatsAppEnquiry} className="flex-1 py-4 bg-white border-2 border-charcoal text-charcoal rounded-2xl font-black hover:bg-charcoal hover:text-white transition-all duration-300 transform hover:-translate-y-1">Get Quote</button>
+                  <button onClick={handleAddToCart} className="flex-1 py-4 bg-charcoal text-white rounded-2xl font-black hover:shadow-xl hover:shadow-charcoal/20 transition-all duration-300 transform hover:-translate-y-1">Add to Cart</button>
+                </div>
+
+                {product.description && (
+                  <div className="pt-6 border-t border-gray-100">
+                    <h4 className="text-[10px] font-black uppercase text-gold tracking-[0.3em] mb-2">Description</h4>
+                    <p className="text-gray-600 text-sm leading-relaxed">{product.description}</p>
+                  </div>
+                )}
               </div>
             </div>
 
