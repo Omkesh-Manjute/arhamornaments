@@ -16,6 +16,17 @@ const ProductListing: React.FC = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const { pathname, search } = useLocation();
 
+  // Open filters if showFilters is in URL
+  useEffect(() => {
+    if (searchParams.get('showFilters') === 'true') {
+      setShowFilters(true);
+      // Clean up the URL parameter
+      const params = new URLSearchParams(searchParams);
+      params.delete('showFilters');
+      setSearchParams(params, { replace: true });
+    }
+  }, [searchParams]);
+
   // Scroll to top on navigation or filter change
   useEffect(() => {
     window.scrollTo(0, 0);

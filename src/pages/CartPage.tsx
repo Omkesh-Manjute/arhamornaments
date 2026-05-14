@@ -58,20 +58,20 @@ const CartPage: React.FC = () => {
     <div className="min-h-screen bg-[#FCFBF7] pb-24">
       {/* Header */}
       <div className="bg-white border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-6 py-10">
-          <div className="flex items-center gap-3 text-[10px] uppercase tracking-[0.3em] font-black text-gray-400 mb-4">
+        <div className="max-w-7xl mx-auto px-6 py-6">
+          <div className="flex items-center gap-3 text-[9px] uppercase tracking-[0.3em] font-black text-gray-400 mb-2">
             <Link to="/" className="hover:text-gold">Home</Link>
             <span className="text-gray-200">/</span>
             <span className="text-gold">My Treasury</span>
           </div>
           <div className="flex justify-between items-end">
             <div>
-              <h1 className="text-4xl font-heading font-bold text-charcoal">My Shopping Treasury</h1>
-              <p className="text-gray-400 font-medium mt-1">{validItems.length} exquisite items reserved</p>
+              <h1 className="text-2xl font-heading font-bold text-charcoal">My Shopping Treasury</h1>
+              <p className="text-gray-400 font-medium text-xs mt-0.5">{validItems.length} exquisite items reserved</p>
             </div>
             <button
               onClick={clearCart}
-              className="text-[10px] font-black uppercase tracking-widest text-red-400 hover:text-red-600 transition-colors"
+              className="text-[9px] font-black uppercase tracking-widest text-red-400 hover:text-red-600 transition-colors"
             >
               Empty Treasury
             </button>
@@ -79,17 +79,17 @@ const CartPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+      <div className="max-w-7xl mx-auto px-6 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Cart Items */}
-          <div className="lg:col-span-8 space-y-6">
+          <div className="lg:col-span-8 space-y-4">
             <div className="space-y-4">
               {validItems.map((item) => (
-                <div key={item.product?.id || Math.random().toString()} className="bg-white rounded-[2rem] shadow-sm p-4 sm:p-6 border border-gray-50 group hover:shadow-xl transition-all duration-500">
-                  <div className="flex flex-col sm:flex-row gap-4 sm:gap-8">
+                <div key={item.product?.id || Math.random().toString()} className="bg-white rounded-3xl shadow-sm p-4 border border-gray-50 group hover:shadow-lg transition-all duration-500">
+                  <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
                     {/* Image */}
                     <div className="flex gap-4 sm:block">
-                      <Link to={`/product/${item.product?.id}`} className="flex-shrink-0 w-24 h-24 sm:w-40 sm:h-40 rounded-2xl overflow-hidden shadow-md group-hover:scale-105 transition-transform duration-500">
+                      <Link to={`/product/${item.product?.id}`} className="flex-shrink-0 w-24 h-24 sm:w-32 sm:h-32 rounded-2xl overflow-hidden shadow-sm group-hover:scale-105 transition-transform duration-500">
                         {item.product?.images?.[0] ? (
                           <img
                             src={item.product.images[0]}
@@ -149,15 +149,15 @@ const CartPage: React.FC = () => {
                         <div>
                           <Link
                             to={`/product/${item.product?.id}`}
-                            className="text-xl font-bold text-charcoal hover:text-gold transition-colors block"
+                            className="text-lg font-bold text-charcoal hover:text-gold transition-colors block leading-tight"
                           >
                             {item.product?.name}
                           </Link>
-                          <div className="flex items-center gap-3 mt-2">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-gold bg-gold/5 px-2 py-1 rounded">
+                          <div className="flex items-center gap-2 mt-1.5">
+                            <span className="text-[9px] font-black uppercase tracking-widest text-gold bg-gold/5 px-2 py-0.5 rounded">
                               {item.product?.material}
                             </span>
-                            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                            <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">
                               {item.product?.category}
                             </span>
                           </div>
@@ -170,31 +170,31 @@ const CartPage: React.FC = () => {
                         </button>
                       </div>
 
-                      <div className="flex items-center justify-between mt-2 sm:mt-6">
+                      <div className="flex items-center justify-between mt-2 sm:mt-3">
                         {/* Quantity */}
-                        <div className="flex items-center bg-gray-50 rounded-full px-1 py-0.5 sm:px-2 sm:py-1 scale-90 sm:scale-100 origin-left">
+                        <div className="flex items-center bg-gray-50 rounded-full px-1 py-0.5 sm:px-1.5 sm:py-0.5 scale-90 sm:scale-95 origin-left border border-gray-100">
                           <button
                             onClick={() => updateQuantity(item.product?.id, item.quantity - 1)}
-                            className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center hover:bg-white rounded-full transition-all text-charcoal"
+                            className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center hover:bg-white rounded-full transition-all text-charcoal"
                           >
-                            <Minus size={14} />
+                            <Minus size={12} />
                           </button>
-                          <span className="w-8 sm:w-12 text-center font-bold text-charcoal text-sm">{item.quantity}</span>
+                          <span className="w-6 sm:w-8 text-center font-bold text-charcoal text-xs">{item.quantity}</span>
                           <button
                             onClick={() => updateQuantity(item.product?.id, item.quantity + 1)}
-                            className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center hover:bg-white rounded-full transition-all text-charcoal"
+                            className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center hover:bg-white rounded-full transition-all text-charcoal"
                           >
-                            <Plus size={14} />
+                            <Plus size={12} />
                           </button>
                         </div>
 
                         {/* Price */}
                         <div className="text-right">
-                          <p className="text-lg sm:text-2xl font-black text-charcoal tracking-tight">
+                          <p className="text-base sm:text-lg font-black text-charcoal tracking-tight">
                             {formatPrice((item.product?.price || 0) * item.quantity)}
                           </p>
                           {item.quantity > 1 && (
-                            <p className="text-[8px] sm:text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">
+                            <p className="text-[8px] sm:text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">
                               {formatPrice(item.product?.price || 0)} each
                             </p>
                           )}
@@ -219,90 +219,83 @@ const CartPage: React.FC = () => {
 
           {/* Order Summary */}
           <div className="lg:col-span-4">
-            <div className="bg-charcoal text-white rounded-[3rem] p-10 sticky top-24 shadow-2xl overflow-hidden relative">
-              {/* Luxury Accent */}
-              <div className="absolute top-0 right-0 w-40 h-40 bg-gold opacity-10 rounded-full -mr-20 -mt-20 blur-3xl"></div>
+            <div className="bg-[#1A1A1A] text-white rounded-[2rem] p-6 sticky top-24 shadow-[0_20px_50px_rgba(0,0,0,0.3)] overflow-hidden relative border border-white/5">
+              {/* Luxury Accent Glow */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-gold opacity-10 rounded-full -mr-32 -mt-32 blur-[100px]"></div>
+              <div className="absolute bottom-0 left-0 w-40 h-40 bg-gold opacity-5 rounded-full -ml-20 -mb-20 blur-[80px]"></div>
 
-              <h3 className="text-2xl font-heading font-bold mb-8 flex items-center gap-3">
-                <Sparkles size={24} className="text-gold" />
+              <h3 className="text-xl font-heading font-bold mb-6 flex items-center gap-4">
+                <div className="w-8 h-8 rounded-lg bg-gold/10 flex items-center justify-center">
+                  <Sparkles size={16} className="text-gold" />
+                </div>
                 Treasury Summary
               </h3>
 
-              <div className="space-y-6 pb-8 border-b border-white/10">
+              <div className="space-y-4 pb-4 border-b border-white/10">
                 <div className="flex justify-between items-center">
-                  <span className="text-white/50 text-[10px] font-black uppercase tracking-[0.2em]">Merchandise</span>
-                  <span className="font-bold">{formatPrice(subtotal)}</span>
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <span className="text-white/50 text-[10px] font-black uppercase tracking-[0.2em]">Concierge & Ship</span>
-                  <span className="text-gold font-bold uppercase text-[10px] tracking-widest">Complimentary</span>
+                  <span className="text-white/60 text-[10px] font-bold uppercase tracking-[0.2em]">Merchandise Total</span>
+                  <span className="text-lg font-bold">{formatPrice(subtotal)}</span>
                 </div>
 
                 {walletRedemption.isRedeemed && redeemedAmount > 0 && (
                   <div className="flex justify-between items-center text-green-400 animate-in fade-in slide-in-from-right-4 duration-300">
-                    <span className="text-green-400/70 text-[10px] font-black uppercase tracking-[0.2em]">Wallet Redeemed</span>
-                    <span className="font-bold">-{formatPrice(redeemedAmount)}</span>
+                    <span className="text-green-400/70 text-[9px] font-black uppercase tracking-[0.2em]">Wallet Savings</span>
+                    <span className="font-bold text-sm">-{formatPrice(redeemedAmount)}</span>
                   </div>
                 )}
 
                 {giftOptions.isGift && (
                   <div className="flex justify-between items-center animate-in fade-in zoom-in duration-300">
-                    <span className="text-white/50 text-[10px] font-black uppercase tracking-[0.2em]">Gift Services</span>
-                    <span className="font-bold">
-                      {giftCharge === 0 ? <span className="text-gold">Complimentary</span> : formatPrice(giftCharge)}
+                    <span className="text-white/50 text-[9px] font-black uppercase tracking-[0.2em]">Gift Services</span>
+                    <span className="font-bold text-sm">
+                      {giftCharge === 0 ? <span className="text-gold uppercase text-[9px] tracking-widest">Complimentary</span> : formatPrice(giftCharge)}
                     </span>
                   </div>
                 )}
-
-                {subtotal < 50000 && (
-                  <div className="bg-white/5 p-4 rounded-2xl">
-                    <p className="text-[9px] text-white/40 font-bold uppercase tracking-widest leading-relaxed">
-                      All orders include Arham's signature white-glove delivery experience.
-                    </p>
-                  </div>
-                )}
               </div>
 
-              <div className="flex justify-between py-10">
-                <div className="flex flex-col">
-                  <span className="text-white/50 text-[10px] font-black uppercase tracking-[0.2em]">Total Value</span>
-                  <span className="text-[10px] text-gold/60 font-bold mt-1 uppercase tracking-tighter">VAT & GST Inclusive</span>
+              <div className="py-6">
+                <div className="flex justify-between items-end mb-1">
+                  <div className="flex flex-col">
+                    <span className="text-white/40 text-[9px] font-black uppercase tracking-[0.2em]">Total Value</span>
+                    <span className="text-[9px] text-gold/50 font-bold mt-0.5 uppercase tracking-widest">VAT & GST Inclusive</span>
+                  </div>
+                  <span className="text-3xl font-black text-white tracking-tighter">{formatPrice(grandTotal)}</span>
                 </div>
-                <span className="text-4xl font-black text-white">{formatPrice(grandTotal)}</span>
               </div>
 
               {/* Checkout Buttons */}
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <button
                   onClick={() => navigate('/checkout')}
-                  className="w-full py-6 bg-gold text-white rounded-full font-black uppercase tracking-[0.3em] text-[11px] hover:bg-white hover:text-charcoal transition-all shadow-xl active:scale-95 flex items-center justify-center gap-4"
+                  className="w-full py-4 bg-gold text-white rounded-xl font-black uppercase tracking-[0.3em] text-[10px] hover:bg-white hover:text-charcoal transition-all shadow-lg active:scale-95 flex items-center justify-center gap-3 group"
                 >
-                  Secure Checkout <ArrowRight size={18} />
+                  Secure Checkout 
+                  <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
                 </button>
                 <button
                   onClick={handleWhatsAppOrder}
-                  className="w-full py-6 border-2 border-white/20 text-white rounded-full font-black uppercase tracking-[0.3em] text-[11px] hover:bg-white/5 transition-all flex items-center justify-center gap-4 active:scale-95"
+                  className="w-full py-4 border-2 border-white/10 text-white rounded-xl font-black uppercase tracking-[0.3em] text-[10px] hover:bg-white/5 transition-all flex items-center justify-center gap-3 active:scale-95"
                 >
-                  <MessageCircle size={18} />
-                  Concierge via WhatsApp
+                  <MessageCircle size={16} className="text-gold" />
+                  Concierge Service
                 </button>
               </div>
 
               {/* Security Badges */}
-              <div className="mt-10 grid grid-cols-3 gap-4">
-                <div className="flex flex-col items-center gap-2">
-                  <ShieldCheck size={20} className="text-gold/50" />
-                  <span className="text-[8px] font-black uppercase tracking-widest opacity-40 text-center">Protected</span>
-                </div>
-                <div className="flex flex-col items-center gap-2">
-                  <Truck size={20} className="text-gold/50" />
-                  <span className="text-[8px] font-black uppercase tracking-widest opacity-40 text-center">Tracked</span>
-                </div>
-                <div className="flex flex-col items-center gap-2">
-                  <Sparkles size={20} className="text-gold/50" />
-                  <span className="text-[8px] font-black uppercase tracking-widest opacity-40 text-center">Certified</span>
-                </div>
+              <div className="mt-8 grid grid-cols-3 gap-3">
+                {[
+                  { icon: ShieldCheck, label: 'Protected' },
+                  { icon: Truck, label: 'Tracked' },
+                  { icon: Sparkles, label: 'Certified' }
+                ].map((item, i) => (
+                  <div key={i} className="flex flex-col items-center gap-2">
+                    <div className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center">
+                      <item.icon size={14} className="text-gold/50" />
+                    </div>
+                    <span className="text-[8px] font-black uppercase tracking-widest opacity-30 text-center">{item.label}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

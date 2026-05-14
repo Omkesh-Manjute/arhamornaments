@@ -24,6 +24,7 @@ import { WishlistProvider } from './context/WishlistContext';
 import { PriceProvider } from './context/PriceContext';
 
 import LivePriceTicker from './components/LivePriceTicker';
+import MobileBottomNav from './components/MobileBottomNav';
 
 const AppContent: React.FC = () => {
   const location = useLocation();
@@ -35,7 +36,7 @@ const AppContent: React.FC = () => {
     <div className="min-h-screen flex flex-col">
       {!hideHeaderFooter && <Header />}
       
-      <main className={`flex-1 ${!hideHeaderFooter ? 'pt-[64px] md:pt-[72px]' : ''}`}>
+      <main className={`flex-1 ${!hideHeaderFooter ? 'pt-[64px] md:pt-[72px] pb-[80px] lg:pb-0' : ''}`}>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/products" element={<ProductListing />} />
@@ -57,6 +58,7 @@ const AppContent: React.FC = () => {
       </main>
 
       {!hideHeaderFooter && <Footer />}
+      {!hideHeaderFooter && <MobileBottomNav />}
       {!isAdminPage && <LuckyWheel />}
     </div>
   );

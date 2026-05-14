@@ -391,27 +391,9 @@ const ProductDetail: React.FC = () => {
 
               {/* Right: Product Details */}
               <div className="space-y-6 pt-4">
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <span className="text-[10px] font-black uppercase text-gold tracking-[0.4em]">{product.material} Collection</span>
                   <h1 className="text-4xl font-heading font-bold text-charcoal leading-tight">{product.name}</h1>
-                </div>
-
-                <div className="flex items-center justify-between pb-6 border-b border-gray-100">
-                  <div className="space-y-1">
-                    <p className="text-3xl font-black text-charcoal">{formatPrice(currentPrice * quantity)}</p>
-                    {product.originalPrice && (
-                      <p className="text-lg text-gray-400 line-through">{formatPrice(product.originalPrice)}</p>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Qty</span>
-                    <div className="flex items-center border-2 border-gray-100 rounded-xl overflow-hidden bg-white">
-                      <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="p-2 hover:bg-gray-50 text-gray-400 transition-colors"><Minus size={14} /></button>
-                      <span className="px-4 font-black text-charcoal min-w-[2.5rem] text-center">{quantity}</span>
-                      <button onClick={() => setQuantity(quantity + 1)} className="p-2 hover:bg-gray-50 text-gray-400 transition-colors"><Plus size={14} /></button>
-                    </div>
-                  </div>
                 </div>
 
                 {/* Product Specifications - Refined List */}
@@ -427,12 +409,12 @@ const ProductDetail: React.FC = () => {
                       ['Gross Weight', `${product.grossWeight?.toFixed(3) || '0.000'} g`],
                       ['Net Weight', `${product.netWeight?.toFixed(3) || '0.000'} g`],
                       ['Material', product.material.toUpperCase()],
-                      ['Metal Color', 'YELLOW GOLD'],
-                    ].map(([label, value]) => (
+                      ['Total Amount', formatPrice(currentPrice * quantity), 'text-green-600 font-black'],
+                    ].map(([label, value, extraClass]) => (
                       <div key={label} className="flex justify-between items-center group">
                         <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">{label}</span>
                         <div className="flex-1 border-b border-dotted border-gray-200 mx-6 opacity-30 group-hover:opacity-100 transition-opacity"></div>
-                        <span className="text-sm font-black text-charcoal">{value}</span>
+                        <span className={`text-sm font-black text-charcoal ${extraClass || ''}`}>{value}</span>
                       </div>
                     ))}
                   </div>
@@ -452,10 +434,40 @@ const ProductDetail: React.FC = () => {
                   ))}
                 </div>
 
-                {/* Actions - MOVED DOWN */}
-                <div className="flex gap-4 pt-2">
-                  <button onClick={handleWhatsAppEnquiry} className="flex-1 py-4 bg-white border-2 border-charcoal text-charcoal rounded-2xl font-black hover:bg-charcoal hover:text-white transition-all duration-300 transform hover:-translate-y-1">Get Quote</button>
-                  <button onClick={handleAddToCart} className="flex-1 py-4 bg-charcoal text-white rounded-2xl font-black hover:shadow-xl hover:shadow-charcoal/20 transition-all duration-300 transform hover:-translate-y-1">Add to Cart</button>
+                {/* Actions Section */}
+                <div className="space-y-8 pt-4">
+                  {/* Quantity Selector */}
+                  <div className="flex items-center gap-4">
+                    <span className="text-[11px] font-black uppercase text-gray-400 tracking-widest">Select Quantity</span>
+                    <div className="flex items-center border-2 border-gray-100 rounded-xl overflow-hidden bg-white shadow-sm">
+                      <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-10 h-10 flex items-center justify-center hover:bg-gray-50 text-gray-400 transition-colors border-r border-gray-100"><Minus size={14} /></button>
+                      <span className="px-6 font-black text-charcoal min-w-[3.5rem] text-center text-sm">{quantity}</span>
+                      <button onClick={() => setQuantity(quantity + 1)} className="w-10 h-10 flex items-center justify-center hover:bg-gray-50 text-gray-400 transition-colors border-l border-gray-100"><Plus size={14} /></button>
+                    </div>
+                  </div>
+
+                  {/* Main Buttons */}
+                  <div className="flex gap-4">
+                    <button onClick={handleWhatsAppEnquiry} className="flex-1 py-4 bg-white border-2 border-charcoal text-charcoal rounded-2xl font-black hover:bg-charcoal hover:text-white transition-all duration-300 transform hover:-translate-y-1">Get Quote</button>
+                    <button onClick={handleAddToCart} className="flex-1 py-4 bg-charcoal text-white rounded-2xl font-black hover:shadow-xl hover:shadow-charcoal/20 transition-all duration-300 transform hover:-translate-y-1">Add to Cart</button>
+                  </div>
+
+                  {/* Action Icons Row */}
+                  <div className="flex justify-around pt-2">
+                    {[
+                      { icon: Phone, label: 'Call', onClick: () => window.location.href = 'tel:+919371504182', color: 'text-orange-500', bg: 'bg-orange-50' },
+                      { icon: Heart, label: 'Favorite', onClick: () => toggleWishlist(product), color: isFavorite ? 'text-red-500' : 'text-gray-400', bg: 'bg-red-50', fill: isFavorite },
+                      { icon: MessageCircle, label: 'Whatsapp', onClick: handleWhatsAppEnquiry, color: 'text-green-500', bg: 'bg-green-50' },
+                      { icon: Share2, label: 'Share', onClick: () => navigator.share?.({ title: product.name, url: window.location.href }), color: 'text-blue-500', bg: 'bg-blue-50' }
+                    ].map((item, i) => (
+                      <button key={i} onClick={item.onClick} className="flex flex-col items-center gap-3 group">
+                        <div className={`w-14 h-14 rounded-full ${item.bg} flex items-center justify-center transition-all group-hover:scale-110 shadow-sm border border-gray-100`}>
+                          <item.icon size={24} className={item.color} fill={item.fill ? 'currentColor' : 'none'} />
+                        </div>
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{item.label}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 {product.description && (
