@@ -56,21 +56,21 @@ const HeroSlider: React.FC = () => {
               alt={slide.title}
               className="w-full h-full object-cover"
             />
-            <div className={`absolute inset-0 bg-black/10 flex flex-col justify-center p-8 md:p-24 ${
+            <div className={`absolute inset-0 bg-black/10 flex flex-col justify-end md:justify-center p-8 pb-20 md:p-24 ${
               slide.align === 'left' ? 'items-start text-left' : 
               slide.align === 'right' ? 'items-end text-right' : 
               'items-center text-center'
             }`}>
               <div className="max-w-2xl">
-                <h2 className="text-white text-4xl md:text-7xl font-heading font-bold mb-4 drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)] animate-fadeIn">
+                <h2 className="text-white text-2xl md:text-7xl font-heading font-bold mb-2 md:mb-4 drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)] animate-fadeIn">
                   {slide.title}
                 </h2>
-                <p className="text-white/90 text-sm md:text-lg uppercase tracking-[0.4em] mb-10 font-bold drop-shadow-md">
+                <p className="text-white/90 text-[10px] md:text-lg uppercase tracking-[0.4em] mb-6 md:mb-10 font-bold drop-shadow-md">
                   {slide.subtitle}
                 </p>
                 <Link 
                   to={slide.link}
-                  className="inline-block bg-white text-charcoal px-10 py-4 rounded-full text-xs font-black uppercase tracking-widest hover:bg-gold hover:text-white transition-all shadow-2xl transform hover:scale-105 active:scale-95"
+                  className="inline-block bg-white text-charcoal px-6 py-2.5 md:px-10 md:py-4 rounded-full text-[10px] md:text-xs font-black uppercase tracking-widest hover:bg-gold hover:text-white transition-all shadow-2xl transform hover:scale-105 active:scale-95"
                 >
                   Discover More
                 </Link>

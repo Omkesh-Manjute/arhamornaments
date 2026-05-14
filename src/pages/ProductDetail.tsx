@@ -292,7 +292,7 @@ const ProductDetail: React.FC = () => {
               </div>
 
               <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-50 flex items-center justify-between">
-                <span className="text-4xl font-black text-charcoal">{formatPrice(currentPrice * quantity)}</span>
+                <span className="text-2xl font-black text-charcoal">{formatPrice(currentPrice * quantity)}</span>
                 <div className="flex items-center border border-gray-100 rounded-xl overflow-hidden scale-90">
                   <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="p-2 hover:bg-gray-50 text-gray-400">
                     <Minus size={14} />
@@ -321,6 +321,12 @@ const ProductDetail: React.FC = () => {
                 ))}
               </div>
 
+              {/* Actions moved from bottom bar */}
+              <div className="flex gap-3 pt-2">
+                <button onClick={handleWhatsAppEnquiry} className="flex-1 py-4 bg-white border-2 border-charcoal text-charcoal rounded-2xl font-black shadow-sm">Get Quote</button>
+                <button onClick={handleAddToCart} className="flex-1 py-4 bg-charcoal text-white rounded-2xl font-black shadow-lg shadow-charcoal/10">Add to Cart</button>
+              </div>
+
               {product.description && (
                 <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-50 space-y-4">
                   <h4 className="text-xs font-black uppercase text-gold">Description</h4>
@@ -328,11 +334,6 @@ const ProductDetail: React.FC = () => {
                 </div>
               )}
 
-              {/* Actions */}
-              <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 flex gap-3 z-50">
-                <button onClick={handleWhatsAppEnquiry} className="flex-1 py-4 bg-white border-2 border-charcoal text-charcoal rounded-2xl font-black">Get Quote</button>
-                <button onClick={handleAddToCart} className="flex-1 py-4 bg-charcoal text-white rounded-2xl font-black">Add to Cart</button>
-              </div>
             </div>
           </div>
 

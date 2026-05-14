@@ -241,33 +241,44 @@ const HomePage: React.FC = () => {
       )}
 
       {/* Stunning Split Promo Section */}
-      <section className="px-4 md:px-8 py-16">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10">
+      <section className="px-4 md:px-8 py-8 md:py-16 bg-white">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
           {/* Left Promo */}
-          <div className="relative h-[550px] rounded-[3.5rem] overflow-hidden group shadow-2xl">
+          <div className="relative h-[200px] md:h-[500px] rounded-3xl md:rounded-[3rem] overflow-hidden group shadow-lg">
             <img src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=1200" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt="Collection" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-12 space-y-6">
-              <span className="text-gold uppercase tracking-[0.4em] text-[10px] font-bold">New Arrivals</span>
-              <h2 className="text-4xl md:text-5xl font-heading text-white font-bold leading-tight">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-4 md:p-10 space-y-1 md:space-y-4">
+              <span className="text-gold uppercase tracking-[0.4em] text-[7px] md:text-[10px] font-bold">New Arrivals</span>
+              <h2 className="text-lg md:text-4xl font-heading text-white font-bold leading-tight">
                 Essence of <br /> <span className="text-gradient-gold">Pure Artistry</span>
               </h2>
-              <p className="text-gray-300 max-w-sm text-sm leading-relaxed">Discover handcrafted masterpieces that define modern elegance and traditional heritage.</p>
-              <Link to="/products" className="btn-premium w-fit">
+              <Link to="/products" className="btn-premium w-fit py-1.5 px-4 text-[9px] md:text-sm mt-1">
                 Explore Collection
               </Link>
             </div>
           </div>
-          {/* Right Promo */}
-          <div className="relative h-[550px] rounded-[3.5rem] overflow-hidden group shadow-2xl">
+          {/* Middle Promo */}
+          <div className="relative h-[200px] md:h-[500px] rounded-3xl md:rounded-[3rem] overflow-hidden group shadow-lg">
             <img src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=1200" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt="Elegance" />
-            <div className="absolute inset-0 bg-gradient-to-t from-emerald-950/90 via-black/20 to-transparent flex flex-col justify-end p-12 space-y-6 items-end text-right">
-              <span className="text-gold uppercase tracking-[0.4em] text-[10px] font-bold">Wedding Special</span>
-              <h2 className="text-4xl md:text-5xl font-heading text-white font-bold leading-tight">
+            <div className="absolute inset-0 bg-gradient-to-t from-emerald-950/80 via-black/20 to-transparent flex flex-col justify-end p-4 md:p-10 space-y-1 md:space-y-4 items-center text-center">
+              <span className="text-gold uppercase tracking-[0.4em] text-[7px] md:text-[10px] font-bold">Wedding Special</span>
+              <h2 className="text-lg md:text-4xl font-heading text-white font-bold leading-tight">
                 Timeless <br /> <span className="text-gradient-gold">Bridal Splendor</span>
               </h2>
-              <p className="text-gray-300 max-w-sm text-sm leading-relaxed">Revel in love's splendor with our exclusive wedding collection designed for your most special day.</p>
-              <Link to="/products" className="btn-premium w-fit">
+              <Link to="/products" className="btn-premium w-fit py-1.5 px-4 text-[9px] md:text-sm mt-1">
                 View Wedding Sets
+              </Link>
+            </div>
+          </div>
+          {/* Right Promo */}
+          <div className="relative h-[200px] md:h-[500px] rounded-3xl md:rounded-[3rem] overflow-hidden group shadow-lg">
+            <img src="https://images.unsplash.com/photo-1601121141461-9d6647bca1ed?w=1200" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt="Signature" />
+            <div className="absolute inset-0 bg-gradient-to-t from-rose-950/80 via-black/20 to-transparent flex flex-col justify-end p-4 md:p-10 space-y-1 md:space-y-4 items-end text-right">
+              <span className="text-gold uppercase tracking-[0.4em] text-[7px] md:text-[10px] font-bold">Exquisite</span>
+              <h2 className="text-lg md:text-4xl font-heading text-white font-bold leading-tight">
+                Signature <br /> <span className="text-gradient-gold">Collections</span>
+              </h2>
+              <Link to="/products" className="btn-premium w-fit py-1.5 px-4 text-[9px] md:text-sm mt-1">
+                Explore Now
               </Link>
             </div>
           </div>
@@ -296,7 +307,7 @@ const HomePage: React.FC = () => {
           </div>
           <div className="space-y-8">
             <span className="text-gold uppercase tracking-[0.5em] text-xs font-bold block">The Spotlight</span>
-            <h2 className="text-5xl md:text-7xl font-heading font-bold text-white leading-tight">
+            <h2 className="text-3xl md:text-7xl font-heading font-bold text-white leading-tight">
               Crafting <br /> <span className="text-gradient-gold italic font-normal">Excellence.</span>
             </h2>
             <p className="text-white/60 text-lg leading-relaxed max-w-lg">
@@ -323,25 +334,25 @@ const HomePage: React.FC = () => {
       <section className="px-4 md:px-8 py-20 bg-offwhite">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-16">
           <div className="flex flex-col items-center text-center group">
-            <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center text-gold shadow-sm border border-gray-100 group-hover:scale-110 transition-transform duration-500 mb-6">
-              <ShieldCheck size={36} strokeWidth={1.5} />
+            <div className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-2xl md:rounded-3xl flex items-center justify-center text-gold shadow-sm border border-gray-100 group-hover:scale-110 transition-transform duration-500 mb-4 md:mb-6">
+              <ShieldCheck size={32} md:size={36} strokeWidth={1.5} />
             </div>
-            <h4 className="text-2xl font-heading font-bold text-charcoal">Secure & Certified</h4>
-            <p className="text-gray-500 text-sm mt-3 max-w-xs leading-relaxed">Every diamond and gold piece comes with international certifications of authenticity.</p>
+            <h4 className="text-xl md:text-2xl font-heading font-bold text-charcoal">Secure & Certified</h4>
+            <p className="text-gray-500 text-[10px] md:text-sm mt-2 md:mt-3 max-w-xs leading-relaxed">Every diamond and gold piece comes with international certifications.</p>
           </div>
           <div className="flex flex-col items-center text-center group">
-            <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center text-gold shadow-sm border border-gray-100 group-hover:scale-110 transition-transform duration-500 mb-6">
-              <Truck size={36} strokeWidth={1.5} />
+            <div className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-2xl md:rounded-3xl flex items-center justify-center text-gold shadow-sm border border-gray-100 group-hover:scale-110 transition-transform duration-500 mb-4 md:mb-6">
+              <Truck size={32} md:size={36} strokeWidth={1.5} />
             </div>
-            <h4 className="text-2xl font-heading font-bold text-charcoal">Priority Concierge</h4>
-            <p className="text-gray-500 text-sm mt-3 max-w-xs leading-relaxed">Insured worldwide shipping with real-time tracking for every precious shipment.</p>
+            <h4 className="text-xl md:text-2xl font-heading font-bold text-charcoal">Priority Concierge</h4>
+            <p className="text-gray-500 text-[10px] md:text-sm mt-2 md:mt-3 max-w-xs leading-relaxed">Insured worldwide shipping with real-time tracking for every shipment.</p>
           </div>
           <div className="flex flex-col items-center text-center group">
-            <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center text-gold shadow-sm border border-gray-100 group-hover:scale-110 transition-transform duration-500 mb-6">
-              <Gem size={36} strokeWidth={1.5} />
+            <div className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-2xl md:rounded-3xl flex items-center justify-center text-gold shadow-sm border border-gray-100 group-hover:scale-110 transition-transform duration-500 mb-4 md:mb-6">
+              <Gem size={32} md:size={36} strokeWidth={1.5} />
             </div>
-            <h4 className="text-2xl font-heading font-bold text-charcoal">Artisanal Heritage</h4>
-            <p className="text-gray-500 text-sm mt-3 max-w-xs leading-relaxed">Blending traditional hand-filigree techniques with contemporary luxury design.</p>
+            <h4 className="text-xl md:text-2xl font-heading font-bold text-charcoal">Artisanal Heritage</h4>
+            <p className="text-gray-500 text-[10px] md:text-sm mt-2 md:mt-3 max-w-xs leading-relaxed">Blending traditional techniques with contemporary luxury design.</p>
           </div>
         </div>
       </section>

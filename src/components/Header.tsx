@@ -146,8 +146,8 @@ const Header: React.FC = () => {
               <Search size={20} />
             </button>
 
-            {/* User Dropdown */}
-            <div className="relative group">
+            {/* User Dropdown - Desktop only */}
+            <div className="hidden md:block relative group">
               <button
                 className="p-2 transition-colors hover:text-gold flex items-center gap-1 text-charcoal"
               >
@@ -211,7 +211,7 @@ const Header: React.FC = () => {
             )}
             <Link
               to="/wishlist"
-              className="hidden sm:block p-2 relative transition-colors hover:text-gold text-charcoal"
+              className="p-2 relative transition-colors hover:text-gold text-charcoal"
             >
               <Heart size={20} />
               {wishlist.length > 0 && (
@@ -309,34 +309,43 @@ const Header: React.FC = () => {
                 <h3 className="text-xl font-bold text-charcoal">Hi {isLoggedIn ? user?.name?.split(' ')[0] : 'Guest'}!</h3>
               </div>
             </div>
-            <button
-              onClick={() => setIsMenuOpen(false)}
-              className="w-9 h-9 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center text-[#8B2323] transition-transform hover:scale-105"
-            >
-              <Menu size={20} className="rotate-90" />
-            </button>
+            <div className="flex items-center gap-2">
+              <Link to="/wishlist" onClick={() => setIsMenuOpen(false)} className="w-9 h-9 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center text-charcoal relative">
+                <Heart size={18} />
+                {wishlist.length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] w-4 h-4 flex items-center justify-center rounded-full">
+                    {wishlist.length}
+                  </span>
+                )}
+              </Link>
+              <Link to="/profile" onClick={() => setIsMenuOpen(false)} className="w-9 h-9 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center text-charcoal">
+                <User size={18} />
+              </Link>
+              <button
+                onClick={() => setIsMenuOpen(false)}
+                className="w-9 h-9 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center text-[#8B2323] transition-transform hover:scale-105"
+              >
+                <X size={20} />
+              </button>
+            </div>
           </div>
 
-          <div className="flex items-center gap-4 mt-6">
-            {/* Currency Toggle */}
-            <div className="flex bg-[#f5f5f5] rounded-lg p-1.5 border border-gray-100">
-              <button className="px-4 py-1.5 rounded-md bg-white shadow-sm text-[#8B2323] font-bold text-sm">₹</button>
-              <button className="px-4 py-1.5 rounded-md text-gray-400 font-bold text-sm">$</button>
-            </div>
-
-            <button
-              onClick={() => {
-                setIsMenuOpen(false);
-                window.dispatchEvent(new CustomEvent('open-lucky-wheel'));
-              }}
-              className="ml-auto w-20 h-20 rounded-full border-2 border-dashed border-gold flex flex-col items-center justify-center bg-gold/5 group transition-all active:scale-95"
-            >
-              <div className="text-center leading-tight">
-                <Gift size={20} className="text-gold mx-auto mb-1 group-hover:bounce" />
-                <p className="text-[9px] font-bold text-gold uppercase tracking-tighter">Spin<br />& Win</p>
+          <div className="mt-6">
+            <div className="flex items-center justify-between p-4 bg-gradient-to-r from-gold/10 to-transparent rounded-2xl border border-gold/20">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-gold/20 flex items-center justify-center text-gold">
+                  <Wallet size={20} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase text-gold tracking-widest leading-none mb-1">My Wallet</p>
+                  <p className="text-lg font-black text-charcoal">₹{user?.walletBalance || 0}</p>
+                </div>
               </div>
-              <div className="absolute top-1 right-1 w-2.5 h-2.5 bg-gold rounded-full border-2 border-white shadow-sm animate-pulse" />
-            </button>
+              <div className="flex bg-[#f5f5f5] rounded-lg p-1 border border-gray-100 scale-90 origin-right">
+                <button className="px-3 py-1 rounded-md bg-white shadow-sm text-[#8B2323] font-bold text-xs">₹</button>
+                <button className="px-3 py-1 rounded-md text-gray-400 font-bold text-xs">$</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -365,7 +374,7 @@ const Header: React.FC = () => {
           <div className="space-y-1">
             {[
               { label: 'Men', path: '/products?gender=men' },
-              { label: 'Kids', path: '/products?gender=kids' }
+              { label: 'Women', path: '/products?gender=women' }
             ].map((item) => (
               <Link
                 key={item.label}

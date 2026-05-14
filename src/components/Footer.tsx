@@ -10,17 +10,17 @@ const Footer: React.FC = () => {
           {/* Brand Column - Full width on mobile */}
           <div className="space-y-6 col-span-1 lg:col-span-1">
             <Link to="/" className="flex items-center gap-3">
-              <div className="w-11 h-11 flex-shrink-0 bg-white/5 rounded-2xl border border-white/10 p-1.5 overflow-hidden">
+              <div className="w-10 h-10 md:w-11 md:h-11 flex-shrink-0 bg-white/5 rounded-2xl border border-white/10 p-1.5 overflow-hidden">
                 <img src="/images/logo.png?v=1.1" alt="Arham Ornaments" className="w-full h-full object-contain" />
               </div>
               <div className="flex flex-col">
-                <h2 className="text-2xl font-bold tracking-[0.12em] font-heading leading-none bg-clip-text text-transparent bg-gradient-to-r from-white via-gold-light to-white">
+                <h2 className="text-xl md:text-2xl font-bold tracking-[0.12em] font-heading leading-none bg-clip-text text-transparent bg-gradient-to-r from-white via-gold-light to-white">
                   ARHAM
                 </h2>
-                <span className="text-[9px] tracking-[0.3em] text-gold uppercase font-bold leading-none mt-1">ORNAMENTS</span>
+                <span className="text-[8px] md:text-[9px] tracking-[0.3em] text-gold uppercase font-bold leading-none mt-1">ORNAMENTS</span>
               </div>
             </Link>
-            <p className="text-gray-400 text-sm leading-relaxed max-w-sm">
+            <p className="text-gray-400 text-[12px] md:text-sm leading-relaxed max-w-sm">
               Crafting timeless stories since 1985. Experience the fusion of traditional heritage and modern luxury.
             </p>
             {/* Social Icons for Mobile/Tablet - visible as a row */}
