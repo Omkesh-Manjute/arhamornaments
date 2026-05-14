@@ -9,7 +9,7 @@ const SupportPage: React.FC = () => {
     <div className="min-h-screen bg-offwhite flex flex-col">
       {/* Sticky Header with Back Button */}
       <div className="sticky top-0 z-50 bg-offwhite/80 backdrop-blur-md px-6 py-4 flex items-center">
-        <button 
+        <button
           onClick={() => navigate(-1)}
           className="w-10 h-10 rounded-full bg-white shadow-sm border border-gray-100 flex items-center justify-center text-charcoal active:scale-90 transition-all"
         >
@@ -118,7 +118,7 @@ const SupportPage: React.FC = () => {
           <p className="text-gray-400 text-sm leading-relaxed px-4">
             Crafting timeless stories since 1985. Experience the fusion of traditional heritage and modern luxury.
           </p>
-          
+
           <div className="flex flex-wrap justify-center gap-3 pt-2">
             {['Facebook', 'Instagram', 'Twitter'].map(social => (
               <a key={social} href="#" className="px-5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest hover:bg-gold/20 hover:border-gold/30 transition-all text-gray-300">

@@ -24,11 +24,11 @@ const ProductDetail: React.FC = () => {
   const [dbProducts, setDbProducts] = useState<Product[]>([]);
   const [direction, setDirection] = useState(0);
 
-  
+
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { calculateProductPrice } = usePrice();
-  
+
   const isFavorite = id ? isInWishlist(id) : false;
 
   // Fetch product from Firestore or Static
@@ -37,7 +37,7 @@ const ProductDetail: React.FC = () => {
       if (!id) return;
       if (!product) setLoading(true);
 
-      
+
       try {
         const dbProduct = await productService.getProductById(id);
         if (dbProduct) {
@@ -89,9 +89,9 @@ const ProductDetail: React.FC = () => {
     if (!product) return [];
     const source = dbProducts.length > 0 ? dbProducts : staticProducts;
     return source
-      .filter(p => 
-        p.id !== product.id && 
-        p.material === product.material && 
+      .filter(p =>
+        p.id !== product.id &&
+        p.material === product.material &&
         p.category === product.category &&
         (p.occasion === product.occasion || p.featured)
       )
@@ -168,7 +168,7 @@ const ProductDetail: React.FC = () => {
     } else {
       nextIndex = (currentIndex - 1 + siblingProducts.length) % siblingProducts.length;
     }
-    
+
     const nextProduct = siblingProducts[nextIndex];
     if (nextProduct && nextProduct.id !== product?.id) {
       setCurrentImage(0);
@@ -187,7 +187,7 @@ const ProductDetail: React.FC = () => {
     if (!touchStart || !touchEnd) return;
     const distance = touchStart - touchEnd;
     const isSwipe = Math.abs(distance) > 70;
-    
+
     if (isSwipe) {
       const imagesCount = product?.images?.length || 1;
       if (isImageArea && imagesCount > 1) {
@@ -199,7 +199,7 @@ const ProductDetail: React.FC = () => {
           return;
         }
       }
-      
+
       if (distance > 0) navigateToSibling('next');
       else navigateToSibling('prev');
     }
@@ -217,7 +217,7 @@ const ProductDetail: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#FCFBF7] relative overflow-x-hidden">
       <AnimatePresence initial={false} custom={direction}>
-        <motion.div 
+        <motion.div
           key={product.id}
           custom={direction}
           variants={{
@@ -248,7 +248,7 @@ const ProductDetail: React.FC = () => {
           {/* MOBILE LAYOUT */}
           <div className="lg:hidden bg-[#FCFBF7]">
             {/* Simple Horizontal Slider */}
-            <div 
+            <div
               className="relative bg-white pt-4"
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
@@ -264,7 +264,7 @@ const ProductDetail: React.FC = () => {
                   </div>
                 ))}
               </div>
-              
+
               {/* Indicators */}
               {(product.images?.length || 0) > 1 && (
                 <div className="flex justify-center gap-2 mt-4 pb-2">
@@ -279,61 +279,89 @@ const ProductDetail: React.FC = () => {
               </button>
             </div>
 
-            {/* Details Section */}
-            <div 
-              className="px-5 pt-8 pb-32 space-y-6"
+            {/* Details Section - EXACT MATCH TO IMAGE */}
+            <div
+              className="px-5 pt-4 pb-32 space-y-6 bg-white rounded-t-[3rem] shadow-[0_-10px_40px_rgba(0,0,0,0.05)]"
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={() => handleTouchEnd(false)}
             >
-              <div>
-                <span className="text-[10px] font-black uppercase text-gold">{product.material} Collection</span>
-                <h1 className="text-3xl font-heading font-bold text-charcoal">{product.name}</h1>
-              </div>
-
-              <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-50 flex items-center justify-between">
-                <span className="text-2xl font-black text-charcoal">{formatPrice(currentPrice * quantity)}</span>
-                <div className="flex items-center border border-gray-100 rounded-xl overflow-hidden scale-90">
-                  <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="p-2 hover:bg-gray-50 text-gray-400">
-                    <Minus size={14} />
-                  </button>
-                  <span className="px-3 py-1 font-black text-charcoal border-x border-gray-50 min-w-[2rem] text-center text-sm">{quantity}</span>
-                  <button onClick={() => setQuantity(quantity + 1)} className="p-2 hover:bg-gray-50 text-gray-400">
-                    <Plus size={14} />
-                  </button>
-                </div>
-              </div>
-
-              {/* Details Table */}
-              <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-50 space-y-4">
-                <h4 className="text-xs font-black uppercase text-gold">Product Specifications</h4>
+              {/* Icon Actions Row */}
+              <div className="grid grid-cols-4 pt-4">
                 {[
-                  ['Design No.', product.designNo || 'N/A'],
-                  ['Gross Weight', `${product.grossWeight?.toFixed(3) || '0.000'} g`],
-                  ['Net Weight', `${product.netWeight?.toFixed(3) || '0.000'} g`],
-                  ['Material', product.material.toUpperCase()],
-                  ['Purity', product.purity || (product.material === 'gold' ? '22K' : 'N/A')],
-                ].map(([label, value]) => (
-                  <div key={label} className="flex justify-between text-sm">
-                    <span className="text-gray-400">{label}</span>
-                    <span className="text-charcoal font-black">{value}</span>
-                  </div>
+                  { icon: Phone, label: 'Call', onClick: () => window.location.href = 'tel:+919371504182', color: 'text-orange-500', bg: 'bg-orange-50' },
+                  { icon: Heart, label: 'Favorite', onClick: () => toggleWishlist(product), color: isFavorite ? 'text-red-500' : 'text-gray-400', bg: 'bg-red-50', fill: isFavorite },
+                  { icon: MessageCircle, label: 'Whatsapp', onClick: handleWhatsAppEnquiry, color: 'text-green-500', bg: 'bg-green-50' },
+                  { icon: Share2, label: 'Share', onClick: () => navigator.share?.({ title: product.name, url: window.location.href }), color: 'text-blue-500', bg: 'bg-blue-50' }
+                ].map((item, i) => (
+                  <button key={i} onClick={item.onClick} className="flex flex-col items-center gap-2 group">
+                    <div className={`w-14 h-14 rounded-full ${item.bg} flex items-center justify-center transition-all active:scale-90 shadow-sm border border-gray-100`}>
+                      <item.icon size={24} className={item.color} fill={item.fill ? 'currentColor' : 'none'} />
+                    </div>
+                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">{item.label}</span>
+                  </button>
                 ))}
               </div>
 
-              {/* Actions moved from bottom bar */}
-              <div className="flex gap-3 pt-2">
-                <button onClick={handleWhatsAppEnquiry} className="flex-1 py-4 bg-white border-2 border-charcoal text-charcoal rounded-2xl font-black shadow-sm">Get Quote</button>
-                <button onClick={handleAddToCart} className="flex-1 py-4 bg-charcoal text-white rounded-2xl font-black shadow-lg shadow-charcoal/10">Add to Cart</button>
+              <div className="h-px bg-gray-100 mx-2"></div>
+
+              {/* Specification Table */}
+              <div className="space-y-4 px-2">
+                {[
+                  ['Design No.', product.designNo || 'N/A'],
+                  ['Size', '-:-'],
+                  ['Purity', product.purity || '18K'],
+                  ['Gross Weight', `${product.grossWeight?.toFixed(2) || '0.00'}`],
+                  ['Net Weight', '-:-'],
+                  ['Lbr %', '-:-'],
+                  ['Total Amount', formatPrice(currentPrice * quantity), 'text-green-600 font-black'],
+                ].map(([label, value, extraClass], i) => (
+                  <div key={i} className="flex items-center text-sm">
+                    <span className="w-1/3 text-gray-500 font-medium">{label}</span>
+                    <span className="text-gray-300 mx-2">:</span>
+                    <span className={`flex-1 text-charcoal font-bold ${extraClass || ''}`}>{value}</span>
+                  </div>
+                ))}
+
+                {/* Quantity Row */}
+                <div className="flex items-center text-sm pt-2">
+                  <span className="w-1/3 text-gray-500 font-medium">Order Pcs</span>
+                  <span className="text-gray-300 mx-2">:</span>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                      <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-10 h-10 flex items-center justify-center hover:bg-gray-50 text-orange-400 font-black">-</button>
+                      <div className="w-12 h-10 flex items-center justify-center font-black text-charcoal border-x border-gray-100">{quantity}</div>
+                      <button onClick={() => setQuantity(quantity + 1)} className="w-10 h-10 flex items-center justify-center hover:bg-gray-50 text-orange-400 font-black">+</button>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              {product.description && (
-                <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-50 space-y-4">
-                  <h4 className="text-xs font-black uppercase text-gold">Description</h4>
-                  <p className="text-sm text-gray-600 leading-relaxed">{product.description}</p>
+              {/* Description Box */}
+              <div className="px-2">
+                <div className="w-full p-4 rounded-2xl border border-gray-200 min-h-[80px]">
+                  <p className="text-xs text-gray-400 font-medium mb-1">Description</p>
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    {product.description || 'Exquisite piece from our signature collection.'}
+                  </p>
                 </div>
-              )}
+              </div>
 
+              {/* Primary Buttons */}
+              <div className="flex gap-4 pt-4">
+                <button 
+                  onClick={handleWhatsAppEnquiry}
+                  className="flex-1 py-4 bg-white border-2 border-gray-100 text-[#5D5D81] rounded-2xl font-black uppercase tracking-widest text-xs shadow-sm active:scale-95 transition-all"
+                >
+                  Get Quote
+                </button>
+                <button 
+                  onClick={handleAddToCart}
+                  className="flex-1 py-4 bg-[#1A1A1A] text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg shadow-black/10 active:scale-95 transition-all"
+                >
+                  Add to Cart
+                </button>
+              </div>
             </div>
           </div>
 
@@ -349,8 +377,8 @@ const ProductDetail: React.FC = () => {
                 {(product.images?.length || 0) > 1 && (
                   <div className="flex gap-3 overflow-x-auto no-scrollbar py-2">
                     {product.images?.map((img, i) => (
-                      <button 
-                        key={i} 
+                      <button
+                        key={i}
                         onClick={() => setCurrentImage(i)}
                         className={`w-20 h-20 rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 ${i === currentImage ? 'border-gold shadow-md' : 'border-transparent opacity-60 hover:opacity-100'}`}
                       >
@@ -367,7 +395,7 @@ const ProductDetail: React.FC = () => {
                   <span className="text-[10px] font-black uppercase text-gold tracking-[0.4em]">{product.material} Collection</span>
                   <h1 className="text-4xl font-heading font-bold text-charcoal leading-tight">{product.name}</h1>
                 </div>
-                
+
                 <div className="flex items-center justify-between pb-6 border-b border-gray-100">
                   <div className="space-y-1">
                     <p className="text-3xl font-black text-charcoal">{formatPrice(currentPrice * quantity)}</p>
@@ -375,7 +403,7 @@ const ProductDetail: React.FC = () => {
                       <p className="text-lg text-gray-400 line-through">{formatPrice(product.originalPrice)}</p>
                     )}
                   </div>
-                  
+
                   <div className="flex items-center gap-3">
                     <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Qty</span>
                     <div className="flex items-center border-2 border-gray-100 rounded-xl overflow-hidden bg-white">
@@ -386,19 +414,25 @@ const ProductDetail: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Product Specifications - MOVED UP */}
-                <div className="space-y-4">
-                  <h4 className="text-[10px] font-black uppercase text-gold tracking-[0.3em]">Product Specifications</h4>
-                  <div className="grid grid-cols-2 gap-3">
+                {/* Product Specifications - Refined List */}
+                <div className="space-y-4 pt-4">
+                  <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+                    <h4 className="text-[11px] font-black uppercase tracking-[0.3em] text-[#8B2323]">Technical Specifications</h4>
+                    <span className="text-[10px] font-bold text-gray-400">ID: {product.designNo}</span>
+                  </div>
+                  <div className="grid grid-cols-1 gap-y-3">
                     {[
                       ['Design No.', product.designNo || 'N/A'],
+                      ['Purity', product.purity || (product.material === 'gold' ? '22K' : 'N/A')],
                       ['Gross Weight', `${product.grossWeight?.toFixed(3) || '0.000'} g`],
                       ['Net Weight', `${product.netWeight?.toFixed(3) || '0.000'} g`],
-                      ['Purity', product.purity || (product.material === 'gold' ? '22K' : 'N/A')],
+                      ['Material', product.material.toUpperCase()],
+                      ['Metal Color', 'YELLOW GOLD'],
                     ].map(([label, value]) => (
-                      <div key={label} className="p-4 bg-white rounded-2xl border border-gray-50 shadow-sm flex flex-col gap-1 hover:shadow-md transition-shadow duration-300">
-                        <span className="text-[9px] uppercase font-black text-gray-400 tracking-widest">{label}</span>
-                        <p className="text-charcoal font-bold">{value}</p>
+                      <div key={label} className="flex justify-between items-center group">
+                        <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">{label}</span>
+                        <div className="flex-1 border-b border-dotted border-gray-200 mx-6 opacity-30 group-hover:opacity-100 transition-opacity"></div>
+                        <span className="text-sm font-black text-charcoal">{value}</span>
                       </div>
                     ))}
                   </div>

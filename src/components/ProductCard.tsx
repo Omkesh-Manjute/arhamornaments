@@ -14,14 +14,14 @@ interface ProductCardProps {
 const ProductCard: React.FC<ProductCardProps> = ({ product, hidePrice = false }) => {
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { calculateProductPrice } = usePrice();
-  
+
   const isFavorite = isInWishlist(product.id);
   const currentPrice = calculateProductPrice(product);
   const originalPrice = currentPrice * 1.15; // Mock original price for discount display
 
   return (
     <div className="relative group bg-white">
-      <Link 
+      <Link
         to={`/product/${product.id}`}
         className="block transition-all duration-300"
       >
@@ -38,9 +38,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hidePrice = false })
               target.src = 'https://via.placeholder.com/400x400?text=Jewellery';
             }}
           />
-          
+
           {/* Wishlist Button inside image */}
-          <button 
+          <button
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -48,13 +48,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hidePrice = false })
             }}
             className="absolute top-3 right-3 p-1.5 transition-all z-20 group/heart"
           >
-            <Heart 
-              size={20} 
-              className={`transition-all ${
-                isFavorite 
-                  ? 'fill-[#de57e5] text-[#de57e5] scale-110' 
+            <Heart
+              size={20}
+              className={`transition-all ${isFavorite
+                  ? 'fill-[#de57e5] text-[#de57e5] scale-110'
                   : 'text-gray-400 hover:text-[#de57e5]'
-              }`} 
+                }`}
             />
           </button>
 
@@ -87,12 +86,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hidePrice = false })
               <span className="text-[9px] text-gray-400 border-l border-gray-200 ml-1 pl-1">(12)</span>
             </div>
           </div>
-          
+
           {/* Discount/Offer Tag */}
           <p className="text-[11px] font-medium text-[#00a69c]">
             15% OFF on Making Charge
           </p>
-          
+
           {/* Product Name - Minimal & Subtle */}
           <h3 className="text-[11px] text-gray-500 font-medium truncate mt-1">
             {product.name}
