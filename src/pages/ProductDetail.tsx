@@ -155,17 +155,15 @@ const ProductDetail: React.FC = () => {
 
   const currentPrice = calculateProductPrice(product, selectedPurity);
 
-
-  // Navigation between products logic
   const navigateToSibling = (dir: 'next' | 'prev') => {
-    setDirection(dir === 'next' ? 1 : -1);
     if (siblingProducts.length <= 1) return;
     const currentIndex = siblingProducts.findIndex(p => p.id === product?.id);
-
     if (currentIndex === -1) return;
 
+    setDirection(dir === 'next' ? 1 : -1);
+
     let nextIndex;
-    if (direction === 'next') {
+    if (dir === 'next') {
       nextIndex = (currentIndex + 1) % siblingProducts.length;
     } else {
       nextIndex = (currentIndex - 1 + siblingProducts.length) % siblingProducts.length;
@@ -178,13 +176,13 @@ const ProductDetail: React.FC = () => {
     }
   };
 
-
-
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchEnd(null);
     setTouchStart(e.targetTouches[0].clientX);
   };
+
   const handleTouchMove = (e: React.TouchEvent) => setTouchEnd(e.targetTouches[0].clientX);
+
   const handleTouchEnd = (isImageArea: boolean) => {
     if (!touchStart || !touchEnd) return;
     const distance = touchStart - touchEnd;
@@ -192,9 +190,7 @@ const ProductDetail: React.FC = () => {
     
     if (isSwipe) {
       const imagesCount = product?.images?.length || 1;
-      
       if (isImageArea && imagesCount > 1) {
-        // If swiping on images, try to cycle images first
         if (distance > 0 && currentImage < imagesCount - 1) {
           setCurrentImage(prev => prev + 1);
           return;
@@ -204,7 +200,6 @@ const ProductDetail: React.FC = () => {
         }
       }
       
-      // If at boundaries or on details area, change product
       if (distance > 0) navigateToSibling('next');
       else navigateToSibling('prev');
     }
@@ -220,8 +215,8 @@ const ProductDetail: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FCFBF7] overflow-x-hidden">
-      <AnimatePresence mode="wait" custom={direction}>
+    <div className="min-h-screen bg-[#FCFBF7] relative overflow-x-hidden">
+      <AnimatePresence initial={false} custom={direction}>
         <motion.div 
           key={product.id}
           custom={direction}
@@ -229,136 +224,146 @@ const ProductDetail: React.FC = () => {
             enter: (direction: number) => ({
               x: direction > 0 ? '100%' : direction < 0 ? '-100%' : 0,
               opacity: 0,
-              scale: 0.95
             }),
             center: {
               x: 0,
               opacity: 1,
-              scale: 1
+              zIndex: 1,
             },
             exit: (direction: number) => ({
               x: direction > 0 ? '-100%' : direction < 0 ? '100%' : 0,
               opacity: 0,
-              scale: 0.95
+              zIndex: 0,
             })
           }}
           initial="enter"
           animate="center"
           exit="exit"
           transition={{
-            x: { type: "spring", stiffness: 300, damping: 30 },
+            x: { type: "spring", stiffness: 300, damping: 35 },
             opacity: { duration: 0.2 },
-            scale: { duration: 0.3 }
           }}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={() => handleTouchEnd(false)}
+          className="w-full absolute top-0 left-0"
         >
-
-
-      {/* MOBILE LAYOUT */}
-      <div className="lg:hidden">
-        {/* Simple Horizontal Slider */}
-        <div 
-          className="relative bg-white pt-4"
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={(e) => {
-            e.stopPropagation();
-            handleTouchEnd(true);
-          }}
-        >
-          <div className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar h-[50vh]">
-            {product.images?.map((img, i) => (
-              <div key={i} className="w-full h-full flex-shrink-0 snap-center px-4">
-                <img src={img} alt="" className="w-full h-full object-contain p-4" />
+          {/* MOBILE LAYOUT */}
+          <div className="lg:hidden bg-[#FCFBF7]">
+            {/* Simple Horizontal Slider */}
+            <div 
+              className="relative bg-white pt-4"
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={(e) => {
+                e.stopPropagation();
+                handleTouchEnd(true);
+              }}
+            >
+              <div className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar h-[50vh]">
+                {product.images?.map((img, i) => (
+                  <div key={i} className="w-full h-full flex-shrink-0 snap-center px-4">
+                    <img src={img} alt="" className="w-full h-full object-contain p-4" />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-          
-          {/* Indicators */}
-          {(product.images?.length || 0) > 1 && (
-            <div className="flex justify-center gap-2 mt-4 pb-2">
-              {product.images?.map((_, i) => (
-                <div key={i} className={`h-1 rounded-full transition-all duration-300 ${i === currentImage ? 'w-6 bg-gold' : 'w-2 bg-gray-200'}`} />
-              ))}
+              
+              {/* Indicators */}
+              {(product.images?.length || 0) > 1 && (
+                <div className="flex justify-center gap-2 mt-4 pb-2">
+                  {product.images?.map((_, i) => (
+                    <div key={i} className={`h-1 rounded-full transition-all duration-300 ${i === currentImage ? 'w-6 bg-gold' : 'w-2 bg-gray-200'}`} />
+                  ))}
+                </div>
+              )}
+
+              <button onClick={() => navigate(-1)} className="absolute top-8 right-6 w-10 h-10 bg-white shadow-lg rounded-full flex items-center justify-center">
+                ‹
+              </button>
             </div>
-          )}
 
-          <button onClick={() => navigate(-1)} className="absolute top-8 right-6 w-10 h-10 bg-white shadow-lg rounded-full flex items-center justify-center">
-            ‹
-          </button>
-        </div>
-
-        {/* Details Section */}
-        <div className="px-5 pt-8 pb-32 space-y-6">
-          <div>
-            <span className="text-[10px] font-black uppercase text-gold">{product.material} Collection</span>
-            <h1 className="text-3xl font-heading font-bold text-charcoal">{product.name}</h1>
-          </div>
-
-          <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-50 text-center">
-            <span className="text-4xl font-black text-charcoal">{formatPrice(currentPrice * quantity)}</span>
-          </div>
-
-          {/* Details Table */}
-          <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-50 space-y-4">
-            <h4 className="text-xs font-black uppercase text-gold">Product Details</h4>
-            {[
-              ['Design No.', product.designNo || 'N/A'],
-              ['Gross Weight', `${product.grossWeight?.toFixed(3) || '0.000'} g`],
-              ['Net Weight', `${product.netWeight?.toFixed(3) || '0.000'} g`],
-            ].map(([label, value]) => (
-              <div key={label} className="flex justify-between text-sm">
-                <span className="text-gray-400">{label}</span>
-                <span className="text-charcoal font-black">{value}</span>
+            {/* Details Section */}
+            <div 
+              className="px-5 pt-8 pb-32 space-y-6"
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={() => handleTouchEnd(false)}
+            >
+              <div>
+                <span className="text-[10px] font-black uppercase text-gold">{product.material} Collection</span>
+                <h1 className="text-3xl font-heading font-bold text-charcoal">{product.name}</h1>
               </div>
-            ))}
-          </div>
 
-          {/* Actions */}
-          <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 flex gap-3 z-50">
-            <button onClick={handleWhatsAppEnquiry} className="flex-1 py-4 bg-white border-2 border-charcoal text-charcoal rounded-2xl font-black">Get Quote</button>
-            <button onClick={handleAddToCart} className="flex-1 py-4 bg-charcoal text-white rounded-2xl font-black">Add to Cart</button>
-          </div>
-        </div>
-      </div>
+              <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-50 text-center">
+                <span className="text-4xl font-black text-charcoal">{formatPrice(currentPrice * quantity)}</span>
+              </div>
 
-      {/* DESKTOP LAYOUT (SIMPLIFIED FOR STABILITY) */}
-      <div className="hidden lg:block max-w-7xl mx-auto px-6 py-12">
-        <div className="grid grid-cols-2 gap-16">
-          <div className="aspect-square rounded-[3rem] overflow-hidden bg-white shadow-2xl">
-            <img src={product.images?.[currentImage] || ''} alt="" className="w-full h-full object-contain p-8" />
-          </div>
-          <div className="space-y-10">
-            <h1 className="text-5xl font-heading font-bold text-charcoal">{product.name}</h1>
-            <p className="text-4xl font-black text-gold">{formatPrice(currentPrice * quantity)}</p>
-            <div className="flex gap-4">
-              <button onClick={handleWhatsAppEnquiry} className="flex-1 py-5 bg-white border border-gray-200 text-charcoal rounded-xl font-black">Get Quote</button>
-              <button onClick={handleAddToCart} className="flex-1 py-5 bg-charcoal text-white rounded-xl font-black">Add to Cart</button>
+              {/* Details Table */}
+              <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-50 space-y-4">
+                <h4 className="text-xs font-black uppercase text-gold">Product Details</h4>
+                {[
+                  ['Design No.', product.designNo || 'N/A'],
+                  ['Gross Weight', `${product.grossWeight?.toFixed(3) || '0.000'} g`],
+                  ['Net Weight', `${product.netWeight?.toFixed(3) || '0.000'} g`],
+                ].map(([label, value]) => (
+                  <div key={label} className="flex justify-between text-sm">
+                    <span className="text-gray-400">{label}</span>
+                    <span className="text-charcoal font-black">{value}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Actions */}
+              <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 flex gap-3 z-50">
+                <button onClick={handleWhatsAppEnquiry} className="flex-1 py-4 bg-white border-2 border-charcoal text-charcoal rounded-2xl font-black">Get Quote</button>
+                <button onClick={handleAddToCart} className="flex-1 py-4 bg-charcoal text-white rounded-2xl font-black">Add to Cart</button>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Related sections */}
-        {completeTheLook.length > 0 && (
-          <div className="mt-32 space-y-12">
-            <div className="text-center space-y-2"><h4 className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em]">Collection</h4><h2 className="text-4xl font-heading font-bold text-charcoal">Related Products</h2><div className="w-12 h-1 bg-gold mx-auto mt-4" /></div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">{relatedProducts.map(p => <ProductCard key={p.id} product={p} />)}</div>
+          {/* DESKTOP LAYOUT */}
+          <div className="hidden lg:block max-w-7xl mx-auto px-6 py-12">
+            <div className="grid grid-cols-2 gap-16">
+              <div className="aspect-square rounded-[3rem] overflow-hidden bg-white shadow-2xl">
+                <img src={product.images?.[currentImage] || ''} alt="" className="w-full h-full object-contain p-8" />
+              </div>
+              <div className="space-y-10">
+                <h1 className="text-5xl font-heading font-bold text-charcoal">{product.name}</h1>
+                <p className="text-4xl font-black text-gold">{formatPrice(currentPrice * quantity)}</p>
+                <div className="flex gap-4">
+                  <button onClick={handleWhatsAppEnquiry} className="flex-1 py-5 bg-white border border-gray-200 text-charcoal rounded-xl font-black">Get Quote</button>
+                  <button onClick={handleAddToCart} className="flex-1 py-5 bg-charcoal text-white rounded-xl font-black">Add to Cart</button>
+                </div>
+              </div>
+            </div>
+
+            {/* Related sections */}
+            {relatedProducts.length > 0 && (
+              <div className="mt-32 space-y-12">
+                <div className="text-center space-y-2">
+                  <h4 className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em]">Collection</h4>
+                  <h2 className="text-4xl font-heading font-bold text-charcoal">Related Products</h2>
+                  <div className="w-12 h-1 bg-gold mx-auto mt-4" />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                  {relatedProducts.map(p => <ProductCard key={p.id} product={p} />)}
+                </div>
+              </div>
+            )}
+            {recentlyViewed.length > 0 && (
+              <div className="mt-32 space-y-12">
+                <div className="text-center space-y-2">
+                  <h4 className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em]">History</h4>
+                  <h2 className="text-4xl font-heading font-bold text-charcoal">Recently Viewed</h2>
+                  <div className="w-12 h-1 bg-gold mx-auto mt-4" />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                  {recentlyViewed.map(p => <ProductCard key={p.id} product={p} />)}
+                </div>
+              </div>
+            )}
           </div>
-        )}
-        {recentlyViewed.length > 0 && (
-          <div className="mt-32 space-y-12">
-            <div className="text-center space-y-2"><h4 className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em]">History</h4><h2 className="text-4xl font-heading font-bold text-charcoal">Recently Viewed</h2><div className="w-12 h-1 bg-gold mx-auto mt-4" /></div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">{recentlyViewed.map(p => <ProductCard key={p.id} product={p} />)}</div>
-          </div>
-        )}
-        </div>
-      </motion.div>
-    </AnimatePresence>
-  </div>
+        </motion.div>
+      </AnimatePresence>
+    </div>
   );
 };
-
 
 export default ProductDetail;
