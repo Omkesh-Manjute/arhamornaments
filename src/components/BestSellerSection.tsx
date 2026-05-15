@@ -50,9 +50,9 @@ const BestSellerSection: React.FC<BestSellerSectionProps> = ({
 
         {/* Product Slider (Horizontal Scroll on Mobile) */}
         <div className="relative">
-          <div className="flex overflow-x-auto pb-8 gap-6 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-4 snap-x snap-mandatory">
+          <div className="flex overflow-x-auto pb-8 gap-4 md:gap-6 no-scrollbar -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-4 snap-x snap-mandatory">
             {products.map((product) => (
-              <div key={product.id} className="min-w-[280px] md:min-w-0 snap-start">
+              <div key={product.id} className="min-w-[170px] md:min-w-0 snap-start">
                 <ProductCard product={product} hidePrice={true} />
               </div>
             ))}

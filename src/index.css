@@ -139,6 +139,15 @@ h6 {
   animation: scaleUp 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
+/* Scrollbar Hide Utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
 /* Card Hover */
 .luxury-card {
   transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);

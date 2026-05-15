@@ -90,12 +90,12 @@ const CollectionSlider: React.FC<CollectionSliderProps> = ({ title, subtitle, ba
         </div>
 
         {/* Horizontal Items Slider */}
-        <div className="flex overflow-x-auto no-scrollbar gap-6 pb-4">
+        <div className="flex overflow-x-auto no-scrollbar gap-4 md:gap-6 pb-4">
           {items.map((item) => (
             <Link 
               key={item.id} 
               to={item.path}
-              className="flex-shrink-0 w-[220px] md:w-[320px] group"
+              className="flex-shrink-0 w-[170px] md:w-[320px] group"
             >
               <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 border border-gold/5">
                 <div className="aspect-[4/5] overflow-hidden bg-white relative">
