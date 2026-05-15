@@ -72,7 +72,6 @@ const Header: React.FC = () => {
     { name: 'Pendants', path: '/products?category=pendants' },
     { name: 'Mangalsutra', path: '/products?category=mangalsutra' },
     { name: 'Bangles', path: '/products?category=bangles' },
-    { name: 'About Us', path: '/about' },
   ];
 
   const isHomePage = location.pathname === '/';
@@ -114,7 +113,7 @@ const Header: React.FC = () => {
               <Link
                 key={link.name}
                 to={link.path}
-                className={`text-xs uppercase tracking-widest font-medium transition-all hover:text-gold ${location.pathname + location.search === link.path
+                className={`text-xs uppercase tracking-widest font-medium transition-all hover:text-gold whitespace-nowrap ${location.pathname + location.search === link.path
                     ? 'text-gold'
                     : 'text-charcoal'
                   }`}

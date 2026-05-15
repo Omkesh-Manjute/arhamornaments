@@ -74,8 +74,8 @@ const ReferAndEarn: React.FC = () => {
             <h1 className="text-3xl md:text-5xl font-heading font-bold text-charcoal leading-tight">
               Share the Radiance, <br /><span className="text-gold italic">Earn Together</span>
             </h1>
-            <p className="text-gray-400 text-sm max-w-lg mx-auto font-medium">
-              Invite your inner circle to Arham Ornaments. When they join, <span className="text-charcoal font-bold">you both receive ₹100</span> in your luxury wallet.
+            <p className="text-gray-400 text-sm max-w-lg mx-auto font-medium leading-relaxed">
+              Invite your inner circle to Arham Ornaments. When they join, <span className="text-charcoal font-bold">you both receive ₹100</span> bonus instantly. Plus, all new members get a <span className="text-gold font-bold">one-time exclusive welcome spin</span> to win up to ₹500!
             </p>
           </div>
 

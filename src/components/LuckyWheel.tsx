@@ -396,12 +396,12 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
             </div>
             <h3 className="text-3xl font-bold text-[#1a1a1a] tracking-tight">Welcome, <span className="text-[#c5a059]">{user?.name?.split(' ')[0]||'Guest'}</span>! 🎉</h3>
             <p className="text-gray-500 text-sm leading-relaxed max-w-[250px] mx-auto font-medium">
-              {canSpin() ? 'Your daily lucky spin is ready!' : 'You have already claimed your reward for today. See you tomorrow!'}
+              {canSpin() ? 'Unlock your exclusive welcome gift! Spin now to win cash rewards for your first purchase.' : 'You have already claimed your unique welcome reward! Explore our collections to use your winnings.'}
             </p>
           </div>
           <button id="spin-now-button" onClick={spinWheel} disabled={isSpinning||!canSpin()}
             className={`w-full py-5 rounded-[2rem] font-black uppercase tracking-[0.25em] transition-all shadow-2xl text-lg relative overflow-hidden ${isSpinning||!canSpin()?'bg-gray-100 text-gray-400 cursor-not-allowed':'bg-[#1a1a1a] text-white hover:bg-[#c5a059] hover:scale-[1.02] active:scale-95'}`}>
-            {isSpinning ? '✨ SPINNING...' : !canSpin() ? '⏰ TOMORROW' : '🎰 SPIN NOW!'}
+            {isSpinning ? '✨ SPINNING...' : !canSpin() ? 'CLAIMED' : '🎰 SPIN NOW!'}
           </button>
         </div>
       </div>

@@ -172,7 +172,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
           title: 'Welcome to Arham Ornaments! 🎉',
           message: referrerUid
             ? `You joined with a referral code. ₹100 has been added to your wallet as a welcome bonus!`
-            : `Welcome! Explore exclusive rewards, spin the wheel daily, and refer friends to earn more.`,
+            : `Welcome! Explore exclusive rewards, spin the wheel for a welcome bonus, and refer friends to earn more.`,
           type: 'system',
           date: new Date().toISOString(),
           isRead: false,
@@ -211,11 +211,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const canSpin = () => {
     if (!user) return false;
-    if (!user.lastSpinDate) return true;
-    
-    const lastSpin = new Date(user.lastSpinDate);
-    const today = new Date();
-    return lastSpin.toDateString() !== today.toDateString();
+    return !user.lastSpinDate;
   };
 
   const recordSpin = async (amount: number) => {
@@ -224,8 +220,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     const newNotif: Notification = {
       id: Date.now().toString(),
-      title: 'Lucky Spin Reward',
-      message: `You won ₹${amount} from your daily spin!`,
+      title: 'Welcome Spin Reward',
+      message: `You won ₹${amount} from your welcome spin!`,
       type: 'offer',
       date: new Date().toISOString(),
       isRead: false
