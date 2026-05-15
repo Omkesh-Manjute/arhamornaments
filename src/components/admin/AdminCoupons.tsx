@@ -93,9 +93,9 @@ const AdminCoupons: React.FC = () => {
         <button 
           onClick={handleAddCoupon} 
           disabled={loading}
-          className="px-5 py-2.5 bg-amber-600 text-white rounded-xl text-[11px] font-black uppercase tracking-widest shadow-md flex items-center gap-2 hover:bg-amber-700 transition disabled:opacity-50"
+          className="px-6 py-2 bg-amber-600 text-white rounded-xl text-[11px] font-black uppercase tracking-[0.1em] hover:bg-amber-700 transition-all flex items-center gap-2 disabled:opacity-50 border border-amber-500/20 shadow-lg shadow-amber-900/20"
         >
-          <Plus size={14} /> Create New Coupon
+          <Plus size={14} /> Create Coupon
         </button>
       </div>
 
@@ -124,13 +124,20 @@ const AdminCoupons: React.FC = () => {
                 <div className="flex gap-2 justify-end">
                   <button 
                     onClick={() => handleBroadcastCoupon(c)} 
-                    className="p-2.5 bg-white/5 hover:bg-amber-600 rounded-xl text-gray-400 hover:text-white transition-all shadow-sm"
+                    className="p-2.5 bg-white/5 hover:bg-amber-600 rounded-xl text-gray-400 hover:text-white transition-all border border-white/5"
                     title="Broadcast to all users"
                   >
                     <Bell size={14} />
                   </button>
-                  <button className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-all shadow-sm"><Edit size={14} /></button>
-                  <button onClick={() => handleDeleteCoupon(c.id)} className="p-2.5 bg-white/5 hover:bg-red-600 rounded-xl text-gray-400 hover:text-white transition-all shadow-sm"><Trash2 size={14} /></button>
+                  <button className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-all border border-white/5">
+                    <Edit size={14} />
+                  </button>
+                  <button 
+                    onClick={() => handleDeleteCoupon(c.id)} 
+                    className="p-2.5 bg-white/5 hover:bg-red-600 rounded-xl text-gray-400 hover:text-white transition-all border border-white/5"
+                  >
+                    <Trash2 size={14} />
+                  </button>
                 </div>
                 <span className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-full border ${c.isActive ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-white/5 text-gray-500 border-white/10'}`}>
                   {c.isActive ? 'Active' : 'Paused'}

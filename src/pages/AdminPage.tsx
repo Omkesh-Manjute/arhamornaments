@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Package, Plus, TrendingUp, DollarSign, X, Gem, Settings, Users, Bell, History, Shield, LogOut, Loader2, ChevronRight, Menu } from 'lucide-react';
+import { Package, Plus, TrendingUp, DollarSign, X, Gem, Settings, Users, Bell, History, Shield, LogOut, Loader2, ChevronRight, Menu, Percent } from 'lucide-react';
 import { Product, User } from '../types';
 import { usePrice } from '../context/PriceContext';
 import { auth } from '../lib/firebase';
@@ -206,7 +206,11 @@ const AdminPage: React.FC = () => {
             </button>
             <div>
               <h1 className="text-xl font-bold text-white tracking-tight capitalize">{activeTab}</h1>
-              <p className="text-[10px] text-gray-500 font-mono uppercase tracking-[0.2em] mt-0.5">Gold: ₹{rates.gold22K.toLocaleString()}/10g</p>
+              <div className="flex items-center gap-4 mt-0.5">
+                <p className="text-[10px] text-gray-500 font-mono uppercase tracking-[0.2em]">Gold: <span className="text-amber-500">₹{rates?.gold22K?.toLocaleString() || '0'}/10g</span></p>
+                <div className="w-1 h-1 rounded-full bg-[#333333]" />
+                <p className="text-[10px] text-gray-500 font-mono uppercase tracking-[0.2em]">Silver: <span className="text-gray-300">₹{rates?.silver?.toLocaleString() || '0'}/kg</span></p>
+              </div>
             </div>
           </div>
 

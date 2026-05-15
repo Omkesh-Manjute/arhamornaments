@@ -100,62 +100,57 @@ const ProfilePage: React.FC = () => {
           {/* ── Sidebar Column ── */}
           <div className="lg:col-span-3 space-y-4">
             
-            {/* Profile Card */}
-            <div className="bg-charcoal text-white rounded-[2rem] p-6 relative overflow-hidden shadow-2xl">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gold/10 rounded-full blur-2xl -mr-16 -mt-16 animate-pulse" />
+            {/* Profile Card - Ultra Compact */}
+            <div className="bg-charcoal text-white rounded-3xl p-4 relative overflow-hidden shadow-xl border border-white/5">
+              <div className="relative z-10 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-gold/20 border-2 border-gold/30 flex items-center justify-center text-gold shrink-0">
+                  <UserIcon size={20} />
+                </div>
+                <div className="text-left min-w-0">
+                  <h1 className="text-sm font-heading font-bold truncate">{user.name}</h1>
+                  <p className="text-white/40 text-[9px] truncate">{user.email}</p>
+                </div>
+              </div>
               
-              <div className="relative z-10 flex flex-col items-center text-center space-y-4">
-                <div className="w-20 h-20 rounded-full bg-gold/20 border-4 border-gold/30 flex items-center justify-center text-gold shrink-0">
-                  <UserIcon size={32} />
+              <div className="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-white/5">
+                <div className="bg-white/5 p-2 rounded-xl text-center">
+                  <p className="text-xs font-black text-gold">₹{walletBalance.toLocaleString()}</p>
+                  <p className="text-[7px] text-white/30 uppercase tracking-widest font-black">Balance</p>
                 </div>
-                <div>
-                  <h1 className="text-xl font-heading font-bold mb-0.5">{user.name}</h1>
-                  <p className="text-white/50 text-[10px] break-all">{user.email}</p>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-3 w-full pt-4 border-t border-white/10">
-                  <div className="text-center">
-                    <p className="text-sm font-black text-gold">₹{walletBalance.toLocaleString()}</p>
-                    <p className="text-[7px] text-white/40 uppercase tracking-[0.1em] font-bold">Balance</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm font-black text-gold">{user.referralCount || 0}</p>
-                    <p className="text-[7px] text-white/40 uppercase tracking-[0.1em] font-bold">Invites</p>
-                  </div>
+                <div className="bg-white/5 p-2 rounded-xl text-center">
+                  <p className="text-xs font-black text-gold">{user.referralCount || 0}</p>
+                  <p className="text-[7px] text-white/30 uppercase tracking-widest font-black">Invites</p>
                 </div>
               </div>
             </div>
 
-            {/* Navigation Tabs */}
-            <div className="space-y-1.5">
+            {/* Navigation Tabs - More Compact */}
+            <div className="grid grid-cols-2 lg:grid-cols-1 gap-1.5">
               {tabs.map(tab => (
                 <button
                   key={tab.id}
                   onClick={() => { setActiveTab(tab.id); if (tab.id === 'notifications') markNotificationsRead(); }}
-                  className={`w-full flex items-center justify-between p-2.5 rounded-lg transition-all font-bold text-[10px] uppercase tracking-wider ${activeTab === tab.id
-                    ? 'bg-charcoal text-white shadow-md'
+                  className={`flex items-center justify-between p-2 rounded-xl transition-all font-bold text-[9px] uppercase tracking-wider ${activeTab === tab.id
+                    ? 'bg-gold text-white shadow-lg'
                     : 'bg-white text-charcoal hover:bg-gray-50 border border-gray-100'
                     }`}
                 >
-                  <div className="flex items-center gap-2.5">
-                    <tab.icon size={14} />
-                    {tab.label}
+                  <div className="flex items-center gap-2">
+                    <tab.icon size={12} />
+                    <span className="truncate">{tab.label}</span>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    {tab.badge ? (
-                      <span className="bg-red-500 text-white text-[8px] w-3.5 h-3.5 flex items-center justify-center rounded-full font-black">
-                        {tab.badge}
-                      </span>
-                    ) : null}
-                    <ChevronRight size={10} className="opacity-30" />
-                  </div>
+                  {tab.badge ? (
+                    <span className="bg-red-500 text-white text-[7px] w-3 h-3 flex items-center justify-center rounded-full font-black">
+                      {tab.badge}
+                    </span>
+                  ) : <ChevronRight size={8} className="opacity-30" />}
                 </button>
               ))}
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center gap-2.5 p-2.5 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-all font-bold text-[10px] uppercase tracking-wider border border-red-100"
+                className="col-span-2 lg:col-span-1 flex items-center gap-2 p-2 rounded-xl bg-red-50 text-red-500 hover:bg-red-100 transition-all font-bold text-[9px] uppercase tracking-wider border border-red-100"
               >
-                <LogOut size={14} />
+                <LogOut size={12} />
                 Sign Out
               </button>
             </div>

@@ -132,9 +132,9 @@ const AdminProducts: React.FC<AdminProductsProps> = ({ onEditProduct }) => {
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
       result = result.filter(p =>
-        p.name.toLowerCase().includes(q) ||
-        p.designNo?.toLowerCase().includes(q) ||
-        p.category.toLowerCase().includes(q)
+        (p.name || '').toLowerCase().includes(q) ||
+        (p.designNo || '').toLowerCase().includes(q) ||
+        (p.category || '').toLowerCase().includes(q)
       );
     }
     

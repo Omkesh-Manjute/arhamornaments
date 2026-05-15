@@ -38,10 +38,10 @@ const AdminCustomers: React.FC<AdminCustomersProps> = ({
   );
 
   const stats = [
-    { label: 'Total Members', val: customers.length, icon: Users, color: 'blue' },
-    { label: 'Wallet Issued', val: `₹${customers.reduce((s, c) => s + (c.walletBalance || 0), 0).toLocaleString()}`, icon: Wallet, color: 'amber' },
-    { label: 'Total Referrals', val: customers.reduce((s, c) => s + (c.referralCount || 0), 0), icon: BadgeCheck, color: 'green' },
-    { label: 'Notifications', val: customers.reduce((s, c) => s + (c.notifications?.length || 0), 0), icon: Bell, color: 'purple' },
+    { label: 'Total Members', val: (customers || []).length, icon: Users, color: 'blue' },
+    { label: 'Wallet Issued', val: `₹${(customers || []).reduce((s, c) => s + (c?.walletBalance || 0), 0).toLocaleString()}`, icon: Wallet, color: 'amber' },
+    { label: 'Total Referrals', val: (customers || []).reduce((s, c) => s + (c?.referralCount || 0), 0), icon: BadgeCheck, color: 'green' },
+    { label: 'Notifications', val: (customers || []).reduce((s, c) => s + (c?.notifications?.length || 0), 0), icon: Bell, color: 'purple' },
   ];
 
   if (loading) {

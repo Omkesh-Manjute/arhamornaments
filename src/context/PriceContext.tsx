@@ -46,8 +46,9 @@ export const PriceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     const unsubRates = configService.subscribeToRates((newRates) => {
       if (newRates) {
-        setRatesState(newRates as MetalRates);
-        localStorage.setItem('arham_rates', JSON.stringify(newRates));
+        const mergedRates = { ...DEFAULT_RATES, ...newRates };
+        setRatesState(mergedRates as MetalRates);
+        localStorage.setItem('arham_rates', JSON.stringify(mergedRates));
       }
     });
 
