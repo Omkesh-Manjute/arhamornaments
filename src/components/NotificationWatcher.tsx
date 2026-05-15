@@ -14,17 +14,23 @@ const NotificationWatcher: React.FC = () => {
     if (!isLoggedIn || !user?.notifications) return;
 
     const currentCount = user.notifications.length;
+    if (currentCount === 0) return;
+
+    const latest = user.notifications[currentCount - 1];
     
-    // Only show toast if count increased and the latest notification is unread
-    if (currentCount > lastNotifCount) {
-      const latest = user.notifications[currentCount - 1];
-      if (!latest.isRead) {
-        setActiveToast(latest);
-        // Auto-hide after 10 seconds for professional feel
-        const timer = setTimeout(() => setActiveToast(null), 10000);
-        return () => clearTimeout(timer);
-      }
+    // Show toast if:
+    // 1. It's a new notification (count increased)
+    // 2. OR it's the first time we're checking and the latest is unread and recent (less than 1 hour old)
+    const isNew = currentCount > lastNotifCount && lastNotifCount !== 0;
+    const isInitialUnread = lastNotifCount === 0 && !latest.isRead && 
+                           (new Date().getTime() - new Date(latest.date).getTime() < 3600000);
+
+    if ((isNew || isInitialUnread) && !latest.isRead) {
+      setActiveToast(latest);
+      const timer = setTimeout(() => setActiveToast(null), 10000);
+      return () => clearTimeout(timer);
     }
+    
     setLastNotifCount(currentCount);
   }, [user?.notifications, isLoggedIn]);
 
