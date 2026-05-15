@@ -457,7 +457,7 @@ const Header: React.FC = () => {
           </div>
 
           {/* Jewellery Categories Section - Collapsible */}
-          <div className="space-y-1 pb-8">
+          <div className="space-y-1 pb-24">
             <button
               onClick={() => setOpenCategories(!openCategories)}
               className="w-full flex items-center justify-between px-4 py-4 mt-4"
