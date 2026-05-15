@@ -84,12 +84,47 @@ const ProductListing: React.FC = () => {
       result = result.filter(p => (p.gender || 'unisex') === selectedGender);
     }
     if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(p =>
-        p.name.toLowerCase().includes(query) ||
-        p.description.toLowerCase().includes(query) ||
-        p.category.toLowerCase().includes(query)
-      );
+      const query = searchQuery.toLowerCase().trim();
+      
+      // Handle common typos and synonyms
+      const normalizedQuery = query
+        .replace('neckless', 'necklace')
+        .replace('pendent', 'pendant')
+        .replace('earing', 'earring');
+
+      // 1. Check if query is an exact category match (handling plurals)
+      const matchedCategory = categories.find(c => {
+        const catId = c.id.toLowerCase();
+        const catName = c.name.toLowerCase();
+        return (
+          catId === normalizedQuery || 
+          catName === normalizedQuery ||
+          catId === normalizedQuery + 's' ||
+          catId + 's' === normalizedQuery ||
+          catName === normalizedQuery + 's' ||
+          catName + 's' === normalizedQuery
+        );
+      });
+
+      if (matchedCategory) {
+        // If it's a category match, filter strictly by that category
+        result = result.filter(p => p.category === matchedCategory.id);
+      } else {
+        // 2. Otherwise do a smart keyword search
+        result = result.filter(p => {
+          const name = p.name.toLowerCase();
+          const desc = (p.description || '').toLowerCase();
+          const cat = p.category.toLowerCase();
+          
+          // Prevent confusing "ring" with "earring"
+          if ((normalizedQuery === 'ring' || normalizedQuery === 'rings') && cat.includes('earring')) {
+            return false;
+          }
+
+          // Check if query is part of name, description or category
+          return name.includes(normalizedQuery) || desc.includes(normalizedQuery) || cat.includes(normalizedQuery);
+        });
+      }
     }
     if (priceRange) {
       const [min, max] = priceRange.split('-').map(Number);
