@@ -58,21 +58,21 @@ const CategorySlider: React.FC = () => {
 
   return (
     <div className="w-full bg-white py-2 border-b border-gray-100 overflow-hidden">
-      <div className="flex justify-between md:justify-center no-scrollbar gap-4 px-6 md:px-8 pb-2">
+      <div className="flex justify-center no-scrollbar gap-5 md:gap-8 px-4 md:px-8 pb-2">
         {categories.map((category) => (
           <Link 
             key={category.id} 
             to={category.path}
-            className="flex-shrink-0 flex flex-col items-center gap-2 group transition-transform active:scale-95"
+            className="flex-shrink-0 flex flex-col items-center gap-2 group transition-transform active:scale-95 w-[28%]"
           >
-            <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden border-2 border-gray-50 shadow-sm group-hover:border-gold/50 transition-colors">
+            <div className="w-full aspect-square rounded-[2rem] overflow-hidden border-2 border-gray-50 shadow-sm group-hover:border-gold/50 transition-colors">
               <img 
                 src={category.image} 
                 alt={category.name} 
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
               />
             </div>
-            <span className="text-[11px] font-bold text-charcoal/80 uppercase tracking-wider group-hover:text-gold transition-colors">
+            <span className="text-[10px] md:text-[11px] font-bold text-charcoal/80 uppercase tracking-wider group-hover:text-gold transition-colors text-center">
               {category.name}
             </span>
           </Link>
