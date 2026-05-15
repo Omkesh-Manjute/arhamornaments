@@ -69,21 +69,21 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hidePrice = false })
         {/* Content - Compact Style */}
         <div className="mt-3 px-1 space-y-1">
           {/* Price & Rating Row */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
             {!hidePrice && (
-              <div className="flex items-baseline gap-2">
-                <span className="text-[15px] font-bold text-[#333]">
+              <div className="flex items-baseline flex-wrap gap-x-1.5">
+                <span className="text-[14px] font-bold text-[#333]">
                   {formatPrice(currentPrice)}
                 </span>
-                <span className="text-[11px] text-gray-400 line-through">
+                <span className="text-[10px] text-gray-400 line-through">
                   {formatPrice(originalPrice)}
                 </span>
               </div>
             )}
-            <div className="flex items-center gap-1 bg-gray-50 px-1.5 py-0.5 rounded">
-              <span className="text-[11px] font-bold text-gray-600">4.7</span>
-              <Star size={10} className="fill-[#ffc107] text-[#ffc107]" />
-              <span className="text-[9px] text-gray-400 border-l border-gray-200 ml-1 pl-1">(12)</span>
+            <div className="flex items-center gap-1 bg-gray-50 px-1 py-0.5 rounded w-fit">
+              <span className="text-[10px] font-bold text-gray-600">4.7</span>
+              <Star size={9} className="fill-[#ffc107] text-[#ffc107]" />
+              <span className="text-[8px] text-gray-400 border-l border-gray-200 ml-1 pl-1">(12)</span>
             </div>
           </div>
 

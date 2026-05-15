@@ -145,7 +145,7 @@ const HomePage: React.FC = () => {
                 <div className="w-24 h-px bg-gradient-to-r from-transparent via-gold to-transparent"></div>
               </div>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
               {newArrivals.map((product) => (
                 <div key={product.id}>
                   <ProductCard product={product} />
@@ -229,7 +229,7 @@ const HomePage: React.FC = () => {
                 <div className="w-24 h-px bg-gradient-to-r from-transparent via-purple-400 to-transparent"></div>
               </div>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
               {trendingProducts.map((product) => (
                 <div key={product.id}>
                   <ProductCard product={product} />
