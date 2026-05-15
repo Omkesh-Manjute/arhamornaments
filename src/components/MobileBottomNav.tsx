@@ -12,7 +12,7 @@ const MobileBottomNav: React.FC = () => {
     { name: 'Home', icon: Home, path: '/' },
     { name: 'Shop', icon: Search, path: '/products' },
     { name: 'Categories', icon: LayoutGrid, path: '/products?showFilters=true' }, // We'll handle the filter trigger in ProductListing if needed
-    { name: 'Treasury', icon: ShoppingBag, path: '/cart', badge: totalItems },
+    { name: 'Cart', icon: ShoppingBag, path: '/cart', badge: totalItems },
     { name: 'Account', icon: User, path: '/profile' },
   ];
 

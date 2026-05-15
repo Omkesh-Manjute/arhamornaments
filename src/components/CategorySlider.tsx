@@ -45,7 +45,7 @@ const CategorySlider: React.FC = () => {
           }));
 
         if (dynamicCats.length > 0) {
-          setCategories(dynamicCats.slice(0, 3));
+          setCategories(dynamicCats);
         }
       } catch (error) {
         console.error('Failed to load categories:', error);
@@ -58,12 +58,12 @@ const CategorySlider: React.FC = () => {
 
   return (
     <div className="w-full bg-white py-2 border-b border-gray-100 overflow-hidden">
-      <div className="flex justify-center no-scrollbar gap-5 md:gap-8 px-4 md:px-8 pb-2">
+      <div className="flex overflow-x-auto no-scrollbar gap-4 px-4 md:px-8 pb-2 scroll-smooth">
         {categories.map((category) => (
           <Link 
             key={category.id} 
             to={category.path}
-            className="flex-shrink-0 flex flex-col items-center gap-2 group transition-transform active:scale-95 w-[28%]"
+            className="flex-shrink-0 flex flex-col items-center gap-2 group transition-transform active:scale-95 w-[28%] md:w-auto"
           >
             <div className="w-full aspect-square rounded-[2rem] overflow-hidden border-2 border-gray-50 shadow-sm group-hover:border-gold/50 transition-colors">
               <img 
