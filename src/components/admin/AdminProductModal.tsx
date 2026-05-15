@@ -7,6 +7,7 @@ import { auth } from '../../lib/firebase';
 import { usePrice } from '../../context/PriceContext';
 import imageCompression from 'browser-image-compression';
 import { useDropzone } from 'react-dropzone';
+import { GENDER_CATEGORIES } from './AdminProducts';
 
 interface AdminProductModalProps {
   isOpen: boolean;
@@ -365,8 +366,14 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Category</label>
-                  <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full px-5 py-3.5 bg-[#0D0D0D] border border-[#222222] rounded-2xl text-white outline-none focus:border-amber-500 transition-colors appearance-none capitalize">
-                    {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                  <select 
+                    value={formData.category} 
+                    onChange={e => setFormData({...formData, category: e.target.value})} 
+                    className="w-full px-5 py-3.5 bg-[#0D0D0D] border border-[#222222] rounded-2xl text-white outline-none focus:border-amber-500 transition-colors appearance-none capitalize"
+                  >
+                    {(GENDER_CATEGORIES[formData.gender] || CATEGORIES).map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -483,9 +490,13 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
             </div>
           )}
           <div className="flex gap-4">
-            <button onClick={onClose} className="flex-1 py-4.5 bg-white/5 text-gray-400 rounded-2xl font-bold text-xs uppercase tracking-wide hover:bg-white/10 transition-all border border-white/10">Cancel</button>
-            <button onClick={handleSave} disabled={loading || uploading} className="flex-[2] py-4.5 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-2xl font-bold text-xs uppercase tracking-wide hover:from-amber-600 hover:to-amber-700 transition-all shadow-[0_10px_30px_rgba(245,158,11,0.25)] active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3">
-              {loading ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
+            <button onClick={onClose} className="flex-1 py-3.5 bg-white/5 text-gray-400 rounded-xl font-bold text-[11px] uppercase tracking-wider hover:bg-white/10 transition-all border border-white/10">Cancel</button>
+            <button 
+              onClick={handleSave} 
+              disabled={loading || uploading} 
+              className="flex-[2] py-3.5 bg-amber-600 text-white rounded-xl font-bold text-[11px] uppercase tracking-widest hover:bg-amber-700 transition-all shadow-md active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3"
+            >
+              {loading ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
               {product ? 'Update Inventory' : multiProductMode ? `Create ${formData.images.length} Products` : 'Publish Product'}
             </button>
           </div>

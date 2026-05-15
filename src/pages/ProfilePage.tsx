@@ -46,17 +46,9 @@ const ProfilePage: React.FC = () => {
   // ─── Helpers ─────────────────────────────────────────────────────
   const handleLogout = () => { logout(); navigate('/'); };
 
-  const tiers = {
-    silver: { name: 'Silver', icon: Award, color: 'text-gray-400', bg: 'bg-gray-100', next: 'Gold', pointsNeeded: 5000 },
-    gold: { name: 'Gold', icon: Crown, color: 'text-gold', bg: 'bg-gold/10', next: 'Platinum', pointsNeeded: 15000 },
-    platinum: { name: 'Platinum', icon: Gem, color: 'text-blue-400', bg: 'bg-blue-50', next: 'Max Tier', pointsNeeded: 0 },
-  };
-  const currentTier = tiers[user.tier || 'silver'] || tiers.silver;
-  const userPoints = user.points || 0;
-  const walletBalance = user.walletBalance || 0;
-  const progress = currentTier.pointsNeeded > 0 ? Math.min((userPoints / currentTier.pointsNeeded) * 100, 100) : 100;
   const joinedDate = user.joinedDate || new Date().toISOString();
   const unreadCount = (user.notifications || []).filter(n => !n.isRead).length;
+  const walletBalance = user.walletBalance || 0;
 
   const handleEditStart = () => {
     setEditForm({
@@ -101,10 +93,9 @@ const ProfilePage: React.FC = () => {
   ] as const;
 
   return (
-    <div className="min-h-screen bg-[#FCFBF7] py-12 md:py-20 px-4 md:px-8">
-      <div className="max-w-7xl mx-auto">
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    <div className="min-h-screen bg-[#FCFBF7] py-6 md:py-12 px-3 md:px-6">
+      <div className="max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
 
           {/* ── Sidebar Column ── */}
           <div className="lg:col-span-3 space-y-4">
@@ -122,49 +113,49 @@ const ProfilePage: React.FC = () => {
                   <p className="text-white/50 text-[10px] break-all">{user.email}</p>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4 w-full pt-4 border-t border-white/10">
+                <div className="grid grid-cols-2 gap-3 w-full pt-4 border-t border-white/10">
                   <div className="text-center">
-                    <p className="text-lg font-black text-gold">₹{walletBalance.toLocaleString()}</p>
-                    <p className="text-[8px] text-white/40 uppercase tracking-[0.1em] font-bold">Wallet</p>
+                    <p className="text-sm font-black text-gold">₹{walletBalance.toLocaleString()}</p>
+                    <p className="text-[7px] text-white/40 uppercase tracking-[0.1em] font-bold">Balance</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-lg font-black text-gold">{user.referralCount || 0}</p>
-                    <p className="text-[8px] text-white/40 uppercase tracking-[0.1em] font-bold">Referrals</p>
+                    <p className="text-sm font-black text-gold">{user.referralCount || 0}</p>
+                    <p className="text-[7px] text-white/40 uppercase tracking-[0.1em] font-bold">Invites</p>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Navigation Tabs */}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               {tabs.map(tab => (
                 <button
                   key={tab.id}
                   onClick={() => { setActiveTab(tab.id); if (tab.id === 'notifications') markNotificationsRead(); }}
-                  className={`w-full flex items-center justify-between p-3 rounded-xl transition-all font-bold text-[11px] ${activeTab === tab.id
-                    ? 'bg-charcoal text-white shadow-lg'
+                  className={`w-full flex items-center justify-between p-2.5 rounded-lg transition-all font-bold text-[10px] uppercase tracking-wider ${activeTab === tab.id
+                    ? 'bg-charcoal text-white shadow-md'
                     : 'bg-white text-charcoal hover:bg-gray-50 border border-gray-100'
                     }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <tab.icon size={16} />
+                  <div className="flex items-center gap-2.5">
+                    <tab.icon size={14} />
                     {tab.label}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
                     {tab.badge ? (
-                      <span className="bg-red-500 text-white text-[8px] w-4 h-4 flex items-center justify-center rounded-full font-black">
+                      <span className="bg-red-500 text-white text-[8px] w-3.5 h-3.5 flex items-center justify-center rounded-full font-black">
                         {tab.badge}
                       </span>
                     ) : null}
-                    <ChevronRight size={12} className="opacity-30" />
+                    <ChevronRight size={10} className="opacity-30" />
                   </div>
                 </button>
               ))}
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center gap-3 p-3 rounded-xl bg-red-50 text-red-500 hover:bg-red-100 transition-all font-bold text-[11px] border border-red-100"
+                className="w-full flex items-center gap-2.5 p-2.5 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-all font-bold text-[10px] uppercase tracking-wider border border-red-100"
               >
-                <LogOut size={16} />
+                <LogOut size={14} />
                 Sign Out
               </button>
             </div>
@@ -175,31 +166,30 @@ const ProfilePage: React.FC = () => {
 
             {/* ─── OVERVIEW TAB ─── */}
             {activeTab === 'overview' && (
-              <>
-
+              <div className="space-y-4">
                 {/* Refer & Earn */}
                 <ReferAndEarn />
 
                 {/* Quick Actions */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 px-2">
                   {[
-                    { icon: Package, label: 'Orders', desc: 'Track your orders', onClick: () => navigate('/orders') },
-                    { icon: Heart, label: 'Wishlist', desc: 'Saved items', onClick: () => navigate('/wishlist') },
-                    { icon: Gift, label: 'Spin & Win', desc: 'Daily reward', onClick: () => window.dispatchEvent(new CustomEvent('open-lucky-wheel')) },
-                    { icon: Settings, label: 'Edit Profile', desc: 'Update info', onClick: () => { setActiveTab('profile'); handleEditStart(); } },
+                    { icon: Package, label: 'Orders', desc: 'Track items', onClick: () => navigate('/orders') },
+                    { icon: Heart, label: 'Wishlist', desc: 'Saved', onClick: () => navigate('/wishlist') },
+                    { icon: Gift, label: 'Spin & Win', desc: 'Daily', onClick: () => window.dispatchEvent(new CustomEvent('open-lucky-wheel')) },
+                    { icon: Settings, label: 'Settings', desc: 'Info', onClick: () => { setActiveTab('profile'); handleEditStart(); } },
                   ].map((item, i) => (
                     <button
                       key={i}
                       onClick={item.onClick}
-                      className="bg-white rounded-xl p-4 border border-gray-100 hover:border-gold/30 hover:shadow-lg transition-all text-left group"
+                      className="bg-white rounded-xl p-3 border border-gray-100 hover:border-gold/30 hover:shadow-md transition-all text-left group"
                     >
-                      <item.icon size={18} className="text-gray-300 group-hover:text-gold transition-colors mb-2" />
-                      <p className="font-bold text-xs text-charcoal">{item.label}</p>
-                      <p className="text-[9px] text-gray-400 mt-0.5">{item.desc}</p>
+                      <item.icon size={16} className="text-gray-300 group-hover:text-gold transition-colors mb-1.5" />
+                      <p className="font-bold text-[10px] text-charcoal uppercase tracking-wider">{item.label}</p>
+                      <p className="text-[8px] text-gray-400 mt-0.5">{item.desc}</p>
                     </button>
                   ))}
                 </div>
-              </>
+              </div>
             )}
 
             {/* ─── PROFILE TAB ─── */}

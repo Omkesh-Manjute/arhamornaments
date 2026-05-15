@@ -17,11 +17,13 @@ import { Link } from 'react-router-dom';
 import { Product } from '../../types';
 import { productService } from '../../services/productService';
 
-const CATEGORIES = [
-  'bangles', 'bracelets', 'chain-sets', 'chains', 'earrings', 'kadas',
-  'necklace-sets', 'nose-jewelry', 'pendant-sets', 'pendants', 'rings',
-  'temple-necklaces', 'thushi', 'necklaces', 'mangalsutra', 'coins'
-] as const;
+export const GENDER_CATEGORIES = {
+  men: ['rings', 'chains', 'bracelets', 'kadas', 'pendants', 'coins'],
+  women: ['rings', 'earrings', 'necklaces', 'necklace-sets', 'bangles', 'bracelets', 'pendants', 'mangalsutra', 'pendant-sets', 'nose-jewelry', 'thushi', 'temple-necklaces', 'chain-sets', 'coins'],
+  unisex: ['rings', 'chains', 'coins', 'pendants']
+};
+
+export const CATEGORIES = Array.from(new Set(Object.values(GENDER_CATEGORIES).flat())) as const;
 
 interface AdminProductsProps {
   onEditProduct: (p: Product) => void;

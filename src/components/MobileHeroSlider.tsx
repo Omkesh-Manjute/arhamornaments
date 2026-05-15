@@ -1,57 +1,51 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { productService } from '../services/productService';
+import { bannerService } from '../services/bannerService';
 
 const MobileHeroSlider: React.FC = () => {
-  const [images, setImages] = useState<string[]>([]);
+  const [slides, setSlides] = useState<any[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
-    const loadImages = async () => {
+    const loadBanners = async () => {
       try {
-        const products = await productService.getAllProducts();
-        // Pick the best product images for the hero slider
-        // Use first image from different categories for variety
-        const seenCategories = new Set<string>();
-        const heroImages: string[] = [];
+        const banners = await bannerService.getAllBanners();
+        const activeBanners = banners.filter(b => b.isActive);
         
-        for (const p of products) {
-          if (p.images?.[0] && p.category && !seenCategories.has(p.category)) {
-            heroImages.push(p.images[0]);
-            seenCategories.add(p.category);
-            if (heroImages.length >= 5) break;
-          }
-        }
-        
-        // If not enough categories, fill with more product images
-        if (heroImages.length < 3) {
+        if (activeBanners.length > 0) {
+          setSlides(activeBanners);
+        } else {
+          // Fallback to product images if no banners are set
+          const products = await productService.getAllProducts();
+          const seenCategories = new Set<string>();
+          const heroSlides: any[] = [];
+          
           for (const p of products) {
-            if (p.images?.[0] && !heroImages.includes(p.images[0])) {
-              heroImages.push(p.images[0]);
-              if (heroImages.length >= 4) break;
+            if (p.images?.[0] && p.category && !seenCategories.has(p.category)) {
+              heroSlides.push({ image: p.images[0], title: 'New Collection', subtitle: p.category });
+              seenCategories.add(p.category);
+              if (heroSlides.length >= 5) break;
             }
           }
-        }
-
-        if (heroImages.length > 0) {
-          setImages(heroImages);
+          setSlides(heroSlides);
         }
       } catch (error) {
-        console.error('Failed to load hero images:', error);
+        console.error('Failed to load hero banners:', error);
       }
     };
-    loadImages();
+    loadBanners();
   }, []);
 
   useEffect(() => {
-    if (images.length <= 1) return;
+    if (slides.length <= 1) return;
     const timer = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % images.length);
+      setCurrentIndex((prev) => (prev + 1) % slides.length);
     }, 4000);
     return () => clearInterval(timer);
-  }, [images.length]);
+  }, [slides.length]);
 
-  if (images.length === 0) {
+  if (slides.length === 0) {
     return (
       <div className="relative w-full aspect-[4/5] overflow-hidden lg:hidden mb-2 bg-gray-100 animate-pulse" />
     );
@@ -63,19 +57,19 @@ const MobileHeroSlider: React.FC = () => {
         className="flex transition-transform duration-700 ease-in-out h-full"
         style={{ transform: `translateX(-${currentIndex * 100}%)` }}
       >
-        {images.map((img, idx) => (
+        {slides.map((slide, idx) => (
           <div key={idx} className="w-full h-full flex-shrink-0 relative">
             <img 
-              src={img} 
-              alt={`Slide ${idx + 1}`} 
+              src={slide.image} 
+              alt={slide.title || `Slide ${idx + 1}`} 
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex flex-col justify-end p-6 pb-12">
-              <span className="text-gold uppercase tracking-[0.4em] text-[10px] font-bold mb-2 animate-fadeIn">New Collection</span>
+              <span className="text-gold uppercase tracking-[0.4em] text-[10px] font-bold mb-2 animate-fadeIn">{slide.subtitle || 'New Collection'}</span>
               <h2 className="text-3xl font-heading text-white font-bold leading-tight mb-4">
-                Timeless <br /> Elegance
+                {slide.title || 'Timeless Elegance'}
               </h2>
-              <Link to="/products" className="bg-white text-charcoal px-6 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest w-fit shadow-lg">
+              <Link to={slide.link || "/products"} className="bg-white text-charcoal px-6 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest w-fit shadow-lg">
                 Shop Now
               </Link>
             </div>
@@ -85,7 +79,7 @@ const MobileHeroSlider: React.FC = () => {
       
       {/* Dots */}
       <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
-        {images.map((_, idx) => (
+        {slides.map((_, idx) => (
           <div 
             key={idx}
             className={`w-1.5 h-1.5 rounded-full transition-all ${

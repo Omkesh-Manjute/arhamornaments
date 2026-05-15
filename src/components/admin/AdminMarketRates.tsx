@@ -78,7 +78,6 @@ const AdminMarketRates: React.FC = () => {
           {([
             ['gold24K', 'Gold 24K', '#FFD700'],
             ['gold22K', 'Gold 22K', '#FFC125'],
-            ['gold18K', 'Gold 18K', '#DAA520'],
             ['silver', 'Silver (per g)', '#C0C0C0'],
             ['silver1kg', 'Silver 1kg', '#E5E4E2'],
             ['platinum', 'Platinum (per g)', '#B8860B']
@@ -103,9 +102,9 @@ const AdminMarketRates: React.FC = () => {
         <button
           onClick={handleUpdateRates}
           disabled={loading}
-          className="mt-6 w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl font-bold hover:opacity-90 transition flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(245,158,11,0.3)] disabled:opacity-50"
+          className="mt-6 w-full py-3.5 bg-amber-600 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-amber-700 transition flex items-center justify-center gap-2 shadow-md disabled:opacity-50"
         >
-          {loading ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />} Save Metal Rates
+          {loading ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} Save Metal Rates
         </button>
       </div>
 
@@ -138,9 +137,9 @@ const AdminMarketRates: React.FC = () => {
         <button
           onClick={handleUpdateMakingCharges}
           disabled={loading}
-          className="mt-6 w-full py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-bold hover:opacity-90 transition flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(59,130,246,0.3)] disabled:opacity-50"
+          className="mt-6 w-full py-3.5 bg-blue-600 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-blue-700 transition flex items-center justify-center gap-2 shadow-md disabled:opacity-50"
         >
-          {loading ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />} Save Making Charges
+          {loading ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} Save Making Charges
         </button>
       </div>
     </div>

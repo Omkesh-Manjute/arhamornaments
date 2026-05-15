@@ -144,13 +144,13 @@ const AdminPage: React.FC = () => {
   const menuItems = [
     { id: 'dashboard', label: 'Overview', icon: TrendingUp },
     { id: 'products', label: 'Inventory', icon: Package },
-    { id: 'homepage', label: 'Homepage Setup', icon: Gem },
+    { id: 'homepage', label: 'Banner Setup', icon: Gem },
     { id: 'rates', label: 'Market Rates', icon: DollarSign },
     { id: 'promotions', label: 'Growth Hub', icon: Settings },
     { id: 'customers', label: 'Members', icon: Users },
-    { id: 'coupons', label: 'Discounts', icon: DollarSign },
+    { id: 'coupons', label: 'Discounts', icon: Percent },
     { id: 'notifications', label: 'Broadcast', icon: Bell },
-    { id: 'logs', label: 'Audit Logs', icon: History },
+    { id: 'logs', label: 'System Logs', icon: History },
   ];
 
   return (
@@ -176,13 +176,13 @@ const AdminPage: React.FC = () => {
               <button
                 key={id}
                 onClick={() => { setActiveTab(id as TabType); if(window.innerWidth < 1024) setIsSidebarOpen(false); }}
-                className={`w-full flex items-center justify-between px-5 py-4 rounded-2xl transition-all duration-300 group ${activeTab === id ? 'bg-amber-500 text-white shadow-[0_10px_25px_rgba(245,158,11,0.15)]' : 'hover:bg-white/5 text-gray-500 hover:text-white'}`}
+                className={`w-full flex items-center justify-between px-5 py-3.5 rounded-xl transition-all duration-200 group ${activeTab === id ? 'bg-amber-600 text-white shadow-lg' : 'hover:bg-white/5 text-gray-500 hover:text-white'}`}
               >
-                <div className="flex items-center gap-4">
-                  <Icon size={18} className={activeTab === id ? 'text-white' : 'group-hover:text-amber-500 transition-colors'} />
-                  <span className="text-sm font-semibold tracking-wide">{label}</span>
+                <div className="flex items-center gap-3.5">
+                  <Icon size={16} className={activeTab === id ? 'text-white' : 'group-hover:text-amber-500 transition-colors'} />
+                  <span className="text-[13px] font-bold tracking-tight">{label}</span>
                 </div>
-                {activeTab === id && <ChevronRight size={14} className="opacity-50" />}
+                {activeTab === id && <ChevronRight size={12} className="opacity-40" />}
               </button>
             ))}
           </nav>
@@ -212,8 +212,8 @@ const AdminPage: React.FC = () => {
 
           <div className="flex items-center gap-4">
             {activeTab === 'products' && (
-              <button onClick={openAdd} className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wide transition-all shadow-[0_5px_15px_rgba(245,158,11,0.2)] flex items-center gap-2 active:scale-[0.95]">
-                <Plus size={16} /> New Product
+              <button onClick={openAdd} className="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all shadow-md flex items-center gap-2 active:scale-95">
+                <Plus size={14} /> Add New Item
               </button>
             )}
             <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-xs font-bold text-amber-500">AD</div>

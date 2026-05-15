@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { bannerService } from '../services/bannerService';
 
 import banner1 from '../assets/hero/banner1.png';
 import banner2 from '../assets/hero/banner2.png';
@@ -8,8 +9,10 @@ import banner3 from '../assets/hero/banner3.png';
 
 const HeroSlider: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [slides, setSlides] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   
-  const slides = [
+  const staticSlides = [
     {
       image: banner1,
       title: 'Timeless Elegance',
@@ -34,6 +37,34 @@ const HeroSlider: React.FC = () => {
   ];
 
   useEffect(() => {
+    const fetchBanners = async () => {
+      try {
+        const data = await bannerService.getAllBanners();
+        const activeBanners = data.filter(b => b.isActive);
+        if (activeBanners.length > 0) {
+          setSlides(activeBanners.map(b => ({
+            image: b.image,
+            title: b.title,
+            subtitle: b.subtitle,
+            link: b.link || '/products',
+            align: 'left' // Default align for dynamic banners
+          })));
+        } else {
+          setSlides(staticSlides);
+        }
+      } catch (error) {
+        console.error("Failed to fetch banners:", error);
+        setSlides(staticSlides);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBanners();
+  }, []);
+
+  useEffect(() => {
+    if (slides.length === 0) return;
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % slides.length);
     }, 5000);
@@ -42,6 +73,12 @@ const HeroSlider: React.FC = () => {
 
   const nextSlide = () => setCurrentIndex((prev) => (prev + 1) % slides.length);
   const prevSlide = () => setCurrentIndex((prev) => (prev - 1 + slides.length) % slides.length);
+
+  if (loading) {
+    return <div className="w-full h-[50vh] md:h-[85vh] bg-charcoal/5 animate-pulse flex items-center justify-center">
+      <div className="w-12 h-12 border-4 border-gold border-t-transparent rounded-full animate-spin"></div>
+    </div>;
+  }
 
   return (
     <div className="relative w-full h-[50vh] md:h-[85vh] overflow-hidden bg-gray-50">

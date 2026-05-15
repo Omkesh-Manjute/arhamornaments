@@ -89,13 +89,13 @@ const AdminCoupons: React.FC = () => {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-xl font-bold text-white">Discount Coupons</h3>
+        <h3 className="text-xl font-bold text-white tracking-tight">Discount Coupons</h3>
         <button 
           onClick={handleAddCoupon} 
           disabled={loading}
-          className="px-5 py-2 bg-[#10B981] text-white rounded-xl text-sm font-bold shadow-[0_0_15px_rgba(16,185,129,0.3)] flex items-center gap-2 hover:bg-green-500 transition disabled:opacity-50"
+          className="px-5 py-2.5 bg-amber-600 text-white rounded-xl text-[11px] font-black uppercase tracking-widest shadow-md flex items-center gap-2 hover:bg-amber-700 transition disabled:opacity-50"
         >
-          <Plus size={16} /> Create Coupon
+          <Plus size={14} /> Create New Coupon
         </button>
       </div>
 
@@ -106,33 +106,34 @@ const AdminCoupons: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {coupons.map(c => (
-            <div key={c.id} className="bg-[#161616] rounded-3xl p-6 border border-[#222222] shadow-sm flex items-center justify-between group hover:border-[#333333] transition">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-[#10B981]/10 rounded-2xl flex items-center justify-center text-[#10B981] border border-[#10B981]/20">
+            <div key={c.id} className="bg-[#161616] rounded-3xl p-5 border border-[#222222] shadow-sm flex items-center justify-between group hover:border-amber-500/30 transition-all duration-300">
+              <div className="flex items-center gap-5">
+                <div className="w-14 h-14 bg-amber-500/10 rounded-2xl flex items-center justify-center text-amber-500 border border-amber-500/20 group-hover:scale-110 transition-transform">
                   <Percent size={24} />
                 </div>
                 <div>
-                  <p className="text-lg font-black text-white tracking-wider">{c.code}</p>
-                  <p className="text-xs text-gray-400 font-medium">
+                  <p className="text-lg font-black text-white tracking-widest">{c.code}</p>
+                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">
                     {c.discountType === 'percentage' ? `${c.discountValue}% Off` : `₹${c.discountValue} Off`}
-                    · Min: ₹{c.minOrderAmount}
+                    <span className="mx-2 opacity-30">|</span>
+                    Min: ₹{c.minOrderAmount}
                   </p>
                 </div>
               </div>
-              <div className="text-right space-y-2">
+              <div className="text-right space-y-3">
                 <div className="flex gap-2 justify-end">
                   <button 
                     onClick={() => handleBroadcastCoupon(c)} 
-                    className="p-2 hover:bg-amber-500/10 rounded-xl text-gray-500 hover:text-amber-500 transition-all"
+                    className="p-2.5 bg-white/5 hover:bg-amber-600 rounded-xl text-gray-400 hover:text-white transition-all shadow-sm"
                     title="Broadcast to all users"
                   >
-                    <Bell size={16} />
+                    <Bell size={14} />
                   </button>
-                  <button className="p-2 hover:bg-white/5 rounded-xl text-gray-500 hover:text-blue-400 transition-all"><Edit size={16} /></button>
-                  <button onClick={() => handleDeleteCoupon(c.id)} className="p-2 hover:bg-white/5 rounded-xl text-gray-500 hover:text-red-400 transition-all"><Trash2 size={16} /></button>
+                  <button className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-all shadow-sm"><Edit size={14} /></button>
+                  <button onClick={() => handleDeleteCoupon(c.id)} className="p-2.5 bg-white/5 hover:bg-red-600 rounded-xl text-gray-400 hover:text-white transition-all shadow-sm"><Trash2 size={14} /></button>
                 </div>
-                <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border ${c.isActive ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-white/5 text-gray-400 border-white/10'}`}>
-                  {c.isActive ? 'Live' : 'Paused'}
+                <span className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-full border ${c.isActive ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-white/5 text-gray-500 border-white/10'}`}>
+                  {c.isActive ? 'Active' : 'Paused'}
                 </span>
               </div>
             </div>

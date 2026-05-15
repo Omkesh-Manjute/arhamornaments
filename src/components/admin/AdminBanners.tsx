@@ -68,9 +68,9 @@ const AdminBanners: React.FC = () => {
         <button 
           onClick={handleAddBanner} 
           disabled={loading}
-          className="px-4 py-2 bg-[#3B82F6] text-white rounded-xl text-sm font-bold shadow-[0_0_15px_rgba(59,130,246,0.3)] hover:bg-blue-600 transition flex items-center gap-2 disabled:opacity-50"
+          className="px-5 py-2.5 bg-amber-600 text-white rounded-xl text-[11px] font-black uppercase tracking-widest shadow-md hover:bg-amber-700 transition flex items-center gap-2 disabled:opacity-50"
         >
-          <Plus size={16} /> Add Banner
+          <Plus size={14} /> Add Hero Banner
         </button>
       </div>
 
@@ -81,23 +81,23 @@ const AdminBanners: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {banners.map(b => (
-            <div key={b.id} className="bg-[#161616] rounded-3xl overflow-hidden border border-[#222222] shadow-sm group">
-              <div className="aspect-video relative">
+            <div key={b.id} className="bg-[#161616] rounded-3xl overflow-hidden border border-[#222222] shadow-sm group hover:border-amber-500/30 transition-all duration-300">
+              <div className="aspect-[21/9] relative">
                 <img src={b.image} className="w-full h-full object-cover" alt="" />
-                <div className="absolute top-3 right-3 flex gap-1">
-                  <button className="p-2 bg-white/10 backdrop-blur-md text-white rounded-xl hover:bg-white/20 transition opacity-0 group-hover:opacity-100"><Edit size={14} /></button>
-                  <button onClick={() => handleDeleteBanner(b.id)} className="p-2 bg-red-500/10 backdrop-blur-md text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition opacity-0 group-hover:opacity-100"><Trash2 size={14} /></button>
+                <div className="absolute top-3 right-3 flex gap-2">
+                  <button className="p-2.5 bg-black/60 backdrop-blur-md text-white rounded-xl hover:bg-amber-600 transition opacity-0 group-hover:opacity-100"><Edit size={12} /></button>
+                  <button onClick={() => handleDeleteBanner(b.id)} className="p-2.5 bg-black/60 backdrop-blur-md text-red-500 rounded-xl hover:bg-red-600 hover:text-white transition opacity-0 group-hover:opacity-100"><Trash2 size={12} /></button>
                 </div>
-                <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
-                  <p className="text-white font-bold">{b.title}</p>
-                  <p className="text-gray-400 text-xs">{b.subtitle}</p>
+                <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black to-transparent">
+                  <p className="text-sm font-black text-white tracking-tight">{b.title}</p>
+                  <p className="text-[10px] text-gray-400 font-medium">{b.subtitle}</p>
                 </div>
               </div>
-              <div className="p-4 flex items-center justify-between border-t border-[#222222]">
-                <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border ${b.isActive ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-white/5 text-gray-400 border-white/10'}`}>
+              <div className="px-5 py-3.5 flex items-center justify-between border-t border-[#222222] bg-[#0D0D0D]/50">
+                <span className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-full border ${b.isActive ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-white/5 text-gray-500 border-white/10'}`}>
                   {b.isActive ? 'Active' : 'Hidden'}
                 </span>
-                <p className="text-[10px] text-gray-500 font-mono">Order: {b.order}</p>
+                <p className="text-[9px] text-gray-600 font-mono font-bold uppercase tracking-widest">Priority: {b.order}</p>
               </div>
             </div>
           ))}
