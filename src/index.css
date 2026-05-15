@@ -29,6 +29,16 @@ body {
   background-color: #fff;
   color: var(--color-charcoal);
   overflow-x: hidden;
+  width: 100%;
+  position: relative;
+  overscroll-behavior-x: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  overflow-x: hidden;
+  width: 100%;
+  -webkit-text-size-adjust: 100%;
 }
 
 /* Typography Enhancements */
