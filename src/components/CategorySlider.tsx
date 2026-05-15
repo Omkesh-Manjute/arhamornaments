@@ -57,24 +57,28 @@ const CategorySlider: React.FC = () => {
   if (categories.length === 0) return null;
 
   return (
-    <div className="w-full bg-white py-2 border-b border-gray-100 overflow-hidden">
-      <div className="flex overflow-x-auto no-scrollbar gap-4 px-4 md:px-8 pb-2 scroll-smooth">
+    <div className="w-full bg-white py-4 border-b border-gray-50 overflow-hidden">
+      <div className="flex overflow-x-auto no-scrollbar gap-3 px-4 md:px-8 pb-2 scroll-smooth">
         {categories.map((category) => (
           <Link 
             key={category.id} 
             to={category.path}
-            className="flex-shrink-0 flex flex-col items-center gap-2 group transition-transform active:scale-95 w-[28%] md:w-auto"
+            className="flex-shrink-0 flex flex-col w-[110px] md:w-[130px] group transition-all duration-300 hover:-translate-y-1"
           >
-            <div className="w-full aspect-square rounded-[2rem] overflow-hidden border-2 border-gray-50 shadow-sm group-hover:border-gold/50 transition-colors">
-              <img 
-                src={category.image} 
-                alt={category.name} 
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-              />
+            <div className="bg-white rounded-xl overflow-hidden shadow-[0_4px_15px_rgba(0,0,0,0.08)] border border-gray-100 group-hover:shadow-[0_8px_25px_rgba(0,0,0,0.12)] transition-all">
+              <div className="aspect-square overflow-hidden bg-gray-50">
+                <img 
+                  src={category.image} 
+                  alt={category.name} 
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                />
+              </div>
+              <div className="py-2.5 px-1 text-center bg-white border-t border-gray-50">
+                <span className="text-[11px] md:text-[13px] font-heading font-black text-ruby leading-none tracking-tight block truncate">
+                  {category.name}
+                </span>
+              </div>
             </div>
-            <span className="text-[10px] md:text-[11px] font-bold text-charcoal/80 uppercase tracking-wider group-hover:text-gold transition-colors text-center">
-              {category.name}
-            </span>
           </Link>
         ))}
       </div>

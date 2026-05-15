@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Heart, Share2, Star, Truck, Shield, RotateCcw, MessageCircle, Minus, Plus, Phone } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Heart, Share2, Star, Truck, Shield, RotateCcw, MessageCircle, Minus, Plus, Phone } from 'lucide-react';
 import { products as staticProducts } from '../data/products';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -265,6 +265,33 @@ const ProductDetail: React.FC = () => {
                 ))}
               </div>
 
+              {siblingProducts.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigateToSibling('prev');
+                    }}
+                    aria-label="Previous product"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 bg-white/95 shadow-lg rounded-full flex items-center justify-center text-charcoal active:scale-95 transition-all z-10"
+                  >
+                    <ChevronLeft size={22} strokeWidth={2.5} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigateToSibling('next');
+                    }}
+                    aria-label="Next product"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 bg-white/95 shadow-lg rounded-full flex items-center justify-center text-charcoal active:scale-95 transition-all z-10"
+                  >
+                    <ChevronRight size={22} strokeWidth={2.5} />
+                  </button>
+                </>
+              )}
+
               {/* Indicators */}
               {(product.images?.length || 0) > 1 && (
                 <div className="flex justify-center gap-2 mt-4 pb-2">
@@ -274,9 +301,6 @@ const ProductDetail: React.FC = () => {
                 </div>
               )}
 
-              <button onClick={() => navigate(-1)} className="absolute top-8 right-6 w-10 h-10 bg-white shadow-lg rounded-full flex items-center justify-center">
-                ‹
-              </button>
             </div>
 
             {/* Details Section - EXACT MATCH TO IMAGE */}

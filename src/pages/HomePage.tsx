@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShieldCheck, Truck, Gem } from 'lucide-react';
+import { ShieldCheck, Truck, Gem, ChevronRight } from 'lucide-react';
 import HeritageHero from '../components/HeritageHero';
 import { products } from '../data/products';
 import MobileSearchBar from '../components/MobileSearchBar';
@@ -12,6 +12,7 @@ import ProductCard from '../components/ProductCard';
 import OccasionSection from '../components/OccasionSection';
 import LivePriceTicker from '../components/LivePriceTicker';
 import HeroSlider from '../components/HeroSlider';
+import ShopByGender from '../components/ShopByGender';
 
 import { Product } from '../types';
 import { productService } from '../services/productService';
@@ -148,7 +149,7 @@ const HomePage: React.FC = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
               {newArrivals.map((product) => (
                 <div key={product.id}>
-                  <ProductCard product={product} />
+                  <ProductCard product={product} hidePrice={true} />
                 </div>
               ))}
             </div>
@@ -186,20 +187,30 @@ const HomePage: React.FC = () => {
             <h2 className="text-4xl md:text-5xl font-heading font-bold text-charcoal">Curated Categories</h2>
             <div className="w-20 h-0.5 bg-gold/30 mx-auto rounded-full"></div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
             {categories.map((cat, i) => (
               <Link
                 key={i}
                 to={cat.path}
-                className={`group text-center luxury-card transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+                className={`group block bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-700 border border-gold/5 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
                 style={{ transitionDelay: `${i * 150}ms` }}
               >
-                <div className="aspect-[4/5] overflow-hidden rounded-[2.5rem] mb-6 bg-offwhite border border-gray-100 relative">
-                  <img src={cat.image} alt={cat.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
+                <div className="aspect-[4/5] overflow-hidden bg-white relative">
+                  <img 
+                    src={cat.image} 
+                    alt={cat.name} 
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" 
+                  />
                   <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 </div>
-                <h3 className="font-heading text-2xl font-bold text-charcoal group-hover:text-gold transition-colors">{cat.name}</h3>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-gray-400 font-bold mt-2">Explore Now</p>
+                <div className="p-4 md:p-6 flex items-center justify-between bg-white border-t border-gray-50">
+                  <h3 className="font-heading text-xl md:text-2xl font-bold text-ruby group-hover:text-ruby/80 transition-colors">
+                    {cat.name}
+                  </h3>
+                  <div className="text-[10px] font-bold text-gold uppercase tracking-widest hidden md:block">
+                    Explore
+                  </div>
+                </div>
               </Link>
             ))}
           </div>
@@ -217,9 +228,12 @@ const HomePage: React.FC = () => {
         />
       )}
 
+      {/* Shop by Gender Section */}
+      <ShopByGender />
+
       {/* Trending Section */}
       {!loading && trendingProducts.length > 0 && (
-        <section className="px-4 md:px-8 py-16 bg-gradient-to-b from-white to-offwhite">
+        <section className="px-4 md:px-8 pt-8 pb-16 bg-gradient-to-b from-white to-offwhite">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-12 space-y-3">
               <span className="text-purple-500 uppercase tracking-[0.4em] text-[10px] font-bold block">What's Hot</span>
@@ -232,7 +246,7 @@ const HomePage: React.FC = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
               {trendingProducts.map((product) => (
                 <div key={product.id}>
-                  <ProductCard product={product} />
+                  <ProductCard product={product} hidePrice={true} />
                 </div>
               ))}
             </div>
@@ -246,47 +260,48 @@ const HomePage: React.FC = () => {
           {/* Left Promo */}
           <div className="relative h-[200px] md:h-[500px] rounded-3xl md:rounded-[3rem] overflow-hidden group shadow-lg">
             <img src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=1200" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt="Collection" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-4 md:p-10 space-y-1 md:space-y-4">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-6 md:p-10 space-y-2 md:space-y-4">
               <span className="text-gold uppercase tracking-[0.4em] text-[7px] md:text-[10px] font-bold">New Arrivals</span>
               <h2 className="text-lg md:text-4xl font-heading text-white font-bold leading-tight">
                 Essence of <br /> <span className="text-gradient-gold">Pure Artistry</span>
               </h2>
-              <Link to="/products" className="btn-premium w-fit py-1.5 px-4 text-[9px] md:text-sm mt-1">
-                Explore Collection
+              <Link to="/products" className="group/btn flex items-center gap-2 text-white/90 text-[9px] md:text-xs font-bold uppercase tracking-[0.2em] hover:text-gold transition-colors w-fit">
+                Explore Collection <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
               </Link>
             </div>
           </div>
           {/* Middle Promo */}
           <div className="relative h-[200px] md:h-[500px] rounded-3xl md:rounded-[3rem] overflow-hidden group shadow-lg">
             <img src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=1200" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt="Elegance" />
-            <div className="absolute inset-0 bg-gradient-to-t from-emerald-950/80 via-black/20 to-transparent flex flex-col justify-end p-4 md:p-10 space-y-1 md:space-y-4 items-center text-center">
+            <div className="absolute inset-0 bg-gradient-to-t from-emerald-950/80 via-transparent to-transparent flex flex-col justify-end p-6 md:p-10 space-y-2 md:space-y-4 items-center text-center">
               <span className="text-gold uppercase tracking-[0.4em] text-[7px] md:text-[10px] font-bold">Wedding Special</span>
               <h2 className="text-lg md:text-4xl font-heading text-white font-bold leading-tight">
                 Timeless <br /> <span className="text-gradient-gold">Bridal Splendor</span>
               </h2>
-              <Link to="/products" className="btn-premium w-fit py-1.5 px-4 text-[9px] md:text-sm mt-1">
-                View Wedding Sets
+              <Link to="/products" className="group/btn flex items-center gap-2 text-white/90 text-[9px] md:text-xs font-bold uppercase tracking-[0.2em] hover:text-gold transition-colors w-fit">
+                View Wedding Sets <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
               </Link>
             </div>
           </div>
           {/* Right Promo */}
           <div className="relative h-[200px] md:h-[500px] rounded-3xl md:rounded-[3rem] overflow-hidden group shadow-lg">
             <img src="https://images.unsplash.com/photo-1601121141461-9d6647bca1ed?w=1200" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt="Signature" />
-            <div className="absolute inset-0 bg-gradient-to-t from-rose-950/80 via-black/20 to-transparent flex flex-col justify-end p-4 md:p-10 space-y-1 md:space-y-4 items-end text-right">
+            <div className="absolute inset-0 bg-gradient-to-t from-rose-950/80 via-transparent to-transparent flex flex-col justify-end p-6 md:p-10 space-y-2 md:space-y-4 items-end text-right">
               <span className="text-gold uppercase tracking-[0.4em] text-[7px] md:text-[10px] font-bold">Exquisite</span>
               <h2 className="text-lg md:text-4xl font-heading text-white font-bold leading-tight">
                 Signature <br /> <span className="text-gradient-gold">Collections</span>
               </h2>
-              <Link to="/products" className="btn-premium w-fit py-1.5 px-4 text-[9px] md:text-sm mt-1">
-                Explore Now
+              <Link to="/products" className="group/btn flex items-center gap-2 text-white/90 text-[9px] md:text-xs font-bold uppercase tracking-[0.2em] hover:text-gold transition-colors w-fit">
+                Explore Now <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
               </Link>
             </div>
           </div>
         </div>
       </section>
 
+
       {/* Featured Spotlight (Floating Elements) */}
-      <section className="px-4 md:px-8 py-24 bg-charcoal relative overflow-hidden">
+      <section className="hidden md:block px-4 md:px-8 py-24 bg-charcoal relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
           <div className="grid grid-cols-12 h-full">
             {[...Array(12)].map((_, i) => (

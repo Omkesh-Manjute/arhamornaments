@@ -36,7 +36,7 @@ const AppContent: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col">
       {!hideHeaderFooter && <Header />}
-      
+
       <main className={`flex-1 ${!hideHeaderFooter ? 'pt-[64px] md:pt-[72px] pb-[80px] lg:pb-0' : ''}`}>
         <Routes>
           <Route path="/" element={<HomePage />} />

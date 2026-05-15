@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 const MobileBottomNav: React.FC = () => {
   const location = useLocation();
   const { totalItems } = useCart();
-  
+
   const navItems = [
     { name: 'Home', icon: Home, path: '/' },
     { name: 'Shop', icon: Search, path: '/products' },
@@ -34,7 +34,7 @@ const MobileBottomNav: React.FC = () => {
             >
               <div className={`relative p-2 rounded-2xl transition-all duration-300 ${active ? 'bg-gold/10 text-gold scale-110' : 'text-gray-400 group-hover:text-charcoal'}`}>
                 <item.icon size={22} strokeWidth={active ? 2.5 : 2} />
-                
+
                 {item.badge !== undefined && item.badge > 0 && (
                   <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white animate-in zoom-in">
                     {item.badge}

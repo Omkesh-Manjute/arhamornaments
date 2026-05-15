@@ -4,6 +4,7 @@ import {
   getDocs, 
   query, 
   orderBy,
+  where,
   doc,
   updateDoc
 } from 'firebase/firestore';
@@ -33,5 +34,19 @@ export const userService = {
   async updateUserProfile(uid: string, data: Partial<User>) {
     const userDocRef = doc(db, 'users', uid);
     await updateDoc(userDocRef, data);
+  },
+
+  /**
+   * Fetches users referred by a specific UID.
+   */
+  async getReferredUsers(uid: string): Promise<User[]> {
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, where('referredBy', '==', uid));
+    const querySnapshot = await getDocs(q);
+    
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    } as User));
   }
 };

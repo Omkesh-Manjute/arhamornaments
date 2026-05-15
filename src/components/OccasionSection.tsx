@@ -3,28 +3,28 @@ import { Link } from 'react-router-dom';
 
 const occasions = [
   {
-    name: 'Wedding',
-    image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400',
-    path: '/products?filter=wedding',
-    description: 'Bridal masterpieces'
+    name: 'Office Wear',
+    image: '/images/occasions/office_wear.png',
+    path: '/products?filter=office',
+    description: 'Minimalist professional elegance'
   },
   {
-    name: 'Daily Wear',
-    image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400',
-    path: '/products?filter=daily',
-    description: 'Everyday elegance'
+    name: 'Modern Wear',
+    image: '/images/occasions/modern_wear.png',
+    path: '/products?filter=modern',
+    description: 'Contemporary chic designs'
   },
   {
-    name: 'Festive',
-    image: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400',
-    path: '/products?filter=festive',
-    description: 'Celebrate in style'
+    name: 'Casual Wear',
+    image: '/images/occasions/casual_wear.png',
+    path: '/products?filter=casual',
+    description: 'Everyday understated luxury'
   },
   {
-    name: 'Gifting',
-    image: 'https://images.unsplash.com/photo-1549439602-43ebca2327af?w=400',
-    path: '/products?filter=gifting',
-    description: 'Perfect presents'
+    name: 'Traditional Wear',
+    image: '/images/occasions/traditional_wear.png',
+    path: '/products?filter=traditional',
+    description: 'Heritage ethnic masterpieces'
   }
 ];
 
@@ -33,8 +33,8 @@ const OccasionSection: React.FC = () => {
     <section className="px-4 md:px-8 py-16 bg-white">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col items-center mb-10 text-center">
-          <span className="text-gold uppercase tracking-[0.4em] text-[10px] font-bold mb-2">Shop For</span>
-          <h2 className="text-3xl md:text-5xl font-heading font-bold text-charcoal">Every Occasion</h2>
+          <span className="text-gold uppercase tracking-[0.4em] text-[10px] font-bold mb-2">The Collection</span>
+          <h2 className="text-3xl md:text-5xl font-heading font-bold text-charcoal">Shop by Occasion</h2>
           <div className="w-16 h-0.5 bg-gold/30 mt-4 rounded-full"></div>
         </div>
 
@@ -43,21 +43,19 @@ const OccasionSection: React.FC = () => {
             <Link
               key={occ.name}
               to={occ.path}
-              className="group relative aspect-[4/5] rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500"
+              className="group relative aspect-[3/4] rounded-2xl md:rounded-[2.5rem] overflow-hidden shadow-md hover:shadow-2xl transition-all duration-700"
             >
               <img
                 src={occ.image}
                 alt={occ.name}
                 className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-              <div className="absolute inset-x-0 bottom-0 p-6 text-center">
-                <h3 className="text-white font-heading text-2xl font-bold group-hover:text-gold transition-colors">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent opacity-80" />
+              <div className="absolute inset-x-0 bottom-0 p-4 md:p-8 text-center translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
+                <h3 className="text-white font-heading text-xl md:text-3xl font-bold group-hover:text-gold transition-colors leading-tight">
                   {occ.name}
                 </h3>
-                <p className="text-white/60 text-[10px] uppercase tracking-widest mt-1 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                  {occ.description}
-                </p>
+                <div className="w-8 h-px bg-gold/50 mx-auto mt-2 scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
               </div>
             </Link>
           ))}

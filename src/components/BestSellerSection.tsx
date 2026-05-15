@@ -38,12 +38,12 @@ const BestSellerSection: React.FC<BestSellerSectionProps> = ({
             className="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-110" 
             alt={title} 
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-transparent flex items-center p-8 md:p-20">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex flex-col justify-end p-8 md:p-20">
             <Link 
               to={bannerLink} 
-              className="bg-white/90 backdrop-blur-md text-charcoal px-6 md:px-10 py-3 md:py-4 rounded-full font-bold uppercase tracking-widest text-[10px] md:text-xs hover:bg-gold hover:text-white transition-all shadow-2xl"
+              className="group/btn flex items-center gap-2 text-white text-[10px] md:text-xs font-bold uppercase tracking-[0.3em] hover:text-gold transition-colors w-fit"
             >
-              Explore Our {title}
+              Explore Our {title} <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
             </Link>
           </div>
         </div>

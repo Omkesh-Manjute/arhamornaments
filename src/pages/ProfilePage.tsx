@@ -161,7 +161,7 @@ const ProfilePage: React.FC = () => {
 
             {/* ─── OVERVIEW TAB ─── */}
             {activeTab === 'overview' && (
-              <div className="space-y-4">
+              <div className="space-y-10">
                 {/* Refer & Earn */}
                 <ReferAndEarn />
 
@@ -275,35 +275,63 @@ const ProfilePage: React.FC = () => {
                   <h3 className="text-xl font-heading font-bold text-charcoal">Notifications</h3>
                   <Bell className="text-gold/30" size={28} />
                 </div>
+
                 <div className="space-y-4">
                   {(user.notifications || []).length > 0 ? (
-                    [...(user.notifications || [])].reverse().map(notif => (
-                      <div
-                        key={notif.id}
-                        className={`flex items-start gap-5 p-5 rounded-2xl border transition-all ${notif.isRead
-                          ? 'bg-gray-50/50 border-gray-100'
-                          : 'bg-white border-gold/30 shadow-lg shadow-gold/5'
-                          }`}
-                      >
-                        <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${notif.type === 'offer' ? 'bg-orange-50 text-orange-500' :
-                            notif.type === 'order' ? 'bg-blue-50 text-blue-500' : 'bg-gold/10 text-gold'
-                          }`}>
-                          {notif.type === 'offer' ? <Tag size={18} /> :
-                            notif.type === 'order' ? <ShoppingBag size={18} /> : <Info size={18} />}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-2">
-                            <h4 className={`font-bold text-sm ${notif.isRead ? 'text-charcoal/70' : 'text-charcoal'}`}>{notif.title}</h4>
-                            {!notif.isRead && <span className="w-2 h-2 bg-red-500 rounded-full shrink-0 animate-pulse" />}
+                    [...(user.notifications || [])].reverse().map(notif => {
+                      // Helper to render message with clickable links
+                      const renderMessage = (text: string) => {
+                        const urlRegex = /(https?:\/\/[^\s]+)/g;
+                        const parts = text.split(urlRegex);
+                        
+                        return parts.map((part, i) => {
+                          if (part.match(urlRegex)) {
+                            return (
+                              <a 
+                                key={i} 
+                                href={part} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-gold hover:underline break-all font-bold"
+                              >
+                                {part}
+                              </a>
+                            );
+                          }
+                          return part;
+                        });
+                      };
+
+                      return (
+                        <div
+                          key={notif.id}
+                          className={`flex items-start gap-5 p-5 rounded-2xl border transition-all ${notif.isRead
+                            ? 'bg-gray-50/50 border-gray-100'
+                            : 'bg-white border-gold/30 shadow-lg shadow-gold/5'
+                            }`}
+                        >
+                          <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${notif.type === 'offer' ? 'bg-orange-50 text-orange-500' :
+                              notif.type === 'order' ? 'bg-blue-50 text-blue-500' : 'bg-gold/10 text-gold'
+                            }`}>
+                            {notif.type === 'offer' ? <Tag size={18} /> :
+                              notif.type === 'order' ? <ShoppingBag size={18} /> : <Info size={18} />}
                           </div>
-                          <p className={`text-xs mt-1 leading-relaxed ${notif.isRead ? 'text-gray-500' : 'text-charcoal/80 font-medium'}`}>{notif.message}</p>
-                          <p className={`text-[10px] font-bold mt-2 flex items-center gap-1 ${notif.isRead ? 'text-gray-400' : 'text-gray-500'}`}>
-                            <Calendar size={10} />
-                            {new Date(notif.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                          </p>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2">
+                              <h4 className={`font-bold text-sm ${notif.isRead ? 'text-charcoal/70' : 'text-charcoal'}`}>{notif.title}</h4>
+                              {!notif.isRead && <span className="w-2 h-2 bg-red-500 rounded-full shrink-0 animate-pulse" />}
+                            </div>
+                            <div className={`text-xs mt-1 leading-relaxed ${notif.isRead ? 'text-gray-500' : 'text-charcoal/80 font-medium'}`}>
+                              {renderMessage(notif.message)}
+                            </div>
+                            <p className={`text-[10px] font-bold mt-2 flex items-center gap-1 ${notif.isRead ? 'text-gray-400' : 'text-gray-500'}`}>
+                              <Calendar size={10} />
+                              {new Date(notif.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    ))
+                      );
+                    })
                   ) : (
                     <div className="text-center py-16 space-y-4">
                       <Bell size={48} className="mx-auto text-gray-200" />

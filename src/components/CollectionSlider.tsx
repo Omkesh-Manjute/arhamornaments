@@ -57,8 +57,8 @@ const CollectionSlider: React.FC<CollectionSliderProps> = ({ title, subtitle, ba
                 alt={banner.title.replace(/<br \/>/g, ' ')} 
                 className="w-full h-full object-cover transition-transform duration-[5s] group-hover:scale-105" 
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-transparent flex flex-col justify-center p-8 md:p-16">
-                <h3 className="text-white text-2xl md:text-5xl font-heading font-bold mb-6 leading-tight max-w-sm drop-shadow-lg">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex flex-col justify-end p-8 md:p-16">
+                <h3 className="text-white text-2xl md:text-5xl font-heading font-bold mb-4 md:mb-6 leading-tight max-w-sm drop-shadow-lg">
                   {banner.title.split('<br />').map((text, i) => (
                     <React.Fragment key={i}>
                       {text}
@@ -68,16 +68,16 @@ const CollectionSlider: React.FC<CollectionSliderProps> = ({ title, subtitle, ba
                 </h3>
                 <Link 
                   to={banner.link} 
-                  className="bg-white/90 backdrop-blur-md text-charcoal px-8 py-3 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] hover:bg-gold hover:text-white transition-all w-fit shadow-2xl"
+                  className="group/btn flex items-center gap-2 text-white text-[9px] md:text-xs font-bold uppercase tracking-[0.3em] hover:text-gold transition-colors w-fit"
                 >
-                  Explore the Collection
+                  Explore Collection <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
                 </Link>
               </div>
             </div>
           ))}
           
           {/* Slider Indicators */}
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+          <div className="absolute bottom-6 right-8 md:right-16 z-20 flex gap-2">
             {banners.map((_, idx) => (
               <div 
                 key={idx}
@@ -95,23 +95,29 @@ const CollectionSlider: React.FC<CollectionSliderProps> = ({ title, subtitle, ba
             <Link 
               key={item.id} 
               to={item.path}
-              className="flex-shrink-0 w-[200px] md:w-[300px] group"
+              className="flex-shrink-0 w-[220px] md:w-[320px] group"
             >
-              <div className="aspect-[4/5] rounded-[1.5rem] overflow-hidden mb-4 relative bg-offwhite border border-gray-100">
-                <img 
-                  src={item.image} 
-                  alt={item.name} 
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
-                />
-                <div className="absolute inset-0 bg-black/5 group-hover:bg-black/0 transition-colors" />
-                <div className="absolute bottom-4 left-0 right-0 text-center">
-                   <span className="inline-block bg-white/90 backdrop-blur-sm px-5 py-2 rounded-full text-sm font-heading font-bold shadow-sm text-charcoal">
-                     {item.name}
-                   </span>
+              <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 border border-gold/5">
+                <div className="aspect-[4/5] overflow-hidden bg-white relative">
+                  <img 
+                    src={item.image} 
+                    alt={item.name} 
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+                  />
+                  <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                </div>
+                <div className="p-3 md:p-5 flex items-center justify-between bg-white border-t border-gray-50">
+                  <h3 className="font-heading text-sm md:text-lg font-bold text-ruby group-hover:text-ruby/80 transition-colors">
+                    {item.name}
+                  </h3>
+                  <div className="text-[9px] font-bold text-gold uppercase tracking-[0.2em] flex items-center gap-1 group-hover:gap-2 transition-all">
+                    View <span className="text-[12px] leading-none">→</span>
+                  </div>
                 </div>
               </div>
             </Link>
           ))}
+
           
           {/* View All Card */}
           <Link 

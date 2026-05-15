@@ -25,6 +25,35 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const prevNotifCount = React.useRef<number>(0);
+
+  // Sound effect for notifications
+  const playNotificationSound = () => {
+    try {
+      const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+      audio.volume = 0.5;
+      audio.play().catch(e => console.log("Audio play blocked by browser until user interacts with the page."));
+    } catch (err) {
+      console.error("Failed to play notification sound:", err);
+    }
+  };
+
+  // Watch for new notifications to play sound
+  useEffect(() => {
+    if (user && user.notifications) {
+      const currentCount = user.notifications.length;
+      if (currentCount > prevNotifCount.current && prevNotifCount.current > 0) {
+        // Only play if it's a truly new notification (not the initial load)
+        const latestNotif = user.notifications[user.notifications.length - 1];
+        if (!latestNotif.isRead) {
+          playNotificationSound();
+        }
+      }
+      prevNotifCount.current = currentCount;
+    } else if (!user) {
+      prevNotifCount.current = 0;
+    }
+  }, [user?.notifications?.length]);
 
   const generateReferralCode = (name: string) => {
     const safeName = name || 'User';
