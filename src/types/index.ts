@@ -83,6 +83,8 @@ export interface User {
   referralCode: string;
   referredBy?: string;
   referralCount: number;
+  monthlyReferralCount?: number;
+  lastReferralMonth?: string; // Format: 'YYYY-MM'
   lastSpinDate?: string;
   notifications: Notification[];
 }

@@ -42,7 +42,27 @@ export const referralService = {
    */
   async creditReferrer(referrerUid: string, newUserName: string) {
     const referrerDocRef = doc(db, 'users', referrerUid);
+    const referrerSnap = await getDoc(referrerDocRef);
     
+    if (!referrerSnap.exists()) return false;
+    
+    const referrerData = referrerSnap.data();
+    const currentMonth = new Date().toISOString().substring(0, 7); // 'YYYY-MM'
+    
+    let monthlyCount = referrerData.monthlyReferralCount || 0;
+    const lastMonth = referrerData.lastReferralMonth || '';
+    
+    // Reset count if it's a new month
+    if (lastMonth !== currentMonth) {
+      monthlyCount = 0;
+    }
+    
+    // Check limit: 10 per month
+    if (monthlyCount >= 10) {
+      console.log(`Referrer ${referrerUid} has reached the monthly limit of 10 referrals.`);
+      return false; // Skip credit
+    }
+
     const newNotification: Notification = {
       id: Date.now().toString(),
       title: 'Referral Bonus! 🎊',
@@ -56,6 +76,8 @@ export const referralService = {
       await updateDoc(referrerDocRef, {
         walletBalance: increment(100),
         referralCount: increment(1),
+        monthlyReferralCount: lastMonth === currentMonth ? increment(1) : 1,
+        lastReferralMonth: currentMonth,
         notifications: arrayUnion(newNotification)
       });
       return true;
@@ -89,6 +111,19 @@ export const referralService = {
       
       // Update user's own document (they have permission)
       const userDocRef = doc(db, 'users', userUid);
+      const userSnap = await getDoc(userDocRef);
+      if (!userSnap.exists()) continue;
+      
+      const userData = userSnap.data();
+      const currentMonth = new Date().toISOString().substring(0, 7);
+      let monthlyCount = userData.monthlyReferralCount || 0;
+      if ((userData.lastReferralMonth || '') !== currentMonth) monthlyCount = 0;
+
+      if (monthlyCount >= 10) {
+        // Skip this task for now or mark as exceeded
+        continue; 
+      }
+
       const newNotification: Notification = {
         id: Date.now().toString(),
         title: 'Referral Bonus! 🎊',
@@ -101,6 +136,8 @@ export const referralService = {
       await updateDoc(userDocRef, {
         walletBalance: increment(amount),
         referralCount: increment(1),
+        monthlyReferralCount: (userData.lastReferralMonth || '') === currentMonth ? increment(1) : 1,
+        lastReferralMonth: currentMonth,
         notifications: arrayUnion(newNotification)
       });
 

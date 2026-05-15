@@ -186,6 +186,51 @@ const ReferAndEarn: React.FC = () => {
             </div>
           )}
         </div>
+        {/* Rules & Guidelines Section */}
+        <div className="max-w-4xl mx-auto mt-24">
+          <div className="bg-white rounded-[3rem] p-10 md:p-16 shadow-sm border border-gray-100 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-gold/5 rounded-full blur-3xl -mr-32 -mt-32 transition-transform duration-700 group-hover:scale-110" />
+            
+            <div className="relative z-10 space-y-12">
+              <div className="text-center space-y-2">
+                <div className="flex items-center justify-center gap-2 text-gold font-black uppercase tracking-[0.3em] text-[10px] mb-2">
+                  <ShieldCheck size={14} />
+                  Program Governance
+                </div>
+                <h2 className="text-3xl font-heading font-bold text-charcoal">Terms & Guidelines</h2>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-4 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100/50 hover:border-gold/30 transition-all">
+                  <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-gold shadow-sm">
+                    <History size={20} />
+                  </div>
+                  <h4 className="font-bold text-charcoal">Monthly Invite Limit</h4>
+                  <p className="text-xs text-gray-500 leading-relaxed font-medium">
+                    To maintain program integrity, rewards are credited for up to <span className="text-charcoal font-bold">10 successful referrals per month</span>. Resets on the 1st of every month.
+                  </p>
+                </div>
+
+                <div className="space-y-4 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100/50 hover:border-gold/30 transition-all">
+                  <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-amber-600 shadow-sm">
+                    <Wallet size={20} />
+                  </div>
+                  <h4 className="font-bold text-charcoal">Redemption Cap</h4>
+                  <p className="text-xs text-gray-500 leading-relaxed font-medium">
+                    Wallet rewards can be used for any luxury purchase. You can redeem up to <span className="text-charcoal font-bold">₹1,000 per order</span> for maximum savings.
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-8 border-t border-gray-100 text-center">
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-relaxed">
+                  Referral bonuses are credited instantly after your friend's verified signup. <br />
+                  Management reserves the right to audit or adjust balances for fraudulent activity.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

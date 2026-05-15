@@ -86,7 +86,8 @@ const CheckoutPage: React.FC = () => {
   
   const availableWalletBalance = user?.walletBalance || 0;
   const subtotalBeforeRedeem = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0) + giftSurcharge;
-  const redeemedAmount = walletRedemption.isRedeemed ? Math.min(subtotalBeforeRedeem, availableWalletBalance) : 0;
+  const MAX_REDEMPTION = 1000;
+  const redeemedAmount = walletRedemption.isRedeemed ? Math.min(subtotalBeforeRedeem, availableWalletBalance, MAX_REDEMPTION) : 0;
   
   const couponDiscount = appliedCoupon
     ? appliedCoupon.discountType === 'percentage'

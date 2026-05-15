@@ -292,6 +292,27 @@ const AdminPage: React.FC = () => {
                   </div>
                 ))}
               </div>
+
+              <div className="mt-10 pt-8 border-t border-[#222222] flex gap-4">
+                <button
+                  onClick={async () => {
+                    if (window.confirm(`Are you sure you want to reset ${selectedCust.name}'s wallet balance to ₹0?`)) {
+                      await userService.updateUserProfile(selectedCust.id, { walletBalance: 0 });
+                      setSelectedCust({ ...selectedCust, walletBalance: 0 });
+                      alert('Wallet balance has been reset to ₹0.');
+                    }
+                  }}
+                  className="flex-1 py-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all active:scale-95 shadow-lg shadow-red-500/5"
+                >
+                  Reset Wallet Balance
+                </button>
+                <button
+                  onClick={() => setSelectedCust(null)}
+                  className="flex-1 py-4 bg-[#0D0D0D] border border-[#222222] text-gray-500 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:border-gray-500 hover:text-white transition-all active:scale-95"
+                >
+                  Close Archive
+                </button>
+              </div>
             </div>
           </div>
         </div>
