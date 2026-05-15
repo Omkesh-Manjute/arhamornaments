@@ -25,6 +25,7 @@ import { PriceProvider } from './context/PriceContext';
 
 import LivePriceTicker from './components/LivePriceTicker';
 import MobileBottomNav from './components/MobileBottomNav';
+import NotificationWatcher from './components/NotificationWatcher';
 
 const AppContent: React.FC = () => {
   const location = useLocation();
@@ -60,6 +61,7 @@ const AppContent: React.FC = () => {
       {!hideHeaderFooter && <Footer />}
       {!hideHeaderFooter && <MobileBottomNav />}
       {!isAdminPage && <LuckyWheel />}
+      <NotificationWatcher />
     </div>
   );
 };

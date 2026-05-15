@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Percent, Edit, Trash2, Loader2 } from 'lucide-react';
+import { Plus, Percent, Edit, Trash2, Loader2, Bell } from 'lucide-react';
 import { Coupon } from '../../types';
 import { couponService } from '../../services/couponService';
+import { adminService } from '../../services/adminService';
 
 const AdminCoupons: React.FC = () => {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
@@ -29,21 +30,44 @@ const AdminCoupons: React.FC = () => {
     const val = window.prompt("Enter Discount Value (in Rupees, e.g. 500):");
     if (!val) return;
 
+    const newCoupon: Coupon = {
+      id: Date.now().toString(),
+      code: code.toUpperCase(),
+      discountType: 'fixed',
+      discountValue: Number(val),
+      minOrderAmount: 0,
+      expiryDate: '2027-12-31',
+      isActive: true,
+      usageCount: 0
+    };
+
     setLoading(true);
     try {
-      await couponService.saveCoupon({
-        id: Date.now().toString(),
-        code: code.toUpperCase(),
-        discountType: 'fixed',
-        discountValue: Number(val),
-        minOrderAmount: 0,
-        expiryDate: '2027-12-31',
-        isActive: true,
-        usageCount: 0
-      });
+      await couponService.saveCoupon(newCoupon);
       await fetchCoupons();
+      
+      if (window.confirm("✅ Coupon created! Do you want to broadcast this discount to all users?")) {
+        await handleBroadcastCoupon(newCoupon);
+      }
     } catch (e) {
       alert("Failed to create coupon");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBroadcastCoupon = async (coupon: Coupon) => {
+    if (!window.confirm(`Broadcast coupon "${coupon.code}" to all users?`)) return;
+    setLoading(true);
+    try {
+      await adminService.sendMassNotification('all', {
+        title: 'New Discount Coupon! 🎁',
+        message: `Use code ${coupon.code} to get ${coupon.discountType === 'percentage' ? `${coupon.discountValue}%` : `₹${coupon.discountValue}`} off on your next order!`,
+        type: 'offer'
+      });
+      alert("✅ Notification broadcasted to all users!");
+    } catch (e) {
+      alert("Failed to send notification");
     } finally {
       setLoading(false);
     }
@@ -97,8 +121,15 @@ const AdminCoupons: React.FC = () => {
               </div>
               <div className="text-right space-y-2">
                 <div className="flex gap-2 justify-end">
-                  <button className="p-2 hover:bg-white/5 rounded-xl text-gray-500 hover:text-blue-400 transition"><Edit size={16} /></button>
-                  <button onClick={() => handleDeleteCoupon(c.id)} className="p-2 hover:bg-white/5 rounded-xl text-gray-500 hover:text-red-400 transition"><Trash2 size={16} /></button>
+                  <button 
+                    onClick={() => handleBroadcastCoupon(c)} 
+                    className="p-2 hover:bg-amber-500/10 rounded-xl text-gray-500 hover:text-amber-500 transition-all"
+                    title="Broadcast to all users"
+                  >
+                    <Bell size={16} />
+                  </button>
+                  <button className="p-2 hover:bg-white/5 rounded-xl text-gray-500 hover:text-blue-400 transition-all"><Edit size={16} /></button>
+                  <button onClick={() => handleDeleteCoupon(c.id)} className="p-2 hover:bg-white/5 rounded-xl text-gray-500 hover:text-red-400 transition-all"><Trash2 size={16} /></button>
                 </div>
                 <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border ${c.isActive ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-white/5 text-gray-400 border-white/10'}`}>
                   {c.isActive ? 'Live' : 'Paused'}
