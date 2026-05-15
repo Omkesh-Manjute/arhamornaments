@@ -40,7 +40,10 @@ const WalletRedemption: React.FC = () => {
       <div className="bg-[#FCFBF7] rounded-[1.5rem] p-6 border border-gray-50 flex items-center justify-between relative z-10 overflow-hidden">
         <div className="space-y-1">
           <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Available Balance</p>
-          <p className="text-2xl font-black text-charcoal tracking-tight">{formatPrice(user.walletBalance)}</p>
+          <div className="flex items-baseline gap-2">
+            <p className="text-2xl font-black text-charcoal tracking-tight">{formatPrice(user.walletBalance)}</p>
+            <span className="text-[9px] text-gold font-bold uppercase tracking-widest bg-gold/5 px-2 py-0.5 rounded-full">Max ₹1,000 per order</span>
+          </div>
         </div>
         
         {walletRedemption.isRedeemed ? (

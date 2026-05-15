@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Heart, ArrowRight, Trash2 } from 'lucide-react';
 import { useWishlist } from '../context/WishlistContext';
 import { useCart } from '../context/CartContext';
-import ProductCard from '../components/ProductCard';
+import ProductCard from '../components/product/ProductCard';
 
 const WishlistPage: React.FC = () => {
   const { wishlist, removeFromWishlist } = useWishlist();

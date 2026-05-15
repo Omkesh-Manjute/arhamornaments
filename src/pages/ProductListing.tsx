@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useSearchParams, Link, useLocation, useParams } from 'react-router-dom';
 import { Filter, X, ChevronDown, Grid, List, SlidersHorizontal, ChevronLeft } from 'lucide-react';
-import ProductCard from '../components/ProductCard';
+import ProductCard from '../components/product/ProductCard';
 import { products, categories, materials, occasions } from '../data/products';
 import { Product } from '../types';
 import { productService } from '../services/productService';

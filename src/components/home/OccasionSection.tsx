@@ -1,7 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-const occasions = [
+import { homepageService } from '../../services/homepageService';
+
+const defaultOccasions = [
   {
     name: 'Office Wear',
     image: '/images/occasions/office_wear.png',
@@ -29,6 +31,15 @@ const occasions = [
 ];
 
 const OccasionSection: React.FC = () => {
+  const [occasions, setOccasions] = React.useState(defaultOccasions);
+
+  React.useEffect(() => {
+    homepageService.getSectionConfig().then(config => {
+      if (config.occasions && config.occasions.length > 0) {
+        setOccasions(config.occasions);
+      }
+    });
+  }, []);
   return (
     <section className="px-4 md:px-8 py-16 bg-white">
       <div className="max-w-7xl mx-auto">

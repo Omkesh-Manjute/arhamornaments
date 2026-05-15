@@ -202,6 +202,29 @@ const AdminPromotions: React.FC = () => {
         </div>
       </div>
 
+      <div className="bg-[#161616] rounded-2xl border border-[#222222] p-8 shadow-sm">
+        <div className="flex items-center gap-4 mb-6">
+          <div className="w-12 h-12 bg-purple-500/10 rounded-2xl flex items-center justify-center text-purple-500">
+            <Gift size={24} />
+          </div>
+          <h3 className="text-xl font-bold text-white">System Policies</h3>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-5 bg-white/5 rounded-[2rem] border border-white/5">
+            <p className="text-[10px] font-black text-purple-400 uppercase tracking-[0.2em] mb-2">Spin & Win Rule</p>
+            <p className="text-xs text-gray-400 font-medium leading-relaxed">Users can only spin the wheel <strong className="text-white">once</strong>. Subsequent spins are disabled globally for existing participants.</p>
+          </div>
+          <div className="p-5 bg-white/5 rounded-[2rem] border border-white/5">
+            <p className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em] mb-2">Referral Limit</p>
+            <p className="text-xs text-gray-400 font-medium leading-relaxed">Maximum <strong className="text-white">10 successful referrals</strong> allowed per user per month. Credits reset on the 1st of every month.</p>
+          </div>
+          <div className="p-5 bg-white/5 rounded-[2rem] border border-white/5">
+            <p className="text-[10px] font-black text-amber-400 uppercase tracking-[0.2em] mb-2">Redemption Cap</p>
+            <p className="text-xs text-gray-400 font-medium leading-relaxed">Wallet balance usage is capped at <strong className="text-white">₹1,000 per order</strong>. Excess balance remains for future purchases.</p>
+          </div>
+        </div>
+      </div>
+
       <button
         onClick={handleSavePromotions}
         disabled={saving}

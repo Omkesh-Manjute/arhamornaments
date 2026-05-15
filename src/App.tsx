@@ -2,8 +2,8 @@ import React from 'react';
 import { HashRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
 import { UserProvider } from './context/UserContext';
-import Header from './components/Header';
-import Footer from './components/Footer';
+import Header from './components/layout/Header';
+import Footer from './components/layout/Footer';
 import HomePage from './pages/HomePage';
 import ProductListing from './pages/ProductListing';
 import ProductDetail from './pages/ProductDetail';
@@ -19,13 +19,13 @@ import FAQPage from './pages/FAQPage';
 import ReturnsPage from './pages/ReturnsPage';
 import EducationPage from './pages/EducationPage';
 import SupportPage from './pages/SupportPage';
-import LuckyWheel from './components/LuckyWheel';
+import LuckyWheel from './components/promotions/LuckyWheel';
 import { WishlistProvider } from './context/WishlistContext';
 import { PriceProvider } from './context/PriceContext';
 
-import LivePriceTicker from './components/LivePriceTicker';
-import MobileBottomNav from './components/MobileBottomNav';
-import NotificationWatcher from './components/NotificationWatcher';
+import LivePriceTicker from './components/layout/LivePriceTicker';
+import MobileBottomNav from './components/layout/MobileBottomNav';
+import NotificationWatcher from './components/layout/NotificationWatcher';
 
 const AppContent: React.FC = () => {
   const location = useLocation();

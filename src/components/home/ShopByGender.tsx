@@ -3,7 +3,9 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
 
-const genders = [
+import { homepageService } from '../../services/homepageService';
+
+const defaultGenders = [
   {
     name: 'Men',
     image: '/images/gender/men.png',
@@ -25,6 +27,15 @@ const genders = [
 ];
 
 const ShopByGender: React.FC = () => {
+  const [genders, setGenders] = React.useState(defaultGenders);
+
+  React.useEffect(() => {
+    homepageService.getSectionConfig().then(config => {
+      if (config.genderSections && config.genderSections.length > 0) {
+        setGenders(config.genderSections);
+      }
+    });
+  }, []);
   return (
     <section className="px-4 md:px-8 pt-16 pb-8 bg-cream/20">
       <div className="max-w-7xl mx-auto">

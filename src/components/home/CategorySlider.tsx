@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { productService } from '../services/productService';
+import { homepageService } from '../../services/homepageService';
+import { productService } from '../../services/productService';
 
 // Fallback category order (used for sorting, not images)
 const CATEGORY_ORDER = [
@@ -22,6 +23,17 @@ const CategorySlider: React.FC = () => {
   useEffect(() => {
     const loadCategories = async () => {
       try {
+        const config = await homepageService.getSectionConfig();
+        if (config.categories && config.categories.length > 0) {
+          setCategories(config.categories.map(c => ({
+            id: c.name.toLowerCase(),
+            name: c.name,
+            image: c.image,
+            path: c.path
+          })));
+          return;
+        }
+
         const products = await productService.getAllProducts();
         // Build categories from real product data
         const catMap = new Map<string, string>();

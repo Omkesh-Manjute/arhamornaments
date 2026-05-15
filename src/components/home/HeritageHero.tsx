@@ -1,8 +1,25 @@
-import React from 'react';
-import { Play, ArrowRight, Sparkles } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { homepageService } from '../../services/homepageService';
+
+const defaultData = {
+  artisanImage: '/images/hero/artisan.png',
+  portraitImage: '/images/hero/portrait.png',
+  necklaceImage: '/images/hero/necklace.png',
+  queenCollectionPrice: '₹4,22,249',
+  queenCollectionOriginalPrice: '₹6,49,999',
+  queenCollectionDiscount: '-35% OFF'
+};
 
 const HeritageHero: React.FC = () => {
+  const [data, setData] = React.useState(defaultData);
+
+  React.useEffect(() => {
+    homepageService.getSectionConfig().then(config => {
+      if (config.heritageHero) {
+        setData({ ...defaultData, ...config.heritageHero });
+      }
+    });
+  }, []);
+
   return (
     <section className="relative min-h-[95vh] bg-[#002d20] overflow-hidden flex items-center pt-28 pb-16">
       {/* Premium Luxury Background Layer */}
@@ -55,7 +72,7 @@ const HeritageHero: React.FC = () => {
             <div className="space-y-8">
               <div className="relative inline-block group">
                 <div className="w-52 h-64 rounded-t-full overflow-hidden border border-gold-light/20 relative shadow-2xl transition-transform duration-700 group-hover:scale-[1.02]">
-                  <img src="/images/hero/artisan.png" className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" alt="Master Artisan at Work" />
+                  <img src={data.artisanImage} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" alt="Master Artisan at Work" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 </div>
                 <button className="absolute -bottom-5 -right-5 bg-ruby p-4 rounded-full border border-gold-light/30 shadow-xl transform transition hover:scale-110 hover:rotate-12 active:scale-95 group">
@@ -92,7 +109,7 @@ const HeritageHero: React.FC = () => {
               <div className="aspect-[4/5.5] rounded-t-full overflow-hidden border-[10px] border-[#8B2323] relative shadow-[0_30px_60px_rgba(0,0,0,0.5)] group">
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent z-10 opacity-60 group-hover:opacity-40 transition-opacity duration-700" />
                 <img 
-                  src="/images/hero/portrait.png" 
+                  src={data.portraitImage} 
                   className="w-full h-full object-cover object-top transition-transform duration-[2000ms] group-hover:scale-105" 
                   alt="Legacy of Luxury Portrait" 
                 />
@@ -127,7 +144,7 @@ const HeritageHero: React.FC = () => {
                <div className="flex justify-center lg:justify-end">
                 <div className="relative inline-block group">
                   <div className="w-52 h-64 rounded-t-full overflow-hidden border border-gold-light/20 bg-[#001a12] shadow-2xl transition-transform duration-700 group-hover:scale-[1.02]">
-                    <img src="/images/hero/necklace.png" className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" alt="The Queen Collection Masterpiece" />
+                    <img src={data.necklaceImage} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" alt="The Queen Collection Masterpiece" />
                     <div className="absolute inset-0 bg-gold/5 mix-blend-overlay"></div>
                   </div>
                   <div className="absolute top-4 right-4">
@@ -138,10 +155,10 @@ const HeritageHero: React.FC = () => {
               <div>
                 <h4 className="text-gold-light font-heading text-xl font-bold uppercase tracking-widest leading-tight">The Queen <br /> Collection</h4>
                 <div className="mt-4 flex flex-col items-center lg:items-end">
-                  <p className="text-gold/40 text-[10px] line-through font-bold tracking-widest">₹6,49,999 -35% OFF</p>
+                  <p className="text-gold/40 text-[10px] line-through font-bold tracking-widest">{data.queenCollectionOriginalPrice} {data.queenCollectionDiscount}</p>
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-px bg-gold/20"></span>
-                    <p className="text-white font-bold text-2xl font-heading tracking-[0.1em] text-gradient-gold">₹4,22,249</p>
+                    <p className="text-white font-bold text-2xl font-heading tracking-[0.1em] text-gradient-gold">{data.queenCollectionPrice}</p>
                   </div>
                 </div>
                 <Link to="/products" className="inline-flex items-center gap-3 bg-ruby text-white px-10 py-4 rounded-full text-[10px] font-black uppercase tracking-[0.25em] mt-8 hover:bg-ruby/80 transition-all shadow-[0_15px_30px_rgba(139,35,35,0.4)] border border-gold-light/20 active:scale-95 group">

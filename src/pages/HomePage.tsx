@@ -1,18 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ShieldCheck, Truck, Gem, ChevronRight } from 'lucide-react';
-import HeritageHero from '../components/HeritageHero';
+import HeritageHero from '../components/home/HeritageHero';
 import { products } from '../data/products';
-import MobileSearchBar from '../components/MobileSearchBar';
-import CategorySlider from '../components/CategorySlider';
-import MobileHeroSlider from '../components/MobileHeroSlider';
-import CollectionSlider from '../components/CollectionSlider';
-import BestSellerSection from '../components/BestSellerSection';
-import ProductCard from '../components/ProductCard';
-import OccasionSection from '../components/OccasionSection';
-import LivePriceTicker from '../components/LivePriceTicker';
-import HeroSlider from '../components/HeroSlider';
-import ShopByGender from '../components/ShopByGender';
+import MobileSearchBar from '../components/layout/MobileSearchBar';
+import CategorySlider from '../components/home/CategorySlider';
+import MobileHeroSlider from '../components/home/MobileHeroSlider';
+import CollectionSlider from '../components/home/CollectionSlider';
+import BestSellerSection from '../components/home/BestSellerSection';
+import ProductCard from '../components/product/ProductCard';
+import OccasionSection from '../components/home/OccasionSection';
+import LivePriceTicker from '../components/layout/LivePriceTicker';
+import HeroSlider from '../components/home/HeroSlider';
+import ShopByGender from '../components/home/ShopByGender';
 
 import { Product } from '../types';
 import { productService } from '../services/productService';
@@ -25,6 +25,9 @@ const HomePage: React.FC = () => {
   const [trendingProducts, setTrendingProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<HomeCategory[]>([]);
   const [earringCollection, setEarringCollection] = useState<HomeCollectionItem[]>([]);
+  const [bestSellerBanner, setBestSellerBanner] = useState<string>('');
+  const [promoSections, setPromoSections] = useState<any[]>([]);
+  const [spotlight, setSpotlight] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -99,6 +102,10 @@ const HomePage: React.FC = () => {
             }));
           setEarringCollection(autoCollection);
         }
+
+        setBestSellerBanner(config.bestSellerBanner || '');
+        setPromoSections(config.promoSections || []);
+        setSpotlight(config.spotlight || null);
 
       } catch (error) {
         console.error("Failed to load home page products:", error);
@@ -222,7 +229,7 @@ const HomePage: React.FC = () => {
         <BestSellerSection
           title="Gold Best Sellers"
           subtitle="Our most loved handcrafted gold masterpieces"
-          bannerImage="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=1200"
+          bannerImage={bestSellerBanner || "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=1200"}
           bannerLink="/products?category=necklaces"
           products={bestSellers}
         />
@@ -255,95 +262,81 @@ const HomePage: React.FC = () => {
       )}
 
       {/* Stunning Split Promo Section */}
-      <section className="px-4 md:px-8 py-8 md:py-16 bg-white">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
-          {/* Left Promo */}
-          <div className="relative h-[200px] md:h-[500px] rounded-3xl md:rounded-[3rem] overflow-hidden group shadow-lg">
-            <img src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=1200" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt="Collection" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-6 md:p-10 space-y-2 md:space-y-4">
-              <span className="text-gold uppercase tracking-[0.4em] text-[7px] md:text-[10px] font-bold">New Arrivals</span>
-              <h2 className="text-lg md:text-4xl font-heading text-white font-bold leading-tight">
-                Essence of <br /> <span className="text-gradient-gold">Pure Artistry</span>
-              </h2>
-              <Link to="/products" className="group/btn flex items-center gap-2 text-white/90 text-[9px] md:text-xs font-bold uppercase tracking-[0.2em] hover:text-gold transition-colors w-fit">
-                Explore Collection <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-              </Link>
-            </div>
+      {promoSections.length > 0 && (
+        <section className="px-4 md:px-8 py-8 md:py-16 bg-white">
+          <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
+            {promoSections.map((promo, idx) => (
+              <div key={idx} className={`relative h-[200px] md:h-[500px] rounded-3xl md:rounded-[3rem] overflow-hidden group shadow-lg`}>
+                <img src={promo.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt={promo.title} />
+                <div className={`absolute inset-0 bg-gradient-to-t ${
+                  promo.type === 'middle' ? 'from-emerald-950/80' : promo.type === 'right' ? 'from-rose-950/80' : 'from-black/80'
+                } via-transparent to-transparent flex flex-col justify-end p-6 md:p-10 space-y-2 md:space-y-4 ${
+                  promo.type === 'middle' ? 'items-center text-center' : promo.type === 'right' ? 'items-end text-right' : ''
+                }`}>
+                  <span className="text-gold uppercase tracking-[0.4em] text-[7px] md:text-[10px] font-bold">{promo.subtitle}</span>
+                  <h2 className="text-lg md:text-4xl font-heading text-white font-bold leading-tight">
+                    {promo.title.includes('<br />') ? 
+                      promo.title.split('<br />').map((t: string, i: number) => <React.Fragment key={i}>{t}{i < promo.title.split('<br />').length - 1 && <br />}</React.Fragment>)
+                      : promo.title
+                    }
+                  </h2>
+                  <Link to={promo.link} className="group/btn flex items-center gap-2 text-white/90 text-[9px] md:text-xs font-bold uppercase tracking-[0.2em] hover:text-gold transition-colors w-fit">
+                    Explore <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                  </Link>
+                </div>
+              </div>
+            ))}
           </div>
-          {/* Middle Promo */}
-          <div className="relative h-[200px] md:h-[500px] rounded-3xl md:rounded-[3rem] overflow-hidden group shadow-lg">
-            <img src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=1200" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt="Elegance" />
-            <div className="absolute inset-0 bg-gradient-to-t from-emerald-950/80 via-transparent to-transparent flex flex-col justify-end p-6 md:p-10 space-y-2 md:space-y-4 items-center text-center">
-              <span className="text-gold uppercase tracking-[0.4em] text-[7px] md:text-[10px] font-bold">Wedding Special</span>
-              <h2 className="text-lg md:text-4xl font-heading text-white font-bold leading-tight">
-                Timeless <br /> <span className="text-gradient-gold">Bridal Splendor</span>
-              </h2>
-              <Link to="/products" className="group/btn flex items-center gap-2 text-white/90 text-[9px] md:text-xs font-bold uppercase tracking-[0.2em] hover:text-gold transition-colors w-fit">
-                View Wedding Sets <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-              </Link>
-            </div>
-          </div>
-          {/* Right Promo */}
-          <div className="relative h-[200px] md:h-[500px] rounded-3xl md:rounded-[3rem] overflow-hidden group shadow-lg">
-            <img src="https://images.unsplash.com/photo-1601121141461-9d6647bca1ed?w=1200" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt="Signature" />
-            <div className="absolute inset-0 bg-gradient-to-t from-rose-950/80 via-transparent to-transparent flex flex-col justify-end p-6 md:p-10 space-y-2 md:space-y-4 items-end text-right">
-              <span className="text-gold uppercase tracking-[0.4em] text-[7px] md:text-[10px] font-bold">Exquisite</span>
-              <h2 className="text-lg md:text-4xl font-heading text-white font-bold leading-tight">
-                Signature <br /> <span className="text-gradient-gold">Collections</span>
-              </h2>
-              <Link to="/products" className="group/btn flex items-center gap-2 text-white/90 text-[9px] md:text-xs font-bold uppercase tracking-[0.2em] hover:text-gold transition-colors w-fit">
-                Explore Now <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
 
       {/* Featured Spotlight (Floating Elements) */}
-      <section className="hidden md:block px-4 md:px-8 py-24 bg-charcoal relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
-          <div className="grid grid-cols-12 h-full">
-            {[...Array(12)].map((_, i) => (
-              <div key={i} className="border-r border-gold h-full" />
-            ))}
+      {spotlight && (
+        <section className="hidden md:block px-4 md:px-8 py-24 bg-charcoal relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+            <div className="grid grid-cols-12 h-full">
+              {[...Array(12)].map((_, i) => (
+                <div key={i} className="border-r border-gold h-full" />
+              ))}
+            </div>
           </div>
-        </div>
 
-        <div className="max-w-7xl mx-auto relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
-          <div className="relative">
-            <div className="aspect-square rounded-[4rem] overflow-hidden border-2 border-gold/30 p-4 animate-float">
-              <img src="https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=800" className="w-full h-full object-cover rounded-[3rem]" alt="Spotlight" />
-            </div>
-            <div className="absolute -bottom-10 -right-10 bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-[2rem] shadow-2xl glass hidden md:block">
-              <p className="text-gold font-heading text-3xl font-bold mb-1">Masterpiece</p>
-              <p className="text-white/60 text-xs uppercase tracking-widest">Limited Edition 2024</p>
-            </div>
-          </div>
-          <div className="space-y-8">
-            <span className="text-gold uppercase tracking-[0.5em] text-xs font-bold block">The Spotlight</span>
-            <h2 className="text-3xl md:text-7xl font-heading font-bold text-white leading-tight">
-              Crafting <br /> <span className="text-gradient-gold italic font-normal">Excellence.</span>
-            </h2>
-            <p className="text-white/60 text-lg leading-relaxed max-w-lg">
-              Each piece of Arham Ornaments jewellery is a testament to our dedication to perfection. Our master artisans spend hundreds of hours crafting every detail to ensure it meets our heritage standards.
-            </p>
-            <div className="grid grid-cols-2 gap-8 py-8 border-y border-white/10">
-              <div>
-                <p className="text-3xl font-heading font-bold text-gold">22K</p>
-                <p className="text-white/40 text-[10px] uppercase tracking-widest font-bold mt-1">Solid Gold Pureness</p>
+          <div className="max-w-7xl mx-auto relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+            <div className="relative">
+              <div className="aspect-square rounded-[4rem] overflow-hidden border-2 border-gold/30 p-4 animate-float">
+                <img src={spotlight.image} className="w-full h-full object-cover rounded-[3rem]" alt="Spotlight" />
               </div>
-              <div>
-                <p className="text-3xl font-heading font-bold text-gold">BIS</p>
-                <p className="text-white/40 text-[10px] uppercase tracking-widest font-bold mt-1">Hallmarked Quality</p>
+              <div className="absolute -bottom-10 -right-10 bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-[2rem] shadow-2xl glass hidden md:block">
+                <p className="text-gold font-heading text-3xl font-bold mb-1">{spotlight.title}</p>
+                <p className="text-white/60 text-xs uppercase tracking-widest">{spotlight.subtitle}</p>
               </div>
             </div>
-            <Link to="/about" className="btn-premium bg-gold hover:bg-gold-dark inline-block">
-              Learn About Our Craft
-            </Link>
+            <div className="space-y-8">
+              <span className="text-gold uppercase tracking-[0.5em] text-xs font-bold block">The Spotlight</span>
+              <h2 className="text-3xl md:text-7xl font-heading font-bold text-white leading-tight">
+                Crafting <br /> <span className="text-gradient-gold italic font-normal">Excellence.</span>
+              </h2>
+              <p className="text-white/60 text-lg leading-relaxed max-w-lg">
+                Each piece of Arham Ornaments jewellery is a testament to our dedication to perfection. Our master artisans spend hundreds of hours crafting every detail to ensure it meets our heritage standards.
+              </p>
+              <div className="grid grid-cols-2 gap-8 py-8 border-y border-white/10">
+                <div>
+                  <p className="text-3xl font-heading font-bold text-gold">22K</p>
+                  <p className="text-white/40 text-[10px] uppercase tracking-widest font-bold mt-1">Solid Gold Pureness</p>
+                </div>
+                <div>
+                  <p className="text-3xl font-heading font-bold text-gold">BIS</p>
+                  <p className="text-white/40 text-[10px] uppercase tracking-widest font-bold mt-1">Hallmarked Quality</p>
+                </div>
+              </div>
+              <Link to={spotlight.link} className="btn-premium bg-gold hover:bg-gold-dark inline-block">
+                Learn About Our Craft
+              </Link>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Trust Badges - Luxury Style */}
       <section className="hidden md:block px-4 md:px-8 py-20 bg-offwhite">

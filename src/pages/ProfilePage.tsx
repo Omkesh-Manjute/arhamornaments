@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
-import ReferAndEarn from '../components/ReferAndEarn';
-import LuckyWheel from '../components/LuckyWheel';
+import ReferAndEarn from '../components/promotions/ReferAndEarn';
+import LuckyWheel from '../components/promotions/LuckyWheel';
 import {
   User as UserIcon, Mail, Phone, MapPin, Package, Heart, Settings,
   LogOut, ChevronRight, Award, Crown, Zap, Sparkles, Gem, Bell,

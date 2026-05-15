@@ -4,8 +4,8 @@ import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, MessageCircle, ArrowLeft,
 import { useCart } from '../context/CartContext';
 import { useUser } from '../context/UserContext';
 import { formatPrice, generateCartOrderMessage, openWhatsApp } from '../utils/whatsapp';
-import GiftPersonalization from '../components/GiftPersonalization';
-import WalletRedemption from '../components/WalletRedemption';
+import GiftPersonalization from '../components/product/GiftPersonalization';
+import WalletRedemption from '../components/product/WalletRedemption';
 import { couponService } from '../services/couponService';
 import { Coupon } from '../types';
 import { Ticket, X } from 'lucide-react';
@@ -60,7 +60,8 @@ const CartPage: React.FC = () => {
   const giftCharge = giftOptions.isGift && giftOptions.wrapType === 'luxury' ? 499 : 0;
 
   const availableWalletBalance = user?.walletBalance || 0;
-  const redeemedAmount = walletRedemption.isRedeemed ? Math.min(subtotal + giftCharge, availableWalletBalance) : 0;
+  // Limit redemption to ₹1000 as per new rule
+  const redeemedAmount = walletRedemption.isRedeemed ? Math.min(subtotal + giftCharge, availableWalletBalance, 1000) : 0;
 
   const subtotalForDiscount = subtotal + giftCharge;
   const couponDiscount = appliedCoupon
