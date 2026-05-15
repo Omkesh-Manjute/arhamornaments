@@ -44,6 +44,7 @@ export interface Product {
 
   variants?: ProductVariant[];
 
+  gender?: 'men' | 'women' | 'unisex';
   occasion: 'bridal' | 'daily' | 'party' | 'gift';
   images: string[];
   description: string;

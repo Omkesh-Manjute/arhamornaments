@@ -9,7 +9,7 @@ const LivePriceTicker: React.FC = () => {
     { name: 'Gold 24K', price: `₹${Math.round(rates?.gold24K || 0).toLocaleString()}`, change: 'Live', up: true },
     { name: 'Gold 22K', price: `₹${Math.round(rates?.gold22K || 0).toLocaleString()}`, change: 'Live', up: true },
     { name: 'Silver 999', price: `₹${(rates?.silver || 0).toFixed(0)}/g`, change: 'Live', up: true },
-    { name: 'Silver Bar', price: `₹${((rates?.silver || 0) * 1001.78).toLocaleString(undefined, { maximumFractionDigits: 0 })}/kg`, change: 'Live', up: true },
+    { name: 'Silver 1kg', price: `₹${(rates?.silver1kg || 0).toLocaleString()}`, change: 'Live', up: true },
   ];
 
   return (

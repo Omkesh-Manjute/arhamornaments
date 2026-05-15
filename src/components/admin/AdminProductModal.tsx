@@ -44,6 +44,7 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
     trending: false,
     batchNo: '',
     designNo: '',
+    gender: 'unisex' as 'men' | 'women' | 'unisex',
     diamondDetails: [] as any[],
     variants: [] as any[]
   });
@@ -72,13 +73,14 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
         trending: product.trending || false,
         batchNo: product.batchNo || '',
         designNo: product.designNo || '',
+        gender: product.gender || 'unisex',
         diamondDetails: product.diamondDetails || [],
         variants: product.variants || []
       });
     } else {
       setFormData({
         name: '', price: '', originalPrice: '', category: 'rings', material: 'gold', purity: '22K', occasion: 'daily', description: '', images: [], grossWeight: '', netWeight: '', laborCharges: '', inStock: true, featured: false, trending: false,
-        batchNo: '', designNo: '', diamondDetails: [], variants: []
+        batchNo: '', designNo: '', gender: 'unisex', diamondDetails: [], variants: []
       });
     }
     setUploadQueue([]);
@@ -167,6 +169,7 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
           material: formData.material as any,
           purity: formData.purity,
           occasion: formData.occasion as any,
+          gender: formData.gender,
           description: formData.description,
           images: [imgUrl],
           grossWeight: formData.grossWeight ? Number(formData.grossWeight) : undefined,
@@ -196,6 +199,7 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
           material: formData.material as any,
           purity: formData.purity,
           occasion: formData.occasion as any,
+          gender: formData.gender,
           description: formData.description,
           images: allImages.length > 0 ? allImages : ['https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=500'],
           grossWeight: formData.grossWeight ? Number(formData.grossWeight) : undefined,
@@ -339,12 +343,43 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
                 </div>
               </div>
 
-              {/* Row 2: Category + Purity (Karat) */}
-              <div className="grid grid-cols-2 gap-5">
+              {/* Row 2: Gender + Category */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Gender</label>
+                  <div className="flex gap-2">
+                    {[
+                      { id: 'men', label: 'Man' },
+                      { id: 'women', label: 'Woman' },
+                      { id: 'unisex', label: 'Unisex' }
+                    ].map(g => (
+                      <button key={g.id} type="button" onClick={() => setFormData({...formData, gender: g.id as any})}
+                        className={`flex-1 py-3.5 rounded-xl font-bold text-[13px] tracking-wide transition-all border ${
+                          formData.gender === g.id
+                            ? 'bg-amber-500 text-white border-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.2)] scale-[1.02]'
+                            : 'bg-white/5 text-gray-500 border-white/10 hover:border-amber-500/30 hover:bg-white/[0.08]'
+                        }`}
+                      >{g.label}</button>
+                    ))}
+                  </div>
+                </div>
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Category</label>
                   <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full px-5 py-3.5 bg-[#0D0D0D] border border-[#222222] rounded-2xl text-white outline-none focus:border-amber-500 transition-colors appearance-none capitalize">
                     {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              {/* Row 3: Purity + Material */}
+              <div className="grid grid-cols-2 gap-5">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Material</label>
+                  <select value={formData.material} onChange={e => setFormData({...formData, material: e.target.value as any})} className="w-full px-5 py-3.5 bg-[#0D0D0D] border border-[#222222] rounded-2xl text-white outline-none focus:border-amber-500 transition-colors appearance-none capitalize">
+                    <option value="gold">Gold</option>
+                    <option value="silver">Silver</option>
+                    <option value="platinum">Platinum</option>
+                    <option value="diamond">Diamond</option>
                   </select>
                 </div>
                 <div className="space-y-1.5">
@@ -352,10 +387,10 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
                   <div className="flex gap-2">
                     {['18K','22K','24K'].map(k => (
                       <button key={k} type="button" onClick={() => setFormData({...formData, purity: k})}
-                        className={`flex-1 py-3.5 rounded-xl font-black text-sm tracking-wider transition-all border ${
+                        className={`flex-1 py-3.5 rounded-xl font-bold text-[13px] tracking-wide transition-all border ${
                           formData.purity === k
-                            ? 'bg-amber-500 text-white border-amber-500 shadow-lg shadow-amber-500/20'
-                            : 'bg-[#0D0D0D] text-gray-500 border-[#222222] hover:border-amber-500/50'
+                            ? 'bg-amber-500 text-white border-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.2)] scale-[1.02]'
+                            : 'bg-white/5 text-gray-500 border-white/10 hover:border-amber-500/30 hover:bg-white/[0.08]'
                         }`}
                       >{k}</button>
                     ))}
@@ -448,8 +483,8 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
             </div>
           )}
           <div className="flex gap-4">
-            <button onClick={onClose} className="flex-1 py-5 bg-white/5 text-gray-400 rounded-2xl font-black uppercase tracking-widest hover:bg-white/10 transition-all border border-white/5">Cancel</button>
-            <button onClick={handleSave} disabled={loading || uploading} className="flex-[2] py-5 bg-amber-500 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-amber-600 transition-all shadow-xl shadow-amber-500/20 disabled:opacity-50 flex items-center justify-center gap-3">
+            <button onClick={onClose} className="flex-1 py-4.5 bg-white/5 text-gray-400 rounded-2xl font-bold text-xs uppercase tracking-wide hover:bg-white/10 transition-all border border-white/10">Cancel</button>
+            <button onClick={handleSave} disabled={loading || uploading} className="flex-[2] py-4.5 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-2xl font-bold text-xs uppercase tracking-wide hover:from-amber-600 hover:to-amber-700 transition-all shadow-[0_10px_30px_rgba(245,158,11,0.25)] active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3">
               {loading ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
               {product ? 'Update Inventory' : multiProductMode ? `Create ${formData.images.length} Products` : 'Publish Product'}
             </button>

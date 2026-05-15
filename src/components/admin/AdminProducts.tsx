@@ -31,6 +31,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({ onEditProduct }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
+  const [genderFilter, setGenderFilter] = useState<'men' | 'women' | 'unisex' | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
@@ -104,14 +105,21 @@ const AdminProducts: React.FC<AdminProductsProps> = ({ onEditProduct }) => {
     const counts: Record<string, number> = {};
     CATEGORIES.forEach(cat => { counts[cat] = 0; });
     products.forEach(p => {
+      // Filter by gender if set
+      if (genderFilter !== 'all' && (p.gender || 'unisex') !== genderFilter) return;
       if (counts[p.category] !== undefined) counts[p.category]++;
     });
     return counts;
-  }, [products]);
+  }, [products, genderFilter]);
 
   // Products for selected folder, filtered by search
   const displayedProducts = useMemo(() => {
     let result = products;
+    
+    // Filter by gender
+    if (genderFilter !== 'all') {
+      result = result.filter(p => (p.gender || 'unisex') === genderFilter);
+    }
     
     // Filter by category if folder selected
     if (selectedFolder) {
@@ -159,6 +167,28 @@ const AdminProducts: React.FC<AdminProductsProps> = ({ onEditProduct }) => {
     <div className="space-y-6">
       {/* Top Bar */}
       <div className="flex flex-wrap gap-4 items-center justify-between">
+        {/* Gender Filter Tabs */}
+        <div className="flex bg-[#161616] border border-[#222222] p-1 rounded-2xl">
+          {[
+            { id: 'all', label: 'All Items' },
+            { id: 'men', label: 'Men' },
+            { id: 'women', label: 'Women' },
+            { id: 'unisex', label: 'Unisex' }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setGenderFilter(tab.id as any)}
+              className={`px-5 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wide transition-all ${
+                genderFilter === tab.id 
+                  ? 'bg-amber-500 text-white shadow-[0_0_15px_rgba(245,158,11,0.2)]' 
+                  : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
         {/* Search */}
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
@@ -171,12 +201,12 @@ const AdminProducts: React.FC<AdminProductsProps> = ({ onEditProduct }) => {
         </div>
 
         <div className="flex items-center gap-2">
-          <button onClick={fetchProducts} className="p-3 bg-[#161616] border border-[#222222] rounded-xl text-gray-500 hover:text-amber-500 transition" title="Refresh">
+          <button onClick={fetchProducts} className="p-3 bg-[#161616] border border-white/5 rounded-xl text-gray-500 hover:text-amber-500 hover:bg-white/5 transition-all" title="Refresh">
             <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
           </button>
           <button
             onClick={handleClearAll}
-            className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl hover:bg-red-500 hover:text-white transition"
+            className="p-3 bg-red-500/5 border border-red-500/10 text-red-500/60 rounded-xl hover:bg-red-500 hover:text-white transition-all"
             title="Clear Database"
           >
             <Trash2 size={18} />
@@ -283,7 +313,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({ onEditProduct }) => {
                             {firstP.name}
                           </td>
                           <td className="px-6 py-4 text-right">
-                             <span className="text-[10px] font-black bg-amber-500/10 text-amber-500 px-3 py-1.5 rounded-full border border-amber-500/20">GROUP</span>
+                             <span className="text-[10px] font-bold bg-amber-500/10 text-amber-500 px-3 py-1.5 rounded-full border border-amber-500/20 tracking-wide">GROUP</span>
                           </td>
                         </tr>
 

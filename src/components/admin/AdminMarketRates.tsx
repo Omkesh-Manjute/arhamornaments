@@ -79,9 +79,9 @@ const AdminMarketRates: React.FC = () => {
             ['gold24K', 'Gold 24K', '#FFD700'],
             ['gold22K', 'Gold 22K', '#FFC125'],
             ['gold18K', 'Gold 18K', '#DAA520'],
-            ['gold14K', 'Gold 14K', '#B8860B'],
             ['silver', 'Silver (per g)', '#C0C0C0'],
-            ['platinum', 'Platinum (per g)', '#E5E4E2']
+            ['silver1kg', 'Silver 1kg', '#E5E4E2'],
+            ['platinum', 'Platinum (per g)', '#B8860B']
           ] as const).map(([key, label, color]) => (
             <div key={key} className="space-y-1.5">
               <label className="text-xs font-semibold text-gray-400 flex items-center gap-2">

@@ -111,8 +111,8 @@ const AdminPage: React.FC = () => {
             <div className="w-20 h-20 bg-amber-500/10 border border-amber-500/20 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl shadow-amber-500/10">
               <Shield className="text-amber-500" size={40} />
             </div>
-            <h1 className="text-3xl font-black text-white text-center mb-2 tracking-tight">Terminal Access</h1>
-            <p className="text-gray-500 text-center mb-10 font-mono text-xs uppercase tracking-widest">Arham Ornaments Admin Protocol</p>
+            <h1 className="text-3xl font-bold text-white text-center mb-2 tracking-tight">Terminal Access</h1>
+            <p className="text-gray-500 text-center mb-10 font-mono text-[10px] uppercase tracking-[0.3em]">Arham Ornaments Admin Protocol</p>
             
             <form onSubmit={handleLogin} className="space-y-6">
               <div className="space-y-2">
@@ -129,7 +129,7 @@ const AdminPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-5 bg-amber-500 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-amber-600 transition-all shadow-xl shadow-amber-500/20 disabled:opacity-50 flex items-center justify-center gap-3"
+                className="w-full py-5 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-2xl font-bold uppercase tracking-wide hover:from-amber-600 hover:to-amber-700 transition-all shadow-[0_10px_30px_rgba(245,158,11,0.2)] disabled:opacity-50 flex items-center justify-center gap-3 active:scale-[0.98]"
               >
                 {loading ? <Loader2 className="animate-spin" size={20} /> : 'Establish Connection'}
               </button>
@@ -163,7 +163,7 @@ const AdminPage: React.FC = () => {
               <Shield className="text-white" size={24} />
             </div>
             <div>
-              <h2 className="text-lg font-black text-white tracking-tighter uppercase">Arham Admin</h2>
+              <h2 className="text-lg font-bold text-white tracking-tight uppercase">Arham Admin</h2>
               <div className="flex items-center gap-1.5">
                 <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
                 <span className="text-[9px] font-mono font-bold text-gray-500 uppercase tracking-widest">System Online</span>
@@ -176,11 +176,11 @@ const AdminPage: React.FC = () => {
               <button
                 key={id}
                 onClick={() => { setActiveTab(id as TabType); if(window.innerWidth < 1024) setIsSidebarOpen(false); }}
-                className={`w-full flex items-center justify-between px-5 py-4 rounded-2xl transition-all duration-300 group ${activeTab === id ? 'bg-amber-500 text-white shadow-xl shadow-amber-500/10' : 'hover:bg-white/5 text-gray-500 hover:text-white'}`}
+                className={`w-full flex items-center justify-between px-5 py-4 rounded-2xl transition-all duration-300 group ${activeTab === id ? 'bg-amber-500 text-white shadow-[0_10px_25px_rgba(245,158,11,0.15)]' : 'hover:bg-white/5 text-gray-500 hover:text-white'}`}
               >
                 <div className="flex items-center gap-4">
                   <Icon size={18} className={activeTab === id ? 'text-white' : 'group-hover:text-amber-500 transition-colors'} />
-                  <span className="text-sm font-bold tracking-tight">{label}</span>
+                  <span className="text-sm font-semibold tracking-wide">{label}</span>
                 </div>
                 {activeTab === id && <ChevronRight size={14} className="opacity-50" />}
               </button>
@@ -205,14 +205,14 @@ const AdminPage: React.FC = () => {
               <Menu size={24} />
             </button>
             <div>
-              <h1 className="text-xl font-black text-white tracking-tight capitalize">{activeTab}</h1>
+              <h1 className="text-xl font-bold text-white tracking-tight capitalize">{activeTab}</h1>
               <p className="text-[10px] text-gray-500 font-mono uppercase tracking-[0.2em] mt-0.5">Gold: ₹{rates.gold22K.toLocaleString()}/10g</p>
             </div>
           </div>
 
           <div className="flex items-center gap-4">
             {activeTab === 'products' && (
-              <button onClick={openAdd} className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-amber-500/20 flex items-center gap-2">
+              <button onClick={openAdd} className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wide transition-all shadow-[0_5px_15px_rgba(245,158,11,0.2)] flex items-center gap-2 active:scale-[0.95]">
                 <Plus size={16} /> New Product
               </button>
             )}

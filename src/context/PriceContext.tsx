@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface MetalRates {
-  gold24K: number; gold22K: number; gold18K: number; gold14K: number;
-  silver: number; platinum: number;
+  gold24K: number; gold22K: number; gold18K: number;
+  silver: number; silver1kg: number; platinum: number;
 }
 interface MakingCharges {
   rings: number; necklaces: number; earrings: number;
@@ -21,8 +21,8 @@ interface PriceContextType {
 const PriceContext = createContext<PriceContextType | undefined>(undefined);
 
 const DEFAULT_RATES: MetalRates = {
-  gold24K: 14716, gold22K: 14015, gold18K: 11400, gold14K: 8900,
-  silver: 265, platinum: 4500
+  gold24K: 14716, gold22K: 14015, gold18K: 11400,
+  silver: 95, silver1kg: 92000, platinum: 4500
 };
 const DEFAULT_MAKING: MakingCharges = {
   rings: 12, necklaces: 10, earrings: 12,

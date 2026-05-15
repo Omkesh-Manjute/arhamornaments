@@ -38,6 +38,7 @@ const ProductListing: React.FC = () => {
   const selectedOccasion = searchParams.get('occasion') || '';
   const searchQuery = searchParams.get('search') || '';
   const priceRange = searchParams.get('price') || '';
+  const selectedGender = searchParams.get('gender') || '';
 
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -78,6 +79,9 @@ const ProductListing: React.FC = () => {
     }
     if (selectedOccasion) {
       result = result.filter(p => p.occasion === selectedOccasion);
+    }
+    if (selectedGender) {
+      result = result.filter(p => (p.gender || 'unisex') === selectedGender);
     }
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
@@ -131,7 +135,7 @@ const ProductListing: React.FC = () => {
     setSearchParams({});
   };
 
-  const hasActiveFilters = selectedCategory || selectedMaterial || selectedOccasion || priceRange;
+  const hasActiveFilters = selectedCategory || selectedMaterial || selectedOccasion || priceRange || selectedGender;
 
   const priceRanges = [
     { value: '0-10000', label: 'Under ₹10,000' },
@@ -283,6 +287,29 @@ const ProductListing: React.FC = () => {
                 </div>
               </div>
 
+              {/* Gender */}
+              <div className="mb-6">
+                <h4 className="font-medium text-gray-700 mb-3">Collection</h4>
+                <div className="space-y-2">
+                  {[
+                    { id: 'men', name: "Men's Collection" },
+                    { id: 'women', name: "Women's Collection" },
+                    { id: 'unisex', name: "Unisex Collection" }
+                  ].map((g) => (
+                    <label key={g.id} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="gender"
+                        checked={selectedGender === g.id}
+                        onChange={() => updateFilter('gender', selectedGender === g.id ? '' : g.id)}
+                        className="w-4 h-4 text-amber-600 focus:ring-amber-500"
+                      />
+                      <span className="text-sm text-gray-600">{g.name}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
               {/* Price Range */}
               <div>
                 <h4 className="font-medium text-gray-700 mb-3">Price Range</h4>
@@ -375,6 +402,14 @@ const ProductListing: React.FC = () => {
                   <span className="inline-flex items-center gap-1 px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-sm">
                     {occasions.find(o => o.id === selectedOccasion)?.name}
                     <button onClick={() => updateFilter('occasion', '')}>
+                      <X size={14} />
+                    </button>
+                  </span>
+                )}
+                {selectedGender && (
+                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-sm capitalize">
+                    {selectedGender} Collection
+                    <button onClick={() => updateFilter('gender', '')}>
                       <X size={14} />
                     </button>
                   </span>
@@ -507,6 +542,29 @@ const ProductListing: React.FC = () => {
                         className="w-4 h-4 text-amber-600"
                       />
                       <span className="text-sm text-gray-600">{occ.name}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Gender */}
+              <div className="mb-6">
+                <h4 className="font-medium text-gray-700 mb-3">Collection</h4>
+                <div className="space-y-2">
+                  {[
+                    { id: 'men', name: "Men's Collection" },
+                    { id: 'women', name: "Women's Collection" },
+                    { id: 'unisex', name: "Unisex Collection" }
+                  ].map((g) => (
+                    <label key={g.id} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="gender-mobile"
+                        checked={selectedGender === g.id}
+                        onChange={() => updateFilter('gender', selectedGender === g.id ? '' : g.id)}
+                        className="w-4 h-4 text-amber-600"
+                      />
+                      <span className="text-sm text-gray-600">{g.name}</span>
                     </label>
                   ))}
                 </div>
