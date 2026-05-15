@@ -28,6 +28,7 @@ export interface Product {
   grossWeight?: number;
   netWeight?: number;
   laborCharges?: number;
+  makingCharge?: number;
   size?: string;
   purity?: string; // e.g., '14K', '18K', '22K', '24K', '925'
 

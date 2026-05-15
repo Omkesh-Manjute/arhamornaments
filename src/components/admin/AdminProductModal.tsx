@@ -39,7 +39,7 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
     images: [] as string[],
     grossWeight: '',
     netWeight: '',
-    laborCharges: '',
+    makingCharge: '',
     inStock: true,
     featured: false,
     trending: false,
@@ -68,7 +68,7 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
         images: product.images || [],
         grossWeight: (product.grossWeight || '').toString(),
         netWeight: (product.netWeight || '').toString(),
-        laborCharges: (product.laborCharges || '').toString(),
+        makingCharge: (product.makingCharge || product.laborCharges || '').toString(),
         inStock: product.inStock,
         featured: product.featured || false,
         trending: product.trending || false,
@@ -175,7 +175,8 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
           images: [imgUrl],
           grossWeight: formData.grossWeight ? Number(formData.grossWeight) : undefined,
           netWeight: formData.netWeight ? Number(formData.netWeight) : undefined,
-          laborCharges: formData.laborCharges ? Number(formData.laborCharges) : undefined,
+          makingCharge: formData.makingCharge ? Number(formData.makingCharge) : undefined,
+          laborCharges: formData.makingCharge ? Number(formData.makingCharge) : undefined,
           inStock: formData.inStock,
           featured: formData.featured,
           trending: formData.trending,
@@ -205,7 +206,8 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
           images: allImages.length > 0 ? allImages : ['https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=500'],
           grossWeight: formData.grossWeight ? Number(formData.grossWeight) : undefined,
           netWeight: formData.netWeight ? Number(formData.netWeight) : undefined,
-          laborCharges: formData.laborCharges ? Number(formData.laborCharges) : undefined,
+          makingCharge: formData.makingCharge ? Number(formData.makingCharge) : undefined,
+          laborCharges: formData.makingCharge ? Number(formData.makingCharge) : undefined,
           inStock: formData.inStock,
           featured: formData.featured,
           trending: formData.trending,
@@ -249,9 +251,9 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
   }, [formData.purity, formData.material, rates]);
 
   const makingPct = useMemo(() => {
-    if (formData.laborCharges) return Number(formData.laborCharges);
+    if (formData.makingCharge) return Number(formData.makingCharge);
     return (globalMaking as any)[formData.category] || 10;
-  }, [formData.laborCharges, formData.category, globalMaking]);
+  }, [formData.makingCharge, formData.category, globalMaking]);
 
   const calculatedPrice = useMemo(() => {
     const nw = parseFloat(formData.netWeight) || 0;
@@ -428,7 +430,7 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Making Charges (%)</label>
-                  <input type="number" step="0.5" value={formData.laborCharges} onChange={e => setFormData({...formData, laborCharges: e.target.value})} className="w-full px-5 py-3.5 bg-[#0D0D0D] border border-[#222222] rounded-2xl text-white outline-none focus:border-amber-500 transition-colors font-mono" placeholder={`${makingPct}% (default)`} />
+                  <input type="number" step="0.5" value={formData.makingCharge} onChange={e => setFormData({...formData, makingCharge: e.target.value})} className="w-full px-5 py-3.5 bg-[#0D0D0D] border border-[#222222] rounded-2xl text-white outline-none focus:border-amber-500 transition-colors font-mono" placeholder={`${makingPct}% (default)`} />
                 </div>
               </div>
 

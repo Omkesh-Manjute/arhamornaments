@@ -312,8 +312,8 @@ const ProductDetail: React.FC = () => {
                   ['Size', '-:-'],
                   ['Purity', product.purity || '18K'],
                   ['Gross Weight', `${product.grossWeight?.toFixed(2) || '0.00'}`],
-                  ['Net Weight', '-:-'],
-                  ['Lbr %', '-:-'],
+                  ['Net Weight', `${product.netWeight?.toFixed(3) || '0.000'} g`],
+                  ['Making Charge', `${product.makingCharge || product.laborCharges || '0'}%`],
                   ['Total Amount', formatPrice(currentPrice * quantity), 'text-green-600 font-black'],
                 ].map(([label, value, extraClass], i) => (
                   <div key={i} className="flex items-center text-sm">
@@ -408,6 +408,7 @@ const ProductDetail: React.FC = () => {
                       ['Purity', product.purity || (product.material === 'gold' ? '22K' : 'N/A')],
                       ['Gross Weight', `${product.grossWeight?.toFixed(3) || '0.000'} g`],
                       ['Net Weight', `${product.netWeight?.toFixed(3) || '0.000'} g`],
+                      ['Making Charge', `${product.makingCharge || product.laborCharges || '0'}%`],
                       ['Material', product.material.toUpperCase()],
                       ['Total Amount', formatPrice(currentPrice * quantity), 'text-green-600 font-black'],
                     ].map(([label, value, extraClass]) => (
