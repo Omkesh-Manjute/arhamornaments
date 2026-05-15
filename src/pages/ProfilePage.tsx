@@ -101,77 +101,73 @@ const ProfilePage: React.FC = () => {
   ] as const;
 
   return (
-    <div className="min-h-screen bg-[#FCFBF7] py-24 px-4 md:px-8">
+    <div className="min-h-screen bg-[#FCFBF7] py-12 md:py-20 px-4 md:px-8">
       <div className="max-w-7xl mx-auto">
 
-        {/* ── Top Profile Strip ── */}
-        <div className="bg-charcoal text-white rounded-[3rem] p-8 md:p-12 mb-10 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-gold/10 rounded-full blur-3xl -mr-48 -mt-48 animate-pulse" />
-          <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-8">
-            <div className="w-24 h-24 rounded-full bg-gold/20 border-4 border-gold/30 flex items-center justify-center text-gold shrink-0">
-              <UserIcon size={48} />
-            </div>
-            <div className="flex-1 text-center md:text-left">
-              <div className="flex items-center justify-center md:justify-start gap-3 mb-2">
-                <h1 className="text-3xl font-heading font-bold">{user.name}</h1>
-                <span className={`text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full ${currentTier.bg} ${currentTier.color}`}>
-                  {currentTier.name}
-                </span>
-              </div>
-              <p className="text-white/50 text-sm">{user.email}</p>
-              <p className="text-white/40 text-xs mt-1">Member since {new Date(joinedDate).toLocaleDateString('en-IN', { year: 'numeric', month: 'long' })}</p>
-            </div>
-            <div className="flex gap-6">
-              <div className="text-center">
-                <p className="text-2xl font-black text-gold">₹{walletBalance.toLocaleString()}</p>
-                <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold">Wallet</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-black text-gold">{userPoints.toLocaleString()}</p>
-                <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold">Points</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-black text-gold">{user.referralCount || 0}</p>
-                <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold">Referrals</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* ── Sidebar Column ── */}
+          <div className="lg:col-span-3 space-y-4">
+            
+            {/* Profile Card */}
+            <div className="bg-charcoal text-white rounded-[2rem] p-6 relative overflow-hidden shadow-2xl">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gold/10 rounded-full blur-2xl -mr-16 -mt-16 animate-pulse" />
+              
+              <div className="relative z-10 flex flex-col items-center text-center space-y-4">
+                <div className="w-20 h-20 rounded-full bg-gold/20 border-4 border-gold/30 flex items-center justify-center text-gold shrink-0">
+                  <UserIcon size={32} />
+                </div>
+                <div>
+                  <h1 className="text-xl font-heading font-bold mb-0.5">{user.name}</h1>
+                  <p className="text-white/50 text-[10px] break-all">{user.email}</p>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 w-full pt-4 border-t border-white/10">
+                  <div className="text-center">
+                    <p className="text-lg font-black text-gold">₹{walletBalance.toLocaleString()}</p>
+                    <p className="text-[8px] text-white/40 uppercase tracking-[0.1em] font-bold">Wallet</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-lg font-black text-gold">{user.referralCount || 0}</p>
+                    <p className="text-[8px] text-white/40 uppercase tracking-[0.1em] font-bold">Referrals</p>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-          {/* ── Sidebar ── */}
-          <div className="lg:col-span-3 space-y-3">
-            {tabs.map(tab => (
+            {/* Navigation Tabs */}
+            <div className="space-y-2">
+              {tabs.map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => { setActiveTab(tab.id); if (tab.id === 'notifications') markNotificationsRead(); }}
+                  className={`w-full flex items-center justify-between p-3 rounded-xl transition-all font-bold text-[11px] ${activeTab === tab.id
+                    ? 'bg-charcoal text-white shadow-lg'
+                    : 'bg-white text-charcoal hover:bg-gray-50 border border-gray-100'
+                    }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <tab.icon size={16} />
+                    {tab.label}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {tab.badge ? (
+                      <span className="bg-red-500 text-white text-[8px] w-4 h-4 flex items-center justify-center rounded-full font-black">
+                        {tab.badge}
+                      </span>
+                    ) : null}
+                    <ChevronRight size={12} className="opacity-30" />
+                  </div>
+                </button>
+              ))}
               <button
-                key={tab.id}
-                onClick={() => { setActiveTab(tab.id); if (tab.id === 'notifications') markNotificationsRead(); }}
-                className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all font-bold text-sm ${activeTab === tab.id
-                  ? 'bg-charcoal text-white shadow-xl'
-                  : 'bg-white text-charcoal hover:bg-gray-50 border border-gray-100'
-                  }`}
+                onClick={handleLogout}
+                className="w-full flex items-center gap-3 p-3 rounded-xl bg-red-50 text-red-500 hover:bg-red-100 transition-all font-bold text-[11px] border border-red-100"
               >
-                <div className="flex items-center gap-3">
-                  <tab.icon size={18} />
-                  {tab.label}
-                </div>
-                <div className="flex items-center gap-2">
-                  {tab.badge ? (
-                    <span className="bg-red-500 text-white text-[9px] w-5 h-5 flex items-center justify-center rounded-full font-black">
-                      {tab.badge}
-                    </span>
-                  ) : null}
-                  <ChevronRight size={14} className="opacity-30" />
-                </div>
+                <LogOut size={16} />
+                Sign Out
               </button>
-            ))}
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center gap-3 p-4 rounded-2xl bg-red-50 text-red-500 hover:bg-red-100 transition-all font-bold text-sm border border-red-100"
-            >
-              <LogOut size={18} />
-              Sign Out
-            </button>
+            </div>
           </div>
 
           {/* ── Main Content ── */}
@@ -185,21 +181,21 @@ const ProfilePage: React.FC = () => {
                 <ReferAndEarn />
 
                 {/* Quick Actions */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {[
                     { icon: Package, label: 'Orders', desc: 'Track your orders', onClick: () => navigate('/orders') },
                     { icon: Heart, label: 'Wishlist', desc: 'Saved items', onClick: () => navigate('/wishlist') },
-                    { icon: Gift, label: 'Spin & Win', desc: 'Daily spin reward', onClick: () => window.dispatchEvent(new CustomEvent('open-lucky-wheel')) },
-                    { icon: Settings, label: 'Edit Profile', desc: 'Update your info', onClick: () => { setActiveTab('profile'); handleEditStart(); } },
+                    { icon: Gift, label: 'Spin & Win', desc: 'Daily reward', onClick: () => window.dispatchEvent(new CustomEvent('open-lucky-wheel')) },
+                    { icon: Settings, label: 'Edit Profile', desc: 'Update info', onClick: () => { setActiveTab('profile'); handleEditStart(); } },
                   ].map((item, i) => (
                     <button
                       key={i}
                       onClick={item.onClick}
-                      className="bg-white rounded-2xl p-5 border border-gray-100 hover:border-gold/30 hover:shadow-lg transition-all text-left group"
+                      className="bg-white rounded-xl p-4 border border-gray-100 hover:border-gold/30 hover:shadow-lg transition-all text-left group"
                     >
-                      <item.icon size={22} className="text-gray-300 group-hover:text-gold transition-colors mb-3" />
-                      <p className="font-bold text-sm text-charcoal">{item.label}</p>
-                      <p className="text-[10px] text-gray-400 mt-0.5">{item.desc}</p>
+                      <item.icon size={18} className="text-gray-300 group-hover:text-gold transition-colors mb-2" />
+                      <p className="font-bold text-xs text-charcoal">{item.label}</p>
+                      <p className="text-[9px] text-gray-400 mt-0.5">{item.desc}</p>
                     </button>
                   ))}
                 </div>
@@ -210,7 +206,7 @@ const ProfilePage: React.FC = () => {
             {activeTab === 'profile' && (
               <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm">
                 <div className="flex items-center justify-between mb-8">
-                  <h3 className="text-2xl font-heading font-bold text-charcoal">Personal Information</h3>
+                  <h3 className="text-xl font-heading font-bold text-charcoal">Personal Information</h3>
                   {!isEditing ? (
                     <button
                       onClick={handleEditStart}
@@ -261,7 +257,7 @@ const ProfilePage: React.FC = () => {
                       ) : (
                         <div className="flex items-center gap-3 p-4 bg-[#FCFBF7] rounded-2xl border border-gray-100">
                           <field.icon size={18} className="text-gold/50 shrink-0" />
-                          <span className={`text-sm font-bold ${field.value ? 'text-charcoal' : 'text-gray-300 italic'}`}>
+                          <span className={`text-xs font-bold ${field.value ? 'text-charcoal' : 'text-gray-300 italic'}`}>
                             {field.value || `Not set — click Edit to add`}
                           </span>
                         </div>
@@ -274,7 +270,7 @@ const ProfilePage: React.FC = () => {
                 <div className="mt-8 p-6 bg-gradient-to-r from-gold/10 to-amber-50 rounded-3xl border border-gold/20">
                   <p className="text-[10px] uppercase tracking-widest text-gold font-black mb-2">Your Referral Code</p>
                   <div className="flex items-center gap-4">
-                    <span className="text-3xl font-black text-charcoal tracking-widest">{user.referralCode}</span>
+                    <span className="text-2xl font-black text-charcoal tracking-widest">{user.referralCode}</span>
                     <button
                       onClick={copyReferral}
                       className="flex items-center gap-2 px-4 py-2 bg-gold text-white rounded-xl font-bold text-xs hover:bg-charcoal transition-all"
@@ -291,7 +287,7 @@ const ProfilePage: React.FC = () => {
             {activeTab === 'notifications' && (
               <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm">
                 <div className="flex items-center justify-between mb-8">
-                  <h3 className="text-2xl font-heading font-bold text-charcoal">Notifications</h3>
+                  <h3 className="text-xl font-heading font-bold text-charcoal">Notifications</h3>
                   <Bell className="text-gold/30" size={28} />
                 </div>
                 <div className="space-y-4">
@@ -341,20 +337,19 @@ const ProfilePage: React.FC = () => {
                   {[
                     { label: 'Wallet Balance', value: `₹${walletBalance.toLocaleString()}`, icon: Wallet, color: 'from-gold to-amber-500', sub: 'Available to use' },
                     { label: 'Referral Earnings', value: `₹${referralBonus.toLocaleString()}`, icon: TrendingUp, color: 'from-green-400 to-emerald-500', sub: `${user.referralCount || 0} successful referrals` },
-                    { label: 'Elite Points', value: userPoints.toLocaleString(), icon: Sparkles, color: 'from-purple-400 to-indigo-500', sub: 'Redeemable points' },
                   ].map((card, i) => (
-                    <div key={i} className={`bg-gradient-to-br ${card.color} text-white rounded-3xl p-7 shadow-xl`}>
-                      <card.icon size={24} className="mb-4 opacity-80" />
-                      <p className="text-3xl font-black">{card.value}</p>
-                      <p className="text-[10px] uppercase tracking-widest font-bold mt-1 opacity-70">{card.label}</p>
-                      <p className="text-xs opacity-50 mt-1">{card.sub}</p>
+                    <div key={i} className={`bg-gradient-to-br ${card.color} text-white rounded-2xl p-6 shadow-xl`}>
+                      <card.icon size={20} className="mb-3 opacity-80" />
+                      <p className="text-2xl font-black">{card.value}</p>
+                      <p className="text-[9px] uppercase tracking-widest font-bold mt-1 opacity-70">{card.label}</p>
+                      <p className="text-[10px] opacity-50 mt-1">{card.sub}</p>
                     </div>
                   ))}
                 </div>
 
                 {/* Transaction History */}
                 <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm">
-                  <h3 className="text-2xl font-heading font-bold text-charcoal mb-6">Transaction History</h3>
+                  <h3 className="text-xl font-heading font-bold text-charcoal mb-6">Transaction History</h3>
                   <div className="space-y-3">
                     {/* Referral bonus if any */}
                     {(user.referralCount || 0) > 0 && (
