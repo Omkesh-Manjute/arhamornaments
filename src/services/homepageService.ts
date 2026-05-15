@@ -29,6 +29,8 @@ export interface HomepageSectionConfig {
   categories: HomeCategory[];
   /** Collection items (e.g. for the earring slider) */
   collections: HomeCollectionItem[];
+  /** Hero Slider Banners */
+  heroBanners?: any[];
   /** Last updated timestamp */
   updatedAt?: string;
 }

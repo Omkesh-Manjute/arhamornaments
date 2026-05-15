@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { productService } from '../services/productService';
 import { bannerService } from '../services/bannerService';
+import { homepageService } from '../services/homepageService';
 
 const MobileHeroSlider: React.FC = () => {
   const [slides, setSlides] = useState<any[]>([]);
@@ -10,25 +11,33 @@ const MobileHeroSlider: React.FC = () => {
   useEffect(() => {
     const loadBanners = async () => {
       try {
-        const banners = await bannerService.getAllBanners();
-        const activeBanners = banners.filter(b => b.isActive);
+        const config = await homepageService.getSectionConfig();
+        const activeBanners = (config.heroBanners || []).filter(b => b.isActive);
         
         if (activeBanners.length > 0) {
           setSlides(activeBanners);
         } else {
-          // Fallback to product images if no banners are set
-          const products = await productService.getAllProducts();
-          const seenCategories = new Set<string>();
-          const heroSlides: any[] = [];
+          // Fallback to legacy bannerService
+          const legacyBanners = await bannerService.getAllBanners();
+          const legacyActive = legacyBanners.filter(b => b.isActive);
           
-          for (const p of products) {
-            if (p.images?.[0] && p.category && !seenCategories.has(p.category)) {
-              heroSlides.push({ image: p.images[0], title: 'New Collection', subtitle: p.category });
-              seenCategories.add(p.category);
-              if (heroSlides.length >= 5) break;
+          if (legacyActive.length > 0) {
+            setSlides(legacyActive);
+          } else {
+            // Fallback to product images if no banners are set
+            const products = await productService.getAllProducts();
+            const seenCategories = new Set<string>();
+            const heroSlides: any[] = [];
+            
+            for (const p of products) {
+              if (p.images?.[0] && p.category && !seenCategories.has(p.category)) {
+                heroSlides.push({ image: p.images[0], title: 'New Collection', subtitle: p.category });
+                seenCategories.add(p.category);
+                if (heroSlides.length >= 5) break;
+              }
             }
+            setSlides(heroSlides);
           }
-          setSlides(heroSlides);
         }
       } catch (error) {
         console.error('Failed to load hero banners:', error);

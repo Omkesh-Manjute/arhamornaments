@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Search, Plus, X, Loader2, GripVertical, Star, Sparkles, TrendingUp, ChevronDown, Check, Image as ImageIcon, Eye } from 'lucide-react';
-import { Product } from '../../types';
+import { Product, Banner } from '../../types';
 import { productService } from '../../services/productService';
 import { homepageService, HomepageSectionConfig } from '../../services/homepageService';
+import { bannerService } from '../../services/bannerService';
 
 type SectionKey = 'newArrivals' | 'bestSellers' | 'trending';
-type TabType = SectionKey | 'categories' | 'collections';
+type TabType = SectionKey | 'categories' | 'collections' | 'heroBanners';
 
 interface SectionMeta {
   key: SectionKey;
@@ -50,7 +51,8 @@ const AdminHomepage: React.FC = () => {
     bestSellers: [],
     trending: [],
     categories: [],
-    collections: []
+    collections: [],
+    heroBanners: []
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -59,6 +61,15 @@ const AdminHomepage: React.FC = () => {
   const [showPicker, setShowPicker] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [showBannerForm, setShowBannerForm] = useState(false);
+  const [bannerFormData, setBannerFormData] = useState<Partial<Banner>>({
+    title: '',
+    subtitle: '',
+    image: '',
+    link: '/products',
+    isActive: true
+  });
+  const [isUploading, setIsUploading] = useState(false);
 
   // Load products and config
   useEffect(() => {
@@ -111,7 +122,7 @@ const AdminHomepage: React.FC = () => {
 
   // Filtered products for the picker
   const filteredProducts = useMemo(() => {
-    if (activeTab === 'categories' || activeTab === 'collections') return [];
+    if (activeTab === 'categories' || activeTab === 'collections' || activeTab === 'heroBanners') return [];
     const selectedIds = new Set(config[activeTab as SectionKey]);
     return allProducts
       .filter(p => !selectedIds.has(p.id))
@@ -128,7 +139,7 @@ const AdminHomepage: React.FC = () => {
 
   // Add a product to the active section
   const addProduct = (productId: string) => {
-    if (activeTab === 'categories' || activeTab === 'collections') return;
+    if (activeTab === 'categories' || activeTab === 'collections' || activeTab === 'heroBanners') return;
     setConfig(prev => ({
       ...prev,
       [activeTab as SectionKey]: [...prev[activeTab as SectionKey], productId]
@@ -221,6 +232,66 @@ const AdminHomepage: React.FC = () => {
       ...prev,
       collections: (prev.collections || []).filter((_, i) => i !== index)
     }));
+  };
+
+  // Banner Management
+
+  const updateBanner = (index: number, updates: Partial<Banner>) => {
+    setConfig(prev => {
+      const banners = [...(prev.heroBanners || [])];
+      banners[index] = { ...banners[index], ...updates };
+      return { ...prev, heroBanners: banners };
+    });
+  };
+
+  const removeBanner = (index: number) => {
+    if (!window.confirm("Delete this banner?")) return;
+    setConfig(prev => ({
+      ...prev,
+      heroBanners: (prev.heroBanners || []).filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleBannerSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bannerFormData.title || !bannerFormData.image) {
+      alert("Title and Image are required!");
+      return;
+    }
+
+    const newBanner: Banner = {
+      id: Date.now().toString(),
+      title: bannerFormData.title!,
+      subtitle: bannerFormData.subtitle || '',
+      image: bannerFormData.image!,
+      link: bannerFormData.link || '/products',
+      isActive: bannerFormData.isActive !== false,
+      order: (config.heroBanners?.length || 0) + 1
+    };
+
+    setConfig(prev => ({
+      ...prev,
+      heroBanners: [...(prev.heroBanners || []), newBanner]
+    }));
+
+    setShowBannerForm(false);
+    setBannerFormData({ title: '', subtitle: '', image: '', link: '/products', isActive: true });
+  };
+
+  const handleBannerFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const url = await productService.uploadImage(file, 'banners');
+      setBannerFormData(prev => ({ ...prev, image: url }));
+    } catch (error) {
+      console.error("Upload failed:", error);
+      alert("Failed to upload image.");
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   // Save config
@@ -334,6 +405,23 @@ const AdminHomepage: React.FC = () => {
             activeTab === 'collections' ? 'bg-white/20' : 'bg-white/5'
           }`}>
             {config.collections?.length || 0}
+          </span>
+        </button>
+
+        <button
+          onClick={() => { setActiveTab('heroBanners'); setShowPicker(false); }}
+          className={`flex items-center gap-3 px-6 py-4 rounded-2xl transition-all font-bold text-sm shrink-0 ${
+            activeTab === 'heroBanners'
+              ? 'bg-emerald-500 text-white shadow-lg'
+              : 'bg-[#161616] border border-[#222222] text-gray-400 hover:text-white hover:border-[#333333]'
+          }`}
+        >
+          <Sparkles size={18} />
+          Hero Slider
+          <span className={`ml-1 text-xs px-2 py-0.5 rounded-full ${
+            activeTab === 'heroBanners' ? 'bg-white/20' : 'bg-white/5'
+          }`}>
+            {config.heroBanners?.length || 0}
           </span>
         </button>
       </div>
@@ -565,6 +653,215 @@ const AdminHomepage: React.FC = () => {
               </div>
             )}
           </>
+        ) : activeTab === 'heroBanners' ? (
+          <>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-lg font-black text-emerald-400">Hero Slider Banners</h3>
+                <p className="text-gray-500 text-xs mt-1">Recommended size: 1920x820px (21:9 Aspect Ratio)</p>
+              </div>
+              <button
+                onClick={() => setShowBannerForm(true)}
+                className="flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20"
+              >
+                <Plus size={14} />
+                Add Banner
+              </button>
+            </div>
+
+            {showBannerForm && (
+              <div className="mb-8 bg-[#0D0D0D] border border-[#222222] rounded-[2rem] p-8 animate-in fade-in zoom-in-95 duration-300">
+                <div className="flex items-center justify-between mb-8">
+                  <h4 className="text-white font-bold uppercase tracking-widest text-sm">Create New Banner</h4>
+                  <button onClick={() => setShowBannerForm(false)} className="text-gray-500 hover:text-white transition-colors"><X size={20} /></button>
+                </div>
+
+                <form onSubmit={handleBannerSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Banner Title</label>
+                      <input 
+                        type="text" 
+                        value={bannerFormData.title} 
+                        onChange={e => setBannerFormData(prev => ({ ...prev, title: e.target.value }))}
+                        className="w-full px-5 py-4 bg-[#161616] border border-[#222222] rounded-2xl text-white outline-none focus:border-emerald-500 transition-all text-sm"
+                        placeholder="e.g., Grand Diwali Sale"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Subtitle / Offer Text</label>
+                      <input 
+                        type="text" 
+                        value={bannerFormData.subtitle} 
+                        onChange={e => setBannerFormData(prev => ({ ...prev, subtitle: e.target.value }))}
+                        className="w-full px-5 py-4 bg-[#161616] border border-[#222222] rounded-2xl text-white outline-none focus:border-emerald-500 transition-all text-sm"
+                        placeholder="e.g., UP TO 25% OFF ON GOLD"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Redirect Link</label>
+                      <input 
+                        type="text" 
+                        value={bannerFormData.link} 
+                        onChange={e => setBannerFormData(prev => ({ ...prev, link: e.target.value }))}
+                        className="w-full px-5 py-4 bg-[#161616] border border-[#222222] rounded-2xl text-white outline-none focus:border-emerald-500 transition-all text-sm"
+                        placeholder="/products?category=rings"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Banner Image</label>
+                      <div className="aspect-[21/9] rounded-2xl border-2 border-dashed border-[#222222] bg-[#161616] overflow-hidden relative group">
+                        {bannerFormData.image ? (
+                          <>
+                            <img src={bannerFormData.image} alt="" className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                              <label className="p-3 bg-white text-charcoal rounded-xl cursor-pointer hover:bg-emerald-500 hover:text-white transition-all">
+                                <Plus size={20} />
+                                <input type="file" className="hidden" onChange={handleBannerFileUpload} accept="image/*" />
+                              </label>
+                              <button type="button" onClick={() => setBannerFormData(prev => ({ ...prev, image: '' }))} className="p-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-all">
+                                <X size={20} />
+                              </button>
+                            </div>
+                          </>
+                        ) : (
+                          <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 transition-colors gap-3 p-4 text-center">
+                            {isUploading ? (
+                              <Loader2 className="animate-spin text-emerald-500" size={32} />
+                            ) : (
+                              <>
+                                <Plus className="text-gray-600" size={32} />
+                                <div>
+                                  <p className="text-xs font-bold text-gray-400">Click to Upload Image</p>
+                                  <p className="text-[9px] text-gray-600 mt-1 uppercase tracking-widest">Recommended: 1920x820px</p>
+                                </div>
+                              </>
+                            )}
+                            <input type="file" className="hidden" onChange={handleBannerFileUpload} accept="image/*" disabled={isUploading} />
+                          </label>
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center gap-4 mt-4">
+                        <div className="h-px bg-[#222222] flex-1" />
+                        <span className="text-[10px] font-bold text-gray-600 uppercase tracking-[0.2em]">OR</span>
+                        <div className="h-px bg-[#222222] flex-1" />
+                      </div>
+
+                      <button 
+                        type="button"
+                        onClick={() => setShowPicker(true)}
+                        className="w-full mt-4 flex items-center justify-center gap-2 px-5 py-4 bg-[#161616] border border-[#222222] rounded-2xl text-xs font-bold text-gray-400 hover:text-white hover:border-emerald-500/50 transition-all uppercase tracking-widest"
+                      >
+                        <Search size={14} />
+                        Select Image from Products
+                      </button>
+                    </div>
+
+                    <button 
+                      type="submit" 
+                      className="w-full py-5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-bold uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/10 active:scale-[0.98]"
+                    >
+                      Save Banner Item
+                    </button>
+                  </div>
+                </form>
+
+                {/* Internal Picker for Products (reuse existing logic) */}
+                {showPicker && (
+                  <div className="mt-8 bg-[#080808] border border-[#222222] rounded-2xl p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Pick a product for its image</p>
+                      <button onClick={() => setShowPicker(false)} className="text-gray-500 hover:text-white transition-colors"><X size={14} /></button>
+                    </div>
+                    <div className="relative mb-4">
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
+                      <input type="text" placeholder="Search products..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full pl-11 pr-4 py-3 bg-[#161616] border border-[#222222] rounded-xl text-white text-sm outline-none focus:border-emerald-500 transition-colors placeholder:text-gray-600" />
+                    </div>
+                    <div className="max-h-[240px] overflow-y-auto custom-scrollbar space-y-1">
+                      {allProducts.filter(p => (p.name||'').toLowerCase().includes(searchQuery.toLowerCase())||(p.designNo||'').toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 20).map(p => (
+                        <button key={p.id} type="button" onClick={() => { setBannerFormData(prev => ({ ...prev, image: p.images[0] })); setShowPicker(false); }} className="w-full flex items-center gap-4 p-3 rounded-xl hover:bg-white/5 transition-colors group text-left">
+                          <img src={p.images[0]} className="w-10 h-10 rounded-lg object-cover" alt="" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-bold text-white truncate">{p.name || p.designNo}</p>
+                            <p className="text-[9px] text-gray-500 uppercase tracking-wider">{p.category}</p>
+                          </div>
+                          <Plus size={14} className="text-emerald-500 opacity-0 group-hover:opacity-100" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {(config.heroBanners || []).length === 0 && !showBannerForm ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="w-20 h-20 rounded-3xl bg-emerald-500/10 flex items-center justify-center mb-4"><Sparkles className="text-emerald-400" size={24} /></div>
+                <p className="text-gray-400 font-bold mb-1">No hero banners added</p>
+                <p className="text-gray-600 text-xs max-w-sm">Click "Add Banner" to start designing your hero section.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {(config.heroBanners || []).map((banner, index) => (
+                  <div key={banner.id} className="bg-[#0D0D0D] border border-[#222222] rounded-[2rem] overflow-hidden group hover:border-emerald-500/30 transition-all">
+                    <div className="aspect-[21/9] relative">
+                      <img src={banner.image} alt="" className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-black/40 flex flex-col justify-end p-6">
+                        <h4 className="text-white font-black text-lg leading-tight">{banner.title}</h4>
+                        <p className="text-white/70 text-xs mt-1 uppercase tracking-widest">{banner.subtitle}</p>
+                      </div>
+                      <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button 
+                          onClick={() => {
+                            const newUrl = window.prompt("New Image URL:", banner.image);
+                            if (newUrl) updateBanner(index, { image: newUrl });
+                          }}
+                          className="p-2 bg-black/60 backdrop-blur-md text-white rounded-lg hover:bg-emerald-500 transition-colors"
+                        >
+                          <ImageIcon size={14} />
+                        </button>
+                        <button 
+                          onClick={() => removeBanner(index)}
+                          className="p-2 bg-black/60 backdrop-blur-md text-red-400 rounded-lg hover:bg-red-500 hover:text-white transition-colors"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="p-4 flex items-center justify-between bg-[#111111]">
+                      <div className="flex items-center gap-3">
+                        <button 
+                          onClick={() => updateBanner(index, { isActive: !banner.isActive })}
+                          className={`text-[9px] font-black uppercase px-3 py-1.5 rounded-full transition-all ${
+                            banner.isActive 
+                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                              : 'bg-white/5 text-gray-500 border border-white/5'
+                          }`}
+                        >
+                          {banner.isActive ? 'Active' : 'Hidden'}
+                        </button>
+                        <span className="text-[10px] text-gray-600 font-mono">Pos: {index + 1}</span>
+                      </div>
+                      <button 
+                        onClick={() => {
+                          const newTitle = window.prompt("New Title:", banner.title);
+                          if (newTitle) updateBanner(index, { title: newTitle });
+                        }}
+                        className="text-[10px] font-bold text-gray-400 hover:text-white uppercase tracking-widest transition-colors"
+                      >
+                        Edit Text
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         ) : (
           <>
             <div className="flex items-center justify-between mb-6">
@@ -657,6 +954,25 @@ const AdminHomepage: React.FC = () => {
             </div>
 
             <div className="p-8 space-y-12">
+              {/* Hero Slider Preview */}
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.3em] text-amber-600 font-bold mb-1">Hero Slider</p>
+                <h4 className="text-2xl font-bold text-charcoal mb-4">Main Showcase</h4>
+                {(config.heroBanners || []).length > 0 ? (
+                  <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar">
+                    {(config.heroBanners || []).map(banner => (
+                      <div key={banner.id} className="flex-shrink-0 w-80 relative rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
+                        <img src={banner.image} alt="" className="w-full aspect-[21/9] object-cover" />
+                        <div className="absolute inset-0 bg-black/30 flex flex-col justify-end p-4">
+                          <p className="text-white font-black text-sm">{banner.title}</p>
+                          <p className="text-white/70 text-[10px] uppercase tracking-widest">{banner.subtitle}</p>
+                        </div>
+                        {!banner.isActive && <div className="absolute inset-0 bg-black/60 flex items-center justify-center"><span className="text-white text-[10px] font-bold uppercase tracking-widest px-2 py-1 bg-red-500 rounded">Hidden</span></div>}
+                      </div>
+                    ))}
+                  </div>
+                ) : <p className="text-gray-400 text-sm italic">No hero banners configured</p>}
+              </div>
               {/* Collection Slider Preview */}
               <div>
                 <p className="text-[10px] uppercase tracking-[0.3em] text-amber-600 font-bold mb-1">Collection Slider</p>

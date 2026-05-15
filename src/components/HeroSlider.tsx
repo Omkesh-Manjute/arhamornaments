@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { bannerService } from '../services/bannerService';
+import { homepageService } from '../services/homepageService';
 
 import banner1 from '../assets/hero/banner1.png';
 import banner2 from '../assets/hero/banner2.png';
@@ -39,8 +40,9 @@ const HeroSlider: React.FC = () => {
   useEffect(() => {
     const fetchBanners = async () => {
       try {
-        const data = await bannerService.getAllBanners();
-        const activeBanners = data.filter(b => b.isActive);
+        const config = await homepageService.getSectionConfig();
+        const activeBanners = (config.heroBanners || []).filter(b => b.isActive);
+        
         if (activeBanners.length > 0) {
           setSlides(activeBanners.map(b => ({
             image: b.image,
@@ -50,7 +52,21 @@ const HeroSlider: React.FC = () => {
             align: 'left' // Default align for dynamic banners
           })));
         } else {
-          setSlides(staticSlides);
+          // Fallback to bannerService for backward compatibility if needed, 
+          // or just static slides
+          const data = await bannerService.getAllBanners();
+          const legacyActive = data.filter(b => b.isActive);
+          if (legacyActive.length > 0) {
+            setSlides(legacyActive.map(b => ({
+              image: b.image,
+              title: b.title,
+              subtitle: b.subtitle,
+              link: b.link || '/products',
+              align: 'left'
+            })));
+          } else {
+            setSlides(staticSlides);
+          }
         }
       } catch (error) {
         console.error("Failed to fetch banners:", error);
