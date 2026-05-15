@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MessageCircle, Check, MapPin, User, Gift, Sparkles, ShieldCheck, ChevronLeft, CreditCard } from 'lucide-react';
+import { MessageCircle, Check, MapPin, User, Gift, Sparkles, ShieldCheck, ChevronLeft, CreditCard, Ticket, X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useUser } from '../context/UserContext';
 import { formatPrice, generateCartOrderMessage, openWhatsApp } from '../utils/whatsapp';
+import { couponService } from '../services/couponService';
+import { Coupon } from '../types';
 
 interface FormData {
   name: string;
@@ -16,11 +18,15 @@ interface FormData {
 }
 
 const CheckoutPage: React.FC = () => {
-  const { items, totalPrice, clearCart, giftOptions, walletRedemption } = useCart();
+  const { items, totalPrice, clearCart, giftOptions, walletRedemption, appliedCoupon, applyCoupon } = useCart();
   const { user, addNotification } = useUser();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
+  
+  const [availableCoupons, setAvailableCoupons] = useState<Coupon[]>([]);
+  const [couponCode, setCouponCode] = useState('');
+  const [couponError, setCouponError] = useState('');
   
   const [formData, setFormData] = useState<FormData>({
     name: '',
@@ -46,6 +52,31 @@ const CheckoutPage: React.FC = () => {
       }));
     }
   }, [user]);
+  
+  useEffect(() => {
+    couponService.getAllCoupons().then(coupons => {
+      setAvailableCoupons(coupons.filter(c => c.isActive));
+    });
+  }, []);
+
+  const handleApplyCoupon = () => {
+    if (!couponCode.trim()) return;
+    const coupon = availableCoupons.find(c => c.code.toUpperCase() === couponCode.toUpperCase().trim());
+    
+    if (!coupon) {
+      setCouponError('Invalid coupon code');
+      return;
+    }
+    
+    if (subtotalBeforeRedeem < coupon.minOrderAmount) {
+      setCouponError(`Minimum order of ₹${coupon.minOrderAmount} required`);
+      return;
+    }
+    
+    applyCoupon(coupon);
+    setCouponCode('');
+    setCouponError('');
+  };
 
   const [errors, setErrors] = useState<Partial<FormData>>({});
 
@@ -57,7 +88,13 @@ const CheckoutPage: React.FC = () => {
   const subtotalBeforeRedeem = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0) + giftSurcharge;
   const redeemedAmount = walletRedemption.isRedeemed ? Math.min(subtotalBeforeRedeem, availableWalletBalance) : 0;
   
-  const grandTotal = subtotalBeforeRedeem - redeemedAmount;
+  const couponDiscount = appliedCoupon
+    ? appliedCoupon.discountType === 'percentage'
+      ? (subtotalBeforeRedeem * appliedCoupon.discountValue) / 100
+      : appliedCoupon.discountValue
+    : 0;
+
+  const grandTotal = Math.max(0, subtotalBeforeRedeem - redeemedAmount - couponDiscount);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -105,6 +142,12 @@ const CheckoutPage: React.FC = () => {
       phone: formData.phone,
       address: fullAddress
     }, redeemedAmount);
+
+    if (appliedCoupon) {
+      message += `\n\n🎟️ *COUPON APPLIED*`;
+      message += `\nCode: ${appliedCoupon.code}`;
+      message += `\nDiscount: -${formatPrice(couponDiscount)}`;
+    }
 
     // Add Gift Personalization to Message
     if (giftOptions.isGift) {
@@ -192,7 +235,7 @@ const CheckoutPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#FCFBF7] py-24">
+    <div className="min-h-screen bg-[#FCFBF7] pt-10 pb-24">
       <div className="max-w-7xl mx-auto px-6 md:px-8">
         
         {/* Progress Navigation */}
@@ -213,9 +256,9 @@ const CheckoutPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           {/* Form Side */}
           <div className="lg:col-span-7 space-y-10">
-            <header className="space-y-2">
-              <h1 className="text-5xl font-heading font-bold text-charcoal tracking-tight">Checkout</h1>
-              <p className="text-gray-400 font-medium">Finalize your luxury selection and shipping details.</p>
+            <header className="space-y-1">
+              <h1 className="text-3xl md:text-4xl font-heading font-bold text-charcoal tracking-tight">Checkout</h1>
+              <p className="text-gray-400 font-medium text-sm">Finalize your luxury selection and shipping details.</p>
             </header>
 
             <form onSubmit={handleSubmit} className="space-y-12">
@@ -236,8 +279,8 @@ const CheckoutPage: React.FC = () => {
                       name="name"
                       value={formData.name}
                       onChange={handleChange}
-                      placeholder="e.g. Omkesh Manjute"
-                      className={`w-full px-6 py-4 bg-gray-50 border rounded-3xl focus:outline-none focus:ring-2 focus:ring-gold/20 transition-all font-bold text-charcoal ${
+                      placeholder="Enter your name"
+                      className={`w-full px-6 py-4 bg-gray-50 border rounded-3xl focus:outline-none focus:ring-2 focus:ring-gold/20 transition-all font-bold text-charcoal text-sm ${
                         errors.name ? 'border-red-400' : 'border-gray-100 hover:border-gold/30'
                       }`}
                     />
@@ -250,8 +293,8 @@ const CheckoutPage: React.FC = () => {
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
-                      placeholder="+91 00000 00000"
-                      className={`w-full px-6 py-4 bg-gray-50 border rounded-3xl focus:outline-none focus:ring-2 focus:ring-gold/20 transition-all font-bold text-charcoal ${
+                      placeholder="10-digit mobile number"
+                      className={`w-full px-6 py-4 bg-gray-50 border rounded-3xl focus:outline-none focus:ring-2 focus:ring-gold/20 transition-all font-bold text-charcoal text-sm ${
                         errors.phone ? 'border-red-400' : 'border-gray-100 hover:border-gold/30'
                       }`}
                     />
@@ -264,8 +307,8 @@ const CheckoutPage: React.FC = () => {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      placeholder="luxury@arham.com"
-                      className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-3xl focus:outline-none focus:ring-2 focus:ring-gold/20 transition-all font-bold text-charcoal hover:border-gold/30"
+                      placeholder="e.g. name@example.com"
+                      className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-3xl focus:outline-none focus:ring-2 focus:ring-gold/20 transition-all font-bold text-charcoal text-sm hover:border-gold/30"
                     />
                   </div>
                 </div>
@@ -288,8 +331,8 @@ const CheckoutPage: React.FC = () => {
                       value={formData.address}
                       onChange={handleChange}
                       rows={3}
-                      placeholder="Full residential address for white-glove delivery..."
-                      className={`w-full px-6 py-4 bg-gray-50 border rounded-3xl focus:outline-none focus:ring-2 focus:ring-gold/20 transition-all font-bold text-charcoal resize-none ${
+                      placeholder="Street name, building, apartment..."
+                      className={`w-full px-6 py-4 bg-gray-50 border rounded-3xl focus:outline-none focus:ring-2 focus:ring-gold/20 transition-all font-bold text-charcoal text-sm resize-none ${
                         errors.address ? 'border-red-400' : 'border-gray-100 hover:border-gold/30'
                       }`}
                     />
@@ -303,7 +346,7 @@ const CheckoutPage: React.FC = () => {
                         name="city"
                         value={formData.city}
                         onChange={handleChange}
-                        className={`w-full px-6 py-4 bg-gray-50 border rounded-3xl focus:outline-none focus:ring-2 focus:ring-gold/20 transition-all font-bold text-charcoal ${
+                        className={`w-full px-6 py-4 bg-gray-50 border rounded-3xl focus:outline-none focus:ring-2 focus:ring-gold/20 transition-all font-bold text-charcoal text-sm ${
                           errors.city ? 'border-red-400' : 'border-gray-100 hover:border-gold/30'
                         }`}
                       />
@@ -315,7 +358,7 @@ const CheckoutPage: React.FC = () => {
                         name="pincode"
                         value={formData.pincode}
                         onChange={handleChange}
-                        className={`w-full px-6 py-4 bg-gray-50 border rounded-3xl focus:outline-none focus:ring-2 focus:ring-gold/20 transition-all font-bold text-charcoal ${
+                        className={`w-full px-6 py-4 bg-gray-50 border rounded-3xl focus:outline-none focus:ring-2 focus:ring-gold/20 transition-all font-bold text-charcoal text-sm ${
                           errors.pincode ? 'border-red-400' : 'border-gray-100 hover:border-gold/30'
                         }`}
                       />
@@ -323,6 +366,8 @@ const CheckoutPage: React.FC = () => {
                   </div>
                 </div>
               </section>
+
+
 
               {/* Special Instructions */}
               <section className="bg-white rounded-[3rem] p-10 shadow-sm border border-gray-100 space-y-6">
@@ -346,33 +391,101 @@ const CheckoutPage: React.FC = () => {
           </div>
 
           {/* Summary Side */}
-          <div className="lg:col-span-5">
-            <div className="bg-charcoal text-white rounded-[3.5rem] p-10 sticky top-24 shadow-2xl overflow-hidden">
+          <div className="lg:col-span-5 space-y-6">
+            {/* Coupons Section - Moved Here */}
+            <section className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100 space-y-6">
+              <div className="flex items-center gap-3">
+                <Ticket size={18} className="text-amber-500" />
+                <h3 className="text-sm font-bold text-charcoal uppercase tracking-widest">Offers & Coupons</h3>
+              </div>
+
+              <div className="space-y-4">
+                {appliedCoupon ? (
+                  <div className="flex items-center justify-between p-4 bg-amber-50 rounded-2xl border border-amber-100">
+                    <div className="flex items-center gap-3">
+                      <Ticket size={16} className="text-amber-500" />
+                      <div>
+                        <p className="text-xs font-black text-charcoal tracking-widest">{appliedCoupon.code}</p>
+                        <p className="text-[9px] text-amber-600 font-bold uppercase tracking-widest mt-0.5">
+                          Saved {formatPrice(couponDiscount)}
+                        </p>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => applyCoupon(null)}
+                      className="p-1.5 hover:bg-amber-100 rounded-lg text-amber-600 transition-colors"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                      placeholder="PROMO CODE"
+                      className={`flex-1 px-4 py-3 bg-gray-50 border rounded-2xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all font-bold text-charcoal text-xs tracking-widest ${
+                        couponError ? 'border-red-400' : 'border-gray-100 hover:border-amber-500/30'
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleApplyCoupon}
+                      className="px-6 bg-amber-500 text-white rounded-2xl font-black uppercase tracking-widest text-[9px] hover:bg-amber-600 transition-all active:scale-95 shadow-lg shadow-amber-500/20"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                )}
+                {couponError && <p className="text-red-400 text-[9px] font-bold uppercase ml-2">{couponError}</p>}
+
+                {availableCoupons.length > 0 && !appliedCoupon && (
+                  <div className="flex gap-3 overflow-x-auto pb-1 no-scrollbar">
+                    {availableCoupons.map(coupon => (
+                      <button
+                        key={coupon.id}
+                        type="button"
+                        onClick={() => {
+                          setCouponCode(coupon.code);
+                          setCouponError('');
+                        }}
+                        className="flex-shrink-0 px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-left hover:border-amber-500/30 transition-all"
+                      >
+                        <p className="text-[9px] font-black text-charcoal tracking-widest">{coupon.code}</p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </section>
+
+            <div className="bg-charcoal text-white rounded-[2.5rem] p-8 sticky top-12 shadow-2xl overflow-hidden border border-white/5">
               {/* Gold Accent */}
               <div className="absolute top-0 right-0 w-32 h-32 bg-gold opacity-10 rounded-full blur-3xl -mr-16 -mt-16" />
               
-              <div className="relative z-10 space-y-10">
-                <h3 className="text-2xl font-heading font-bold">Investment Summary</h3>
+              <div className="relative z-10 space-y-8">
+                <h3 className="text-lg font-heading font-bold tracking-widest uppercase opacity-90">Investment Summary</h3>
 
                 {/* Item List */}
-                <div className="space-y-6 max-h-[30vh] overflow-y-auto pr-2 custom-scrollbar">
+                <div className="space-y-4 max-h-[25vh] overflow-y-auto pr-2 custom-scrollbar">
                   {items.map((item) => (
-                    <div key={item.product.id} className="flex gap-4 group">
-                      <div className="w-20 h-20 rounded-2xl overflow-hidden border border-white/10 shrink-0">
+                    <div key={item.product.id} className="flex gap-3 group">
+                      <div className="w-16 h-16 rounded-xl overflow-hidden border border-white/10 shrink-0">
                         <img
                           src={item.product?.images?.[0] || ''}
                           alt={item.product.name}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                         />
                       </div>
-                      <div className="flex-1 min-w-0 space-y-1">
-                        <p className="text-sm font-bold truncate">{item.product.name}</p>
-                        <div className="flex items-center gap-2 text-[10px] text-white/40 uppercase font-black tracking-widest">
+                      <div className="flex-1 min-w-0 space-y-0.5">
+                        <p className="text-xs font-bold truncate opacity-90">{item.product.name}</p>
+                        <div className="flex items-center gap-2 text-[9px] text-white/40 uppercase font-black tracking-widest">
                           <span>Qty: {item.quantity}</span>
-                          <span className="w-1 h-1 bg-white/10 rounded-full" />
+                          <span className="w-0.5 h-0.5 bg-white/10 rounded-full" />
                           <span>{item.selectedPurity}</span>
                         </div>
-                        <p className="text-gold font-bold text-sm">{formatPrice(item.product.price * item.quantity)}</p>
+                        <p className="text-gold font-bold text-xs">{formatPrice(item.product.price * item.quantity)}</p>
                       </div>
                     </div>
                   ))}
@@ -380,71 +493,77 @@ const CheckoutPage: React.FC = () => {
 
                 {/* Gift Personalization Summary */}
                 {giftOptions.isGift && (
-                  <div className="pt-8 border-t border-white/5 space-y-4">
-                    <div className="flex items-center gap-3">
-                      <Gift className="text-gold" size={18} />
-                      <p className="text-xs font-black uppercase tracking-widest text-gold">Gift Personalization</p>
+                  <div className="pt-6 border-t border-white/5 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Gift className="text-gold" size={14} />
+                      <p className="text-[10px] font-black uppercase tracking-widest text-gold">Gift Personalization</p>
                     </div>
-                    <div className="bg-white/5 p-5 rounded-3xl border border-white/10 space-y-2">
-                      <p className="text-xs font-bold">
+                    <div className="bg-white/5 p-4 rounded-2xl border border-white/10 space-y-1">
+                      <p className="text-[10px] font-bold opacity-80">
                         {giftOptions.wrapType === 'luxury' ? 'Premium Heritage Wrap' : 'Signature Arham Wrap'}
                       </p>
                       {giftOptions.message && (
-                        <p className="text-[10px] text-white/40 leading-relaxed italic">"{giftOptions.message}"</p>
+                        <p className="text-[9px] text-white/30 leading-relaxed italic">"{giftOptions.message}"</p>
                       )}
                     </div>
                   </div>
                 )}
 
                 {/* Financials */}
-                <div className="pt-8 border-t border-white/5 space-y-4 font-medium">
-                  <div className="flex justify-between text-white/60 text-sm">
+                <div className="pt-6 border-t border-white/5 space-y-3 font-medium">
+                  <div className="flex justify-between text-white/60 text-xs">
                     <span>Treasury Total</span>
                     <span>{formatPrice(totalPrice)}</span>
                   </div>
                   {giftSurcharge > 0 && (
-                    <div className="flex justify-between text-white/60 text-sm">
+                    <div className="flex justify-between text-white/60 text-xs">
                       <span>Heritage Wrap</span>
                       <span>{formatPrice(giftSurcharge)}</span>
                     </div>
                   )}
-                  <div className="flex justify-between text-white/60 text-sm">
+                  <div className="flex justify-between text-white/60 text-xs">
                     <span>Delivery</span>
-                    <span className="text-gold uppercase text-[10px] font-black tracking-widest">Complimentary</span>
+                    <span className="text-gold uppercase text-[9px] font-black tracking-widest">Complimentary</span>
                   </div>
                   {walletRedemption.isRedeemed && redeemedAmount > 0 && (
-                    <div className="flex justify-between text-green-400 text-sm">
+                    <div className="flex justify-between text-emerald-400 text-xs">
                       <span>Wallet Discount</span>
                       <span>-{formatPrice(redeemedAmount)}</span>
                     </div>
                   )}
+                  {appliedCoupon && (
+                    <div className="flex justify-between text-amber-400 text-xs">
+                      <span className="flex items-center gap-2"><Ticket size={12} /> Coupon ({appliedCoupon.code})</span>
+                      <span>-{formatPrice(couponDiscount)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between items-end pt-4 border-t border-white/10">
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gold">Final Investment</p>
-                      <h4 className="text-4xl font-bold">{formatPrice(grandTotal)}</h4>
+                    <div className="space-y-0.5">
+                      <p className="text-[9px] font-black uppercase tracking-[0.2em] text-gold opacity-80">Final Investment</p>
+                      <h4 className="text-3xl font-bold tracking-tighter">{formatPrice(grandTotal)}</h4>
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <button
                     onClick={handleSubmit}
                     disabled={isSubmitting}
-                    className="w-full py-6 bg-gold text-white rounded-full font-black uppercase tracking-[0.2em] text-xs hover:bg-amber-600 transition-all flex items-center justify-center gap-3 shadow-2xl shadow-gold/20 disabled:opacity-50 active:scale-95"
+                    className="w-full py-5 bg-gold text-white rounded-full font-black uppercase tracking-[0.2em] text-[10px] hover:bg-amber-600 transition-all flex items-center justify-center gap-3 shadow-2xl shadow-gold/20 disabled:opacity-50 active:scale-95"
                   >
                     {isSubmitting ? (
                       <span className="animate-pulse">Processing...</span>
                     ) : (
                       <>
-                        <MessageCircle size={20} />
+                        <MessageCircle size={18} />
                         Inquire via WhatsApp
                       </>
                     )}
                   </button>
-                  <div className="flex items-center gap-2 justify-center py-2 px-4 bg-white/5 rounded-2xl border border-white/5">
-                    <CreditCard size={14} className="text-white/40" />
-                    <p className="text-[9px] text-white/40 uppercase font-black tracking-widest">
-                      Alternate Payment Methods Available in Chat
+                  <div className="flex items-center gap-2 justify-center py-2 px-4 bg-white/5 rounded-xl border border-white/5">
+                    <CreditCard size={12} className="text-white/40" />
+                    <p className="text-[8px] text-white/40 uppercase font-black tracking-widest">
+                      Alternate Payments in Chat
                     </p>
                   </div>
                 </div>

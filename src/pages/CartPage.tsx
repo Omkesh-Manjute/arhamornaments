@@ -6,11 +6,21 @@ import { useUser } from '../context/UserContext';
 import { formatPrice, generateCartOrderMessage, openWhatsApp } from '../utils/whatsapp';
 import GiftPersonalization from '../components/GiftPersonalization';
 import WalletRedemption from '../components/WalletRedemption';
+import { couponService } from '../services/couponService';
+import { Coupon } from '../types';
+import { Ticket, X } from 'lucide-react';
 
 const CartPage: React.FC = () => {
-  const { items = [], removeFromCart, updateQuantity, giftOptions, clearCart, walletRedemption = { isRedeemed: false } } = useCart();
+  const { items = [], removeFromCart, updateQuantity, giftOptions, clearCart, walletRedemption = { isRedeemed: false }, appliedCoupon, applyCoupon } = useCart();
   const { user } = useUser();
   const navigate = useNavigate();
+  const [availableCoupons, setAvailableCoupons] = React.useState<Coupon[]>([]);
+
+  React.useEffect(() => {
+    couponService.getAllCoupons().then(coupons => {
+      setAvailableCoupons(coupons.filter(c => c.isActive));
+    });
+  }, []);
 
   // Filter out any invalid items to prevent crashes
   const validItems = items.filter(item => item && item.product);
@@ -52,7 +62,14 @@ const CartPage: React.FC = () => {
   const availableWalletBalance = user?.walletBalance || 0;
   const redeemedAmount = walletRedemption.isRedeemed ? Math.min(subtotal + giftCharge, availableWalletBalance) : 0;
 
-  const grandTotal = subtotal + shippingCost + giftCharge - redeemedAmount;
+  const subtotalForDiscount = subtotal + giftCharge;
+  const couponDiscount = appliedCoupon
+    ? appliedCoupon.discountType === 'percentage'
+      ? (subtotalForDiscount * appliedCoupon.discountValue) / 100
+      : appliedCoupon.discountValue
+    : 0;
+
+  const grandTotal = Math.max(0, subtotal + shippingCost + giftCharge - redeemedAmount - couponDiscount);
 
   return (
     <div className="min-h-screen bg-[#FCFBF7] pb-24">
@@ -209,6 +226,66 @@ const CartPage: React.FC = () => {
             <GiftPersonalization />
             <WalletRedemption />
 
+            {/* Promo Codes Preview */}
+            {!appliedCoupon && availableCoupons.length > 0 && (
+              <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-500">
+                      <Ticket size={20} />
+                    </div>
+                    <h3 className="text-lg font-heading font-bold text-charcoal">Available Offers</h3>
+                  </div>
+                </div>
+                <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
+                  {availableCoupons.map(coupon => (
+                    <div
+                      key={coupon.id}
+                      className="flex-shrink-0 w-64 p-5 bg-gray-50 border border-gray-100 rounded-[2rem] relative group"
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="text-xs font-black text-charcoal tracking-widest uppercase">{coupon.code}</span>
+                        <span className="text-[8px] font-black text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full uppercase tracking-widest">
+                          Save {coupon.discountType === 'percentage' ? `${coupon.discountValue}%` : formatPrice(coupon.discountValue)}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-gray-400 font-bold leading-relaxed uppercase tracking-wider mb-4">
+                        Valid on orders above {formatPrice(coupon.minOrderAmount)}
+                      </p>
+                      <button
+                        onClick={() => navigate('/checkout')}
+                        className="text-[9px] font-black uppercase tracking-widest text-amber-600 hover:text-amber-700 flex items-center gap-2 group"
+                      >
+                        Apply at checkout <ArrowRight size={10} className="group-hover:translate-x-1 transition-transform" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {appliedCoupon && (
+              <div className="bg-emerald-50 rounded-3xl p-6 border border-emerald-100 flex items-center justify-between animate-in fade-in slide-in-from-bottom-2">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-emerald-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                    <Ticket size={20} />
+                  </div>
+                  <div>
+                    <p className="text-xs font-black text-emerald-900 tracking-widest uppercase">Coupon Applied!</p>
+                    <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest mt-0.5">
+                      Code {appliedCoupon.code} saved you {formatPrice(couponDiscount)}
+                    </p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => applyCoupon(null)}
+                  className="p-2 hover:bg-emerald-100 rounded-xl text-emerald-600 transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            )}
+
             <Link
               to="/products"
               className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-charcoal hover:text-gold transition-colors"
@@ -241,6 +318,13 @@ const CartPage: React.FC = () => {
                   <div className="flex justify-between items-center text-green-400 animate-in fade-in slide-in-from-right-4 duration-300">
                     <span className="text-green-400/70 text-[9px] font-black uppercase tracking-[0.2em]">Wallet Savings</span>
                     <span className="font-bold text-sm">-{formatPrice(redeemedAmount)}</span>
+                  </div>
+                )}
+
+                {appliedCoupon && (
+                  <div className="flex justify-between items-center text-amber-400 animate-in fade-in slide-in-from-right-4 duration-300">
+                    <span className="text-amber-400/70 text-[9px] font-black uppercase tracking-[0.2em]">Coupon Discount</span>
+                    <span className="font-bold text-sm">-{formatPrice(couponDiscount)}</span>
                   </div>
                 )}
 

@@ -13,6 +13,8 @@ interface CartContextType {
   totalItems: number;
   walletRedemption: { isRedeemed: boolean };
   toggleWalletRedemption: () => void;
+  appliedCoupon: any | null;
+  applyCoupon: (coupon: any | null) => void;
 }
 
 const defaultGiftOptions: GiftOptions = {
@@ -48,6 +50,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   });
 
   const [walletRedemption, setWalletRedemption] = useState({ isRedeemed: false });
+  const [appliedCoupon, setAppliedCoupon] = useState<any | null>(null);
 
   const saveToStorage = useCallback((cartItems: CartItem[], options: GiftOptions) => {
     localStorage.setItem('cart', JSON.stringify(cartItems));
@@ -117,6 +120,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setItems([]);
     setGiftOptions(defaultGiftOptions);
     setWalletRedemption({ isRedeemed: false });
+    setAppliedCoupon(null);
     localStorage.removeItem('cart');
     localStorage.removeItem('giftOptions');
   }, []);
@@ -141,7 +145,9 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       totalItems,
       totalPrice,
       walletRedemption,
-      toggleWalletRedemption
+      toggleWalletRedemption,
+      appliedCoupon,
+      applyCoupon: setAppliedCoupon
     }}>
       {children}
     </CartContext.Provider>
