@@ -44,6 +44,31 @@ const ProductListing: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [displayCount, setDisplayCount] = useState(24);
   const PAGE_SIZE = 24;
+  const loadMoreRef = React.useRef<HTMLDivElement>(null);
+
+  // Infinite Scroll Observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const first = entries[0];
+        if (first.isIntersecting && displayCount < allProducts.length) {
+          setDisplayCount(prev => prev + PAGE_SIZE);
+        }
+      },
+      { rootMargin: '100px' } // Trigger slightly before the user reaches the bottom
+    );
+
+    const currentRef = loadMoreRef.current;
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, [displayCount, allProducts.length]);
 
   // Fetch ALL products from Firestore once
   useEffect(() => {
@@ -477,18 +502,16 @@ const ProductListing: React.FC = () => {
                   ))}
                 </div>
 
-                {/* Load More / Pagination */}
-                <div className="flex flex-col items-center py-10 space-y-3">
+                {/* Load More / Infinite Scroll Target */}
+                <div ref={loadMoreRef} className="flex flex-col items-center py-10 space-y-3">
                   <p className="text-xs text-gray-400 uppercase tracking-widest font-bold">
                     Showing {Math.min(displayCount, filteredProducts.length)} of {filteredProducts.length} products
                   </p>
                   {displayCount < filteredProducts.length ? (
-                    <button
-                      onClick={() => setDisplayCount(prev => prev + PAGE_SIZE)}
-                      className="px-8 py-3 bg-amber-500 text-white rounded-full font-bold hover:bg-amber-600 transition-all flex items-center gap-2 shadow-lg shadow-amber-500/20"
-                    >
-                      Load More <ChevronRight size={18} />
-                    </button>
+                    <div className="flex items-center gap-3 text-amber-500 font-medium py-4">
+                      <Loader2 className="animate-spin" size={20} />
+                      <span className="text-sm">Loading more treasures...</span>
+                    </div>
                   ) : (
                     <p className="text-xs text-gray-300 italic">You've seen all products ✨</p>
                   )}
