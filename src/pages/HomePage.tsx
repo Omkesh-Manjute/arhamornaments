@@ -13,6 +13,7 @@ import OccasionSection from '../components/home/OccasionSection';
 import LivePriceTicker from '../components/layout/LivePriceTicker';
 import HeroSlider from '../components/home/HeroSlider';
 import ShopByGender from '../components/home/ShopByGender';
+import NewArrivalsBanners from '../components/home/NewArrivalsBanners';
 
 import { Product } from '../types';
 import { productService } from '../services/productService';
@@ -136,41 +137,15 @@ const HomePage: React.FC = () => {
       {/* Live Market Price Section */}
       <LivePriceTicker />
 
-      {/* New Arrivals Section */}
+      {/* New Arrivals Banners Section */}
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20">
           <Loader2 className="animate-spin text-gold" size={40} />
           <p className="text-gray-400 text-xs uppercase tracking-widest mt-4">Loading Products...</p>
         </div>
-      ) : newArrivals.length > 0 ? (
-        <section className="px-4 md:px-8 py-16 bg-offwhite">
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-12 space-y-3">
-              <span className="text-gold uppercase tracking-[0.4em] text-[10px] font-bold block">Just Arrived</span>
-              <h2 className="text-3xl md:text-5xl font-heading font-bold text-charcoal">New Arrivals</h2>
-              <p className="text-gray-500 text-sm md:text-base font-medium">Explore our freshest handcrafted additions</p>
-              <div className="flex justify-center py-2">
-                <div className="w-24 h-px bg-gradient-to-r from-transparent via-gold to-transparent"></div>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
-              {newArrivals.map((product) => (
-                <div key={product.id}>
-                  <ProductCard product={product} hidePrice={true} />
-                </div>
-              ))}
-            </div>
-            <div className="mt-8 flex justify-center">
-              <Link
-                to="/products"
-                className="group flex items-center gap-2 text-charcoal font-bold uppercase tracking-[0.2em] text-[10px] hover:text-gold transition-colors pb-2 border-b-2 border-charcoal/10 hover:border-gold"
-              >
-                View All Products →
-              </Link>
-            </div>
-          </div>
-        </section>
-      ) : null}
+      ) : (
+        <NewArrivalsBanners />
+      )}
 
       <OccasionSection />
 
