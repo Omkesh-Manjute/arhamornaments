@@ -1,7 +1,7 @@
 import React from 'react';
 import { Gift, Sparkles, Video, MessageSquare, Check } from 'lucide-react';
-import { useCart } from '../context/CartContext';
-import { formatPrice } from '../utils/whatsapp';
+import { useCart } from '../../context/CartContext';
+import { formatPrice } from '../../utils/whatsapp';
 
 const GiftPersonalization: React.FC = () => {
   const { giftOptions, updateGiftOptions } = useCart();

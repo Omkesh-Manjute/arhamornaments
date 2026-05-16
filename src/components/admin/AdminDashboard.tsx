@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Package, DollarSign, TrendingUp, ShoppingCart, Upload, Loader2, ChevronDown, Hash } from 'lucide-react';
 import { Product } from '../../types';
 import { productService } from '../../services/productService';
+import { errorLogService } from '../../services/errorLogService';
+import { Bug } from 'lucide-react';
 
 interface DashboardStats {
   total: number;
@@ -16,6 +18,7 @@ interface AdminDashboardProps {
 
 const AdminDashboard: React.FC<AdminDashboardProps> = ({ sendNotification }) => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [errorCount, setErrorCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
@@ -33,8 +36,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ sendNotification }) => 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const allProducts = await productService.getAllProducts();
+      const [allProducts, logs] = await Promise.all([
+        productService.getAllProducts(),
+        errorLogService.getErrorLogs()
+      ]);
       setProducts(allProducts);
+      setErrorCount(logs.filter(l => l.status === 'new').length);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
     } finally {
@@ -96,13 +103,15 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ sendNotification }) => 
             </div>
           </div>
         ))}
-        <div className="bg-[#161616] border border-[#222222] rounded-xl p-4 flex flex-col justify-between shadow-sm">
-          <div className="w-11 h-11 rounded-xl flex items-center justify-center bg-blue-500/10 mb-4 border border-blue-500/10">
-            <Upload size={20} className="text-blue-500" />
+        <div className="bg-[#161616] border border-[#222222] rounded-xl p-4 flex flex-col justify-between shadow-sm group hover:border-red-500/50 transition-colors">
+          <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${errorCount > 0 ? 'bg-red-500/10' : 'bg-green-500/10'} mb-4 border border-white/5`}>
+            <Bug size={20} className={errorCount > 0 ? 'text-red-500' : 'text-green-500'} />
           </div>
           <div>
-            <p className="text-[9px] font-black text-blue-500/60 uppercase tracking-[0.2em]">Global Broadcast</p>
-            <p className="text-sm font-black text-white mt-1 cursor-pointer hover:text-blue-400 transition-colors uppercase tracking-tight" onClick={sendNotification}>Send Notification</p>
+            <p className="text-[9px] font-black text-gray-500 uppercase tracking-[0.2em]">New Bug Reports</p>
+            <p className={`text-sm font-black mt-1 uppercase tracking-tight ${errorCount > 0 ? 'text-red-500' : 'text-green-500'}`}>
+              {errorCount} {errorCount === 1 ? 'Error' : 'Errors'} Found
+            </p>
           </div>
         </div>
       </div>
@@ -110,8 +119,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ sendNotification }) => 
       {/* Bulk Actions Bar */}
       <div className="flex items-center justify-between bg-[#111111] border border-[#222222] px-5 py-3 rounded-2xl shadow-sm">
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-          <span className="text-[10px] font-black text-gray-400 font-mono uppercase tracking-[0.1em]">System Healthy • Live Sync</span>
+          <div className={`w-2 h-2 rounded-full animate-pulse ${errorCount > 0 ? 'bg-red-500' : 'bg-emerald-500'}`}></div>
+          <span className="text-[10px] font-black text-gray-400 font-mono uppercase tracking-[0.1em]">
+            {errorCount > 0 ? `Attention: ${errorCount} unresolved errors` : 'System Healthy • Live Sync'}
+          </span>
         </div>
         <div className="flex gap-2">
           <button className="px-4 py-2 bg-[#1A1A1A] border border-[#333333] hover:border-gray-500 text-gray-300 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all active:scale-95">Export CSV</button>

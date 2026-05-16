@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Copy, Share2, Users, Gift, TrendingUp, CheckCircle2, Wallet, BadgeCheck, Crown, ExternalLink, UserCheck, Sparkles, Tag } from 'lucide-react';
-import { useUser } from '../context/UserContext';
-import { userService } from '../services/userService';
-import { User } from '../types';
+import { Copy, Share2, Users, Gift, TrendingUp, CheckCircle2, Wallet, BadgeCheck, Crown, ExternalLink, UserCheck, Sparkles, Tag, ShieldCheck, History } from 'lucide-react';
+import { useUser } from '../../context/UserContext';
+import { userService } from '../../services/userService';
+import { User } from '../../types';
 
 const ReferAndEarn: React.FC = () => {
   const { user } = useUser();

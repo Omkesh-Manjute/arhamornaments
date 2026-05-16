@@ -1,8 +1,8 @@
 import React from 'react';
 import { Wallet, Check, Sparkles } from 'lucide-react';
-import { useUser } from '../context/UserContext';
-import { useCart } from '../context/CartContext';
-import { formatPrice } from '../utils/whatsapp';
+import { useUser } from '../../context/UserContext';
+import { useCart } from '../../context/CartContext';
+import { formatPrice } from '../../utils/whatsapp';
 
 const WalletRedemption: React.FC = () => {
   const { user, isLoggedIn } = useUser();

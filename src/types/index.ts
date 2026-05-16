@@ -156,3 +156,17 @@ export interface AuditLog {
   timestamp: string;
 }
 
+export interface ErrorLog {
+  id: string;
+  message: string;
+  stack?: string;
+  componentStack?: string;
+  url: string;
+  userAgent: string;
+  userId?: string;
+  userEmail?: string;
+  timestamp: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  status: 'new' | 'investigating' | 'resolved' | 'ignored';
+}
+

@@ -1,3 +1,6 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Sparkles, Play, ArrowRight } from 'lucide-react';
 import { homepageService } from '../../services/homepageService';
 
 const defaultData = {

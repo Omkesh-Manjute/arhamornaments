@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, LayoutGrid, ShoppingBag, User, Search } from 'lucide-react';
-import { useCart } from '../context/CartContext';
+import { useCart } from '../../context/CartContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const MobileBottomNav: React.FC = () => {

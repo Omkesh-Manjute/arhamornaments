@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Gift, Check, Sparkles, Lock, ArrowRight, Loader2 } from 'lucide-react';
-import { useUser } from '../context/UserContext';
-import { auth, db } from '../lib/firebase';
+import { useUser } from '../../context/UserContext';
+import { auth, db } from '../../lib/firebase';
 import { RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 

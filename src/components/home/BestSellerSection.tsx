@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
-import ProductCard from './ProductCard';
-import { Product } from '../types';
+import ProductCard from '../product/ProductCard';
+import { Product } from '../../types';
 
 interface BestSellerSectionProps {
   products: Product[];

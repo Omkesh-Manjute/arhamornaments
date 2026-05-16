@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { productService } from '../services/productService';
-import { bannerService } from '../services/bannerService';
-import { homepageService } from '../services/homepageService';
+import { productService } from '../../services/productService';
+import { bannerService } from '../../services/bannerService';
+import { homepageService } from '../../services/homepageService';
 
 const MobileHeroSlider: React.FC = () => {
   const [slides, setSlides] = useState<any[]>([]);

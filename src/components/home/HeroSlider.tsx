@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { bannerService } from '../services/bannerService';
-import { homepageService } from '../services/homepageService';
+import { bannerService } from '../../services/bannerService';
+import { homepageService } from '../../services/homepageService';
 
-import banner1 from '../assets/hero/banner1.png';
-import banner2 from '../assets/hero/banner2.png';
-import banner3 from '../assets/hero/banner3.png';
+import banner1 from '../../assets/hero/banner1.png';
+import banner2 from '../../assets/hero/banner2.png';
+import banner3 from '../../assets/hero/banner3.png';
 
 const HeroSlider: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);

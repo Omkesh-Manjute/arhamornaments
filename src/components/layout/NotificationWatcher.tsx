@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useUser } from '../context/UserContext';
+import { useUser } from '../../context/UserContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, X, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';

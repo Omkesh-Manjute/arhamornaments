@@ -1,10 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, Star } from 'lucide-react';
-import { Product } from '../types';
-import { useWishlist } from '../context/WishlistContext';
-import { formatPrice } from '../utils/whatsapp';
-import { usePrice } from '../context/PriceContext';
+import { Product } from '../../types';
+import { useWishlist } from '../../context/WishlistContext';
+import { formatPrice } from '../../utils/whatsapp';
+import { usePrice } from '../../context/PriceContext';
 
 interface ProductCardProps {
   product: Product;

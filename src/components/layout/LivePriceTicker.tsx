@@ -1,6 +1,6 @@
 import React from 'react';
 import { TrendingUp, TrendingDown, Activity } from 'lucide-react';
-import { usePrice } from '../context/PriceContext';
+import { usePrice } from '../../context/PriceContext';
 
 const LivePriceTicker: React.FC = () => {
   const { rates } = usePrice();

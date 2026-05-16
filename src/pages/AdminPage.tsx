@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Package, Plus, TrendingUp, DollarSign, X, Gem, Settings, Users, Bell, History, Shield, LogOut, Loader2, ChevronRight, Menu, Percent } from 'lucide-react';
+import { Package, Plus, TrendingUp, DollarSign, X, Gem, Settings, Users, Bell, History, Shield, LogOut, Loader2, ChevronRight, Menu, Percent, Bug } from 'lucide-react';
 import { Product, User } from '../types';
 import { usePrice } from '../context/PriceContext';
 import { auth } from '../lib/firebase';
@@ -15,11 +15,12 @@ import AdminMarketRates from '../components/admin/AdminMarketRates';
 import AdminCustomers from '../components/admin/AdminCustomers';
 import AdminNotifications from '../components/admin/AdminNotifications';
 import AdminAuditLogs from '../components/admin/AdminAuditLogs';
+import AdminErrorLogs from '../components/admin/AdminErrorLogs';
 import AdminProducts from '../components/admin/AdminProducts';
 import AdminProductModal from '../components/admin/AdminProductModal';
 import AdminHomepage from '../components/admin/AdminHomepage';
 
-type TabType = 'dashboard' | 'products' | 'homepage' | 'banners' | 'coupons' | 'rates' | 'promotions' | 'customers' | 'notifications' | 'logs';
+type TabType = 'dashboard' | 'products' | 'homepage' | 'banners' | 'coupons' | 'rates' | 'promotions' | 'customers' | 'notifications' | 'logs' | 'bugs';
 
 const CATEGORIES = [
   'bangles', 'bracelets', 'chain-sets', 'chains', 'earrings', 'kadas',
@@ -150,7 +151,8 @@ const AdminPage: React.FC = () => {
     { id: 'customers', label: 'Members', icon: Users },
     { id: 'coupons', label: 'Discounts', icon: Percent },
     { id: 'notifications', label: 'Broadcast', icon: Bell },
-    { id: 'logs', label: 'System Logs', icon: History },
+    { id: 'logs', label: 'Activity Logs', icon: History },
+    { id: 'bugs', label: 'Bug Reports', icon: Bug },
   ];
 
   return (
@@ -237,6 +239,7 @@ const AdminPage: React.FC = () => {
             {activeTab === 'customers' && <AdminCustomers setSelectedCust={setSelectedCust} />}
             {activeTab === 'notifications' && <AdminNotifications />}
             {activeTab === 'logs' && <AdminAuditLogs />}
+            {activeTab === 'bugs' && <AdminErrorLogs />}
           </div>
         </div>
       </main>

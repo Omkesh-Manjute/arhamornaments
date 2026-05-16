@@ -8,7 +8,7 @@ import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { usePrice } from '../context/PriceContext';
 import { formatPrice, calculateDiscount, generateProductEnquiryMessage, openWhatsApp } from '../utils/whatsapp';
-import ProductCard from '../components/ProductCard';
+import ProductCard from '../components/product/ProductCard';
 import { productService } from '../services/productService';
 import { Product } from '../types';
 

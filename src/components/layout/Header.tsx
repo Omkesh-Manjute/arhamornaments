@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Search, ShoppingBag, Menu, User, Heart, Wallet, Settings, LogOut, ChevronRight, Gift, Bell, Download, X } from 'lucide-react';
-import { useCart } from '../context/CartContext';
-import { useUser } from '../context/UserContext';
-import { useWishlist } from '../context/WishlistContext';
+import { useCart } from '../../context/CartContext';
+import { useUser } from '../../context/UserContext';
+import { useWishlist } from '../../context/WishlistContext';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
