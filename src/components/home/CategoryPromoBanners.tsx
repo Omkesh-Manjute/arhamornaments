@@ -9,7 +9,7 @@ const CategoryPromoBanners: React.FC = () => {
         {/* Banner 1: Men's Collection */}
         <div className="relative w-full aspect-[16/9] md:aspect-[4/5] overflow-hidden md:rounded-2xl group shadow-sm bg-[#d4b895]">
           <img 
-            src="https://images.unsplash.com/photo-1599643478514-4a4204538883?auto=format&fit=crop&q=80" 
+            src="/banners/mens_collection.png" 
             alt="Men's Collection" 
             className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000 object-center opacity-90"
           />
@@ -33,7 +33,7 @@ const CategoryPromoBanners: React.FC = () => {
         {/* Banner 2: Ladies Chain 22CT Jewellery */}
         <div className="relative w-full aspect-[16/9] md:aspect-[4/5] overflow-hidden md:rounded-2xl group shadow-sm bg-[#fdfbf7]">
           <img 
-            src="https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&q=80" 
+            src="/banners/ladies_chain.png" 
             alt="Ladies Chain 22CT Jewellery" 
             className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000 object-center opacity-80"
           />
@@ -78,10 +78,9 @@ const CategoryPromoBanners: React.FC = () => {
               </p>
             </div>
             <div className="mt-auto self-end">
-              <a href="https://wa.me/919371504182?text=I%20am%20interested%20in%20the%20Mangalsutra%20collection" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 md:gap-2 bg-white text-black px-4 md:px-5 py-2 md:py-2.5 rounded-full font-bold uppercase tracking-widest text-[10px] md:text-xs shadow-lg hover:scale-105 transition-transform">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" className="w-3.5 h-3.5 md:w-5 md:h-5" />
-                CHAT
-              </a>
+              <Link to="/products?category=mangalsutra" className="inline-flex items-center justify-center bg-gradient-to-r from-[#e6c27a] to-[#d4af37] text-black px-4 md:px-6 py-2 md:py-2.5 rounded-full font-semibold uppercase tracking-widest text-[9px] md:text-xs shadow-[0_0_15px_rgba(212,175,55,0.4)] hover:shadow-[0_0_20px_rgba(212,175,55,0.6)] transition-all">
+                View Collection
+              </Link>
             </div>
           </div>
         </div>
