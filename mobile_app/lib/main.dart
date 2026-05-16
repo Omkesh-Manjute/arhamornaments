@@ -34,7 +34,8 @@ class _WebAppScreenState extends State<WebAppScreen> {
   late final WebViewController controller;
   bool isLoading = true;
   String? errorMessage;
-  final String baseUrl = 'http://192.168.31.78:5173';
+  // Bhai yaha par apna Vercel wala custom domain daaliye (ex: https://arhamornaments.com)
+  final String baseUrl = 'https://www.arhamornaments.com'; 
 
   @override
   void initState() {
