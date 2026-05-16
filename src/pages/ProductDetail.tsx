@@ -394,8 +394,25 @@ const ProductDetail: React.FC = () => {
             <div className="grid grid-cols-2 gap-12 items-start">
               {/* Left: Sticky Image Gallery */}
               <div className="sticky top-24 space-y-4">
-                <div className="aspect-[4/5] rounded-[2rem] overflow-hidden bg-white shadow-xl border border-gray-100">
-                  <img src={product.images?.[currentImage] || ''} alt="" className="w-full h-full object-cover p-0" />
+                <div 
+                  className="aspect-[4/5] rounded-[2rem] overflow-hidden bg-white shadow-xl border border-gray-100 relative group cursor-crosshair"
+                  onMouseMove={(e) => {
+                    const img = e.currentTarget.querySelector('img');
+                    if (img) {
+                      const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+                      const x = ((e.clientX - left) / width) * 100;
+                      const y = ((e.clientY - top) / height) * 100;
+                      img.style.transformOrigin = `${x}% ${y}%`;
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    const img = e.currentTarget.querySelector('img');
+                    if (img) {
+                      img.style.transformOrigin = 'center';
+                    }
+                  }}
+                >
+                  <img src={product.images?.[currentImage] || ''} alt="" className="w-full h-full object-cover p-0 group-hover:scale-[2] transition-transform duration-300 ease-out will-change-transform pointer-events-none" />
                 </div>
                 {/* Thumbnails */}
                 {(product.images?.length || 0) > 1 && (

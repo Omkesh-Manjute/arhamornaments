@@ -34,7 +34,7 @@ const WishlistPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-offwhite pt-32 pb-20">
+    <div className="min-h-screen bg-offwhite pt-20 lg:pt-8 pb-20">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
