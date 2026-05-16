@@ -30,7 +30,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hidePrice = false })
           <img
             src={product.images?.[0] || ''}
             alt={product.name}
-            className="w-full h-full object-contain p-4 transition-transform duration-1000 group-hover:scale-110"
+            className="w-full h-full object-cover p-0 transition-transform duration-1000 group-hover:scale-110"
             loading="lazy"
             onError={(e) => {
               const target = e.target as HTMLImageElement;

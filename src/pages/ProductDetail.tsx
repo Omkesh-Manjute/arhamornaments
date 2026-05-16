@@ -259,8 +259,8 @@ const ProductDetail: React.FC = () => {
             >
               <div className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar h-[50vh]">
                 {product.images?.map((img, i) => (
-                  <div key={i} className="w-full h-full flex-shrink-0 snap-center px-4">
-                    <img src={img} alt="" className="w-full h-full object-contain p-4" />
+                  <div key={i} className="w-full h-full flex-shrink-0 snap-center px-0">
+                    <img src={img} alt="" className="w-full h-full object-cover p-0" />
                   </div>
                 ))}
               </div>
@@ -395,7 +395,7 @@ const ProductDetail: React.FC = () => {
               {/* Left: Sticky Image Gallery */}
               <div className="sticky top-24 space-y-4">
                 <div className="aspect-[4/5] rounded-[2rem] overflow-hidden bg-white shadow-xl border border-gray-100">
-                  <img src={product.images?.[currentImage] || ''} alt="" className="w-full h-full object-contain p-4" />
+                  <img src={product.images?.[currentImage] || ''} alt="" className="w-full h-full object-cover p-0" />
                 </div>
                 {/* Thumbnails */}
                 {(product.images?.length || 0) > 1 && (
