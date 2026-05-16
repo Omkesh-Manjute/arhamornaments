@@ -33,6 +33,8 @@ class WebAppScreen extends StatefulWidget {
 class _WebAppScreenState extends State<WebAppScreen> {
   late final WebViewController controller;
   bool isLoading = true;
+  String? errorMessage;
+  final String baseUrl = 'http://192.168.31.78:5173';
 
   @override
   void initState() {
@@ -45,6 +47,7 @@ class _WebAppScreenState extends State<WebAppScreen> {
           onPageStarted: (String url) {
             setState(() {
               isLoading = true;
+              errorMessage = null;
             });
           },
           onPageFinished: (String url) {
@@ -53,17 +56,24 @@ class _WebAppScreenState extends State<WebAppScreen> {
             });
           },
           onWebResourceError: (WebResourceError error) {
-            debugPrint('''
-Page resource error:
-  code: ${error.errorCode}
-  description: ${error.description}
-  errorType: ${error.errorType}
-  isForMainFrame: ${error.isForMainFrame}
-          ''');
+            final errorMsg = 'Error (${error.errorCode}): ${error.description}';
+            setState(() {
+              errorMessage = errorMsg;
+              isLoading = false;
+            });
+            debugPrint('WebView Error: $errorMsg');
           },
         ),
       )
-      ..loadRequest(Uri.parse('http://localhost:5173')); // Change this to your live website URL for production
+      ..loadRequest(Uri.parse(baseUrl));
+  }
+
+  void _retryConnection() {
+    setState(() {
+      errorMessage = null;
+      isLoading = true;
+    });
+    controller.loadRequest(Uri.parse(baseUrl));
   }
 
   @override
@@ -75,8 +85,57 @@ Page resource error:
             WebViewWidget(controller: controller),
             if (isLoading)
               const Center(
-                child: CircularProgressIndicator(
-                  color: Color(0xFFC5A059),
+                child: CircularProgressIndicator(color: Color(0xFFC5A059)),
+              ),
+            if (errorMessage != null)
+              Center(
+                child: Container(
+                  color: Colors.black87,
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.error_outline,
+                        color: Colors.red,
+                        size: 48,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Connection Error',
+                        style: Theme.of(
+                          context,
+                        ).textTheme.titleLarge?.copyWith(color: Colors.white),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        errorMessage!,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Trying to connect to: $baseUrl',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton.icon(
+                        onPressed: _retryConnection,
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('Retry Connection'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFC5A059),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
           ],
