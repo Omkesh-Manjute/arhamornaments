@@ -14,6 +14,7 @@ import LivePriceTicker from '../components/layout/LivePriceTicker';
 import HeroSlider from '../components/home/HeroSlider';
 import ShopByGender from '../components/home/ShopByGender';
 import NewArrivalsBanners from '../components/home/NewArrivalsBanners';
+import CategoryPromoBanners from '../components/home/CategoryPromoBanners';
 
 import { Product } from '../types';
 import { productService } from '../services/productService';
@@ -196,6 +197,9 @@ const HomePage: React.FC = () => {
         }))}
         items={earringCollection}
       />
+
+      {/* Category Promo Banners */}
+      <CategoryPromoBanners />
 
       {/* Categories Grid - Enhanced */}
       <section className="px-4 md:px-8 py-8 bg-white">
