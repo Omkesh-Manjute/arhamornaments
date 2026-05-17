@@ -16,8 +16,8 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<Product> bestSellers = mockProducts.where((p) => p.isBestSeller).toList();
-    final List<Product> newArrivals = mockProducts.where((p) => p.isNewArrival).toList();
+    final List<Product> bestSellers = provider.products.where((p) => p.isBestSeller).toList();
+    final List<Product> newArrivals = provider.products.where((p) => p.isNewArrival).toList();
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
@@ -225,6 +225,7 @@ class HomeScreen extends StatelessWidget {
       {'name': 'Necklaces', 'icon': Icons.filter_vintage_rounded},
       {'name': 'Mangalsutras', 'icon': Icons.favorite_rounded},
       {'name': 'Chains', 'icon': Icons.link_rounded},
+      {'name': 'Earrings', 'icon': Icons.hearing_rounded},
     ];
 
     return Column(

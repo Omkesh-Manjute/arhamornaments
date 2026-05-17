@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
+import 'dart:convert';
 import '../models/product.dart';
 
 class StoreProvider extends ChangeNotifier {
@@ -28,10 +30,63 @@ class StoreProvider extends ChangeNotifier {
   bool isWalletRedeemed = false;
   final double maxWalletRedemptionCap = 1000.0; // ₹1,000 max wallet discount per order!
 
+  // Products State
+  List<Product> _products = [];
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  StoreProvider() {
+    fetchProducts();
+  }
+
   // Getters
+  List<Product> get products => _products.isEmpty ? mockProducts : _products;
+  bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
+
   List<Product> get cartItems => _cartItems;
   List<Product> get wishlistItems => _wishlistItems;
   int get cartCount => _cartQuantities.values.fold(0, (sum, qty) => sum + qty);
+
+  Future<void> fetchProducts() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    final client = HttpClient();
+    try {
+      final request = await client.getUrl(Uri.parse(
+        'https://firestore.googleapis.com/v1/projects/arham-ornaments-ee5f3/databases/(default)/documents/products?pageSize=300'
+      ));
+      final response = await request.close();
+      
+      if (response.statusCode == 200) {
+        final responseBody = await response.transform(utf8.decoder).join();
+        final Map<String, dynamic> data = json.decode(responseBody);
+        
+        final List<dynamic>? docs = data['documents'];
+        if (docs != null) {
+          final List<Product> loadedProducts = [];
+          for (var doc in docs) {
+            try {
+              loadedProducts.add(Product.fromJson(doc));
+            } catch (e) {
+              debugPrint('Error parsing single product: $e');
+            }
+          }
+          _products = loadedProducts;
+        }
+      } else {
+        _errorMessage = 'Server error: ${response.statusCode}';
+      }
+    } catch (e) {
+      _errorMessage = 'Network error: $e';
+    } finally {
+      client.close();
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 
   // Dynamic Rate Updater
   void updateRates(double gold22, double gold24, double silver) {

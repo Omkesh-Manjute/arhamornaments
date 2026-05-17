@@ -32,6 +32,114 @@ class Product {
     final double gst = subtotal * 0.03;
     return subtotal + gst;
   }
+
+  factory Product.fromJson(Map<String, dynamic> jsonDoc) {
+    final String namePath = jsonDoc['name'] ?? '';
+    final String parsedId = namePath.split('/').last;
+    
+    final Map<String, dynamic> fields = jsonDoc['fields'] ?? {};
+    
+    // Parse Name
+    final String rawName = fields['name']?['stringValue'] ?? 'Jewellery Item';
+    final String parsedName = rawName.trim().toUpperCase();
+    
+    // Parse Category
+    final String rawCategory = fields['category']?['stringValue'] ?? 'General';
+    String parsedCategory = 'All';
+    final String catLower = rawCategory.toLowerCase();
+    
+    if (catLower.contains('bangle')) {
+      parsedCategory = 'Bangles';
+    } else if (catLower.contains('ring')) {
+      parsedCategory = 'Rings';
+    } else if (catLower.contains('neck') || catLower.contains('thushi') || catLower.contains('choker') || catLower.contains('pendant')) {
+      parsedCategory = 'Necklaces';
+    } else if (catLower.contains('mangal')) {
+      parsedCategory = 'Mangalsutras';
+    } else if (catLower.contains('chain')) {
+      parsedCategory = 'Chains';
+    } else if (catLower.contains('ear') || catLower.contains('bali') || catLower.contains('jhumka')) {
+      parsedCategory = 'Earrings';
+    } else {
+      // Capitalize first letter as fallback
+      parsedCategory = rawCategory.isNotEmpty 
+          ? '${rawCategory[0].toUpperCase()}${rawCategory.substring(1)}'
+          : 'General';
+    }
+    
+    // Parse Image URL
+    String parsedImageUrl = 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?q=80&w=600&auto=format&fit=crop';
+    final imagesObj = fields['images'];
+    if (imagesObj != null && imagesObj['arrayValue'] != null) {
+      final List<dynamic>? values = imagesObj['arrayValue']['values'];
+      if (values != null && values.isNotEmpty) {
+        parsedImageUrl = values[0]['stringValue'] ?? parsedImageUrl;
+      }
+    }
+    
+    // Parse Weight safely from netWeight or grossWeight
+    double parsedWeight = 0.0;
+    final netWeightObj = fields['netWeight'];
+    final grossWeightObj = fields['grossWeight'];
+    
+    if (netWeightObj != null) {
+      parsedWeight = double.tryParse(netWeightObj['integerValue'] ?? netWeightObj['doubleValue']?.toString() ?? '0') ?? 0.0;
+    } else if (grossWeightObj != null) {
+      parsedWeight = double.tryParse(grossWeightObj['integerValue'] ?? grossWeightObj['doubleValue']?.toString() ?? '0') ?? 0.0;
+    }
+    
+    if (parsedWeight == 0.0) {
+      parsedWeight = 8.5; // realistic fallback weight in grams
+    }
+    
+    // Parse Purity
+    final String rawPurity = fields['purity']?['stringValue'] ?? '22K';
+    String parsedPurity = '22KT Gold';
+    if (rawPurity.toUpperCase().contains('18')) {
+      parsedPurity = '18KT Gold';
+    } else if (rawPurity.toUpperCase().contains('24')) {
+      parsedPurity = '24KT Gold';
+    } else {
+      parsedPurity = '${rawPurity.toUpperCase().replaceAll('K', '')}KT Gold';
+    }
+    
+    // Parse Description
+    final String parsedDescription = fields['description']?['stringValue'] ?? 'Exquisite custom-crafted jewellery from Arham Ornaments.';
+    
+    // Parse Base Price (use the Firestore product price directly as basePrice if laborCharges is zero)
+    double parsedBasePrice = 0.0;
+    final priceObj = fields['price'];
+    if (priceObj != null) {
+      parsedBasePrice = double.tryParse(priceObj['integerValue'] ?? priceObj['doubleValue']?.toString() ?? '0') ?? 0.0;
+    }
+    
+    // If weight is loaded, basePrice is usually the making charges portion, so we extract it or set it elegantly
+    if (parsedBasePrice > 10000) {
+      // This is a direct final price. We'll set basePrice such that dynamic calculation matches, or set it as a flat base
+      parsedBasePrice = parsedBasePrice * 0.15; // making charges portion of the price
+    }
+    
+    if (parsedBasePrice == 0.0) {
+      parsedBasePrice = 3000.0; // fallback making/labor charges
+    }
+    
+    // Parse featured/trending
+    final bool isBestSeller = fields['trending']?['booleanValue'] ?? false;
+    final bool isNewArrival = fields['featured']?['booleanValue'] ?? true;
+    
+    return Product(
+      id: parsedId,
+      name: parsedName,
+      category: parsedCategory,
+      imageUrl: parsedImageUrl,
+      weight: parsedWeight,
+      purity: parsedPurity,
+      description: parsedDescription,
+      basePrice: parsedBasePrice,
+      isBestSeller: isBestSeller,
+      isNewArrival: isNewArrival,
+    );
+  }
 }
 
 // Global High-Resolution Arham Ornaments Jewellery Catalog

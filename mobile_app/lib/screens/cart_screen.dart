@@ -308,7 +308,7 @@ class _CartScreenState extends State<CartScreen> {
                     ),
                     Switch.adaptive(
                       value: provider.isWalletRedeemed,
-                      activeColor: const Color(0xFFC5A059),
+                      activeTrackColor: const Color(0xFFC5A059),
                       onChanged: provider.walletBalance > 0
                         ? (value) => provider.toggleWalletRedemption(value)
                         : null,
@@ -406,7 +406,7 @@ class _CartScreenState extends State<CartScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(Icons.chat_bubble_outline_rounded, color: Colors.white, size: 20),
-                            const SizedBox(width: 10),
+                            SizedBox(width: 10),
                             Text(
                               'PLACE ORDER VIA WHATSAPP',
                               style: TextStyle(

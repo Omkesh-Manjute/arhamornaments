@@ -95,12 +95,25 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
             elevation: 0,
             backgroundColor: Colors.white,
             surfaceTintColor: Colors.transparent,
-            title: const Row(
+            title: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.filter_vintage_rounded, color: Color(0xFFC5A059), size: 20),
-                SizedBox(width: 8),
-                Text(
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: Image.asset(
+                    'assets/logo.jpg',
+                    height: 24,
+                    width: 24,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => const Icon(
+                      Icons.filter_vintage_rounded,
+                      color: Color(0xFFC5A059),
+                      size: 20,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Text(
                   'ARHAM ORNAMENTS',
                   style: TextStyle(
                     color: Color(0xFF2C2C2C),

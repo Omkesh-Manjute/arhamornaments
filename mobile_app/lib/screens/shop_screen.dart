@@ -47,7 +47,7 @@ class _ShopScreenState extends State<ShopScreen> {
   @override
   Widget build(BuildContext context) {
     // 1. Dynamic filtering logic
-    final List<Product> filteredProducts = mockProducts.where((product) {
+    final List<Product> filteredProducts = widget.provider.products.where((product) {
       final bool matchesCategory = _selectedCategory == 'All' || 
           product.category.toLowerCase() == _selectedCategory.toLowerCase();
       
@@ -57,7 +57,7 @@ class _ShopScreenState extends State<ShopScreen> {
       return matchesCategory && matchesSearch;
     }).toList();
 
-    final List<String> categories = ['All', 'Bangles', 'Rings', 'Necklaces', 'Mangalsutras', 'Chains'];
+    final List<String> categories = ['All', 'Bangles', 'Rings', 'Necklaces', 'Mangalsutras', 'Chains', 'Earrings'];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
