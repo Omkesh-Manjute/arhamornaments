@@ -126,6 +126,23 @@ class _WebAppScreenState extends State<WebAppScreen> {
       ..loadRequest(Uri.parse(currentUrl));
   }
 
+  String _getFriendlyErrorMessage(String rawError) {
+    final String errorLower = rawError.toLowerCase();
+    if (errorLower.contains('err_internet_disconnected') || 
+        errorLower.contains('err_name_not_resolved') || 
+        errorLower.contains('err_connection_aborted') ||
+        errorLower.contains('err_failed') ||
+        errorLower.contains('-1')) {
+      return "Please check your internet connection. Make sure Wi-Fi or Mobile Data is turned on and try again.";
+    } else if (errorLower.contains('err_connection_timed_out') || 
+               errorLower.contains('timeout')) {
+      return "The connection timed out. The server might be temporarily busy. Please try again in a few moments.";
+    } else if (errorLower.contains('err_connection_refused')) {
+      return "We are undergoing a brief maintenance update. Please try again shortly!";
+    }
+    return "We're having trouble connecting to our servers. Please tap below to retry.";
+  }
+
   void _retryConnection() {
     setState(() {
       errorMessage = null;
@@ -148,50 +165,178 @@ class _WebAppScreenState extends State<WebAppScreen> {
                 child: CircularProgressIndicator(color: Color(0xFFC5A059)),
               ),
             if (errorMessage != null)
-              Center(
+              Positioned.fill(
                 child: Container(
-                  color: Colors.black87,
-                  padding: const EdgeInsets.all(24),
+                  color: const Color(0xFFF9F9F9), // Luxurious warm off-white background
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      const Icon(
-                        Icons.error_outline,
-                        color: Colors.red,
-                        size: 48,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Connection Error',
-                        style: Theme.of(
-                          context,
-                        ).textTheme.titleLarge?.copyWith(color: Colors.white),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        errorMessage!,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 14,
+                      const Spacer(flex: 3),
+                      // Animated-like Glowing Gold/Charcoal Container
+                      Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0x26C5A059),
+                              blurRadius: 24,
+                              spreadRadius: 8,
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Container(
+                            width: 72,
+                            height: 72,
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFD4AF37), Color(0xFFC5A059)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0x4DC5A059),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.wifi_off_rounded,
+                              color: Colors.white,
+                              size: 36,
+                            ),
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 36),
+                      
+                      // Heading
+                      const Text(
+                        'Connection Lost',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Color(0xFF2C2C2C),
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      
+                      // Hindi Translation subtitle
+                      const Text(
+                        'इंटरनेट कनेक्शन अनुपलब्ध है',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Color(0xFFC5A059),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      // Friendly Message
                       Text(
-                        'Trying to connect to: $currentUrl',
+                        _getFriendlyErrorMessage(errorMessage!),
                         textAlign: TextAlign.center,
                         style: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 12,
+                          color: Color(0xFF707070),
+                          fontSize: 14,
+                          height: 1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 36),
+                      
+                      // Premium Gold Gradient Button
+                      GestureDetector(
+                        onTap: _retryConnection,
+                        child: Container(
+                          width: double.infinity,
+                          height: 54,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFFD4AF37), Color(0xFFC5A059)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(27),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0x4DC5A059),
+                                blurRadius: 16,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.refresh_rounded,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                              SizedBox(width: 8),
+                              Text(
+                                'Retry Connection',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       const SizedBox(height: 24),
-                      ElevatedButton.icon(
-                        onPressed: _retryConnection,
-                        icon: const Icon(Icons.refresh),
-                        label: const Text('Retry Connection'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFC5A059),
+                      
+                      // Secondary "Contact Support" Button
+                      TextButton(
+                        onPressed: () async {
+                          final Uri phoneUri = Uri.parse('tel:+919876543210');
+                          try {
+                            if (await canLaunchUrl(phoneUri)) {
+                              await launchUrl(phoneUri);
+                            }
+                          } catch (e) {
+                            debugPrint('Could not launch support number: $e');
+                          }
+                        },
+                        child: const Text(
+                          'Contact Customer Support',
+                          style: TextStyle(
+                            color: Color(0xFF2C2C2C),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ),
+                      
+                      const Spacer(flex: 4),
+                      
+                      // Raw Error Footer (for developers, subtle)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: Text(
+                          'Details: $errorMessage\nTarget: $currentUrl',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Colors.black26,
+                            fontSize: 9,
+                            fontFamily: 'monospace',
+                          ),
                         ),
                       ),
                     ],
