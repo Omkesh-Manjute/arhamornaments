@@ -1,0 +1,498 @@
+import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../providers/store_provider.dart';
+
+class CartScreen extends StatefulWidget {
+  final StoreProvider provider;
+  final Function(int) onTabChange;
+
+  const CartScreen({
+    super.key,
+    required this.provider,
+    required this.onTabChange,
+  });
+
+  @override
+  State<CartScreen> createState() => _CartScreenState();
+}
+
+class _CartScreenState extends State<CartScreen> {
+  // Direct WhatsApp dispatch helper
+  void _placeWhatsAppOrder() async {
+    const String phone = "919833216777"; // Arham Ornaments official sales number
+    final buffer = StringBuffer();
+    buffer.writeln("✨ *NEW ORDER: ARHAM ORNAMENTS* ✨\n");
+    buffer.writeln("Hello Arham Ornaments, I would like to place an order for these native gold jewelry designs:\n");
+
+    for (var item in widget.provider.cartItems) {
+      final qty = widget.provider.getProductQuantity(item.id);
+      final price = widget.provider.getProductPrice(item);
+      buffer.writeln("• *${item.name}*");
+      buffer.writeln("  Purity: ${item.purity} | Weight: ${item.weight.toStringAsFixed(2)}g");
+      buffer.writeln("  Quantity: $qty | Price: ₹${price.toStringAsFixed(0)} each");
+      buffer.writeln("  Subtotal: ₹${(price * qty).toStringAsFixed(0)}\n");
+    }
+
+    buffer.writeln("--------------------------------");
+    buffer.writeln("💳 *BILL DETAILS (ESTIMATED):*");
+    buffer.writeln("Basket Subtotal: ₹${widget.provider.subtotal.toStringAsFixed(0)}");
+    
+    if (widget.provider.isWalletRedeemed) {
+      buffer.writeln("Wallet Bonus Applied: -₹${widget.provider.walletDiscount.toStringAsFixed(0)}");
+    }
+    if (widget.provider.activeCouponCode != null) {
+      buffer.writeln("Coupon (${widget.provider.activeCouponCode}): -₹${widget.provider.couponDiscountAmount.toStringAsFixed(0)}");
+    }
+    
+    buffer.writeln("*GRAND TOTAL: ₹${widget.provider.grandTotal.toStringAsFixed(0)}*");
+    buffer.writeln("--------------------------------");
+    buffer.writeln("\nPlease review my order. Let me know the shipping process and payment steps. Thank you!");
+
+    final String message = Uri.encodeComponent(buffer.toString());
+    final Uri whatsappUrl = Uri.parse("https://wa.me/$phone?text=$message");
+
+    try {
+      if (await canLaunchUrl(whatsappUrl)) {
+        await launchUrl(whatsappUrl, mode: LaunchMode.externalApplication);
+      } else {
+        throw 'Could not launch WA';
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not auto-launch WhatsApp. Please copy your order details or contact +91 98332 16777 directly.'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = widget.provider;
+
+    return provider.cartItems.isEmpty 
+        ? _buildEmptyState() 
+        : Column(
+            children: [
+              // 1. Cart Items Scrolling List
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: provider.cartItems.length,
+                  itemBuilder: (context, index) {
+                    final item = provider.cartItems[index];
+                    final qty = provider.getProductQuantity(item.id);
+                    final price = provider.getProductPrice(item);
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withAlpha(8),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          // Thumbnail Image
+                          ClipRRect(
+                            borderRadius: const BorderRadius.horizontal(left: Radius.circular(16)),
+                            child: Image.network(
+                              item.imageUrl,
+                              width: 90,
+                              height: 100,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  width: 90,
+                                  height: 100,
+                                  color: const Color(0xFFF9F6F0),
+                                  child: const Icon(Icons.image_outlined, color: Color(0xFFC5A059)),
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+
+                          // Text Info
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    item.name,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Color(0xFF2C2C2C),
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '${item.purity} • ${item.weight.toStringAsFixed(2)}g',
+                                    style: const TextStyle(
+                                      color: Color(0xFF707070),
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    '₹${(price * qty).toStringAsFixed(0)}',
+                                    style: const TextStyle(
+                                      color: Color(0xFFC5A059),
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          // Quantity Controls
+                          Padding(
+                            padding: const EdgeInsets.only(right: 12),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Row(
+                                  children: [
+                                    // Minus
+                                    GestureDetector(
+                                      onTap: () => provider.decreaseQuantity(item),
+                                      child: Container(
+                                        padding: const EdgeInsets.all(4),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFF9F6F0),
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: const Icon(Icons.remove_rounded, size: 16, color: Color(0xFFC5A059)),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      '$qty',
+                                      style: const TextStyle(
+                                        color: Color(0xFF2C2C2C),
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    // Plus
+                                    GestureDetector(
+                                      onTap: () => provider.addToCart(item),
+                                      child: Container(
+                                        padding: const EdgeInsets.all(4),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFF9F6F0),
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: const Icon(Icons.add_rounded, size: 16, color: Color(0xFFC5A059)),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                GestureDetector(
+                                  onTap: () => provider.removeFromCart(item),
+                                  child: const Text(
+                                    'Remove',
+                                    style: TextStyle(
+                                      color: Colors.redAccent,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              // 2. Coupon Applied Info (If user spun lucky wheel)
+              if (provider.activeCouponCode != null)
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFDFBF7),
+                    border: Border.all(color: const Color(0x66C5A059)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.local_offer_outlined, color: Color(0xFFC5A059), size: 18),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Promo coupon "${provider.activeCouponCode}" active (5% Extra Discount)',
+                          style: const TextStyle(
+                            color: Color(0xFFC5A059),
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const Icon(Icons.check_circle_rounded, color: Colors.green, size: 18),
+                    ],
+                  ),
+                ),
+
+              // 3. Referral Wallet Redemption Switch Card
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withAlpha(5),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFFDFBF7),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.account_balance_wallet_outlined, color: Color(0xFFC5A059)),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Referral Rewards Balance',
+                            style: TextStyle(
+                              color: Color(0xFF2C2C2C),
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Available: ₹${provider.walletBalance.toStringAsFixed(0)} (Redeem up to ₹1,000)',
+                            style: const TextStyle(
+                              color: Color(0xFF707070),
+                              fontSize: 10,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Switch.adaptive(
+                      value: provider.isWalletRedeemed,
+                      activeColor: const Color(0xFFC5A059),
+                      onChanged: provider.walletBalance > 0
+                        ? (value) => provider.toggleWalletRedemption(value)
+                        : null,
+                    ),
+                  ],
+                ),
+              ),
+
+              // 4. Elegant Transaction Invoice Summary
+              Container(
+                margin: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF9F9F9),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Items Subtotal', style: TextStyle(color: Color(0xFF707070), fontSize: 13)),
+                        Text('₹${provider.subtotal.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                      ],
+                    ),
+                    if (provider.isWalletRedeemed && provider.walletDiscount > 0) ...[
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Wallet Discount', style: TextStyle(color: Color(0xFF707070), fontSize: 13)),
+                          Text('-₹${provider.walletDiscount.toStringAsFixed(0)}', style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 13)),
+                        ],
+                      ),
+                    ],
+                    if (provider.activeCouponCode != null && provider.couponDiscountAmount > 0) ...[
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Spin Wheel Coupon (5%)', style: TextStyle(color: Color(0xFF707070), fontSize: 13)),
+                          Text('-₹${provider.couponDiscountAmount.toStringAsFixed(0)}', style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 13)),
+                        ],
+                      ),
+                    ],
+                    const SizedBox(height: 8),
+                    const Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Making Charges & GST', style: TextStyle(color: Color(0xFF707070), fontSize: 13)),
+                        Text('Included', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 13)),
+                      ],
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      child: Divider(height: 1),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('GRAND TOTAL (Estimated)', style: TextStyle(color: Color(0xFF2C2C2C), fontWeight: FontWeight.bold, fontSize: 14)),
+                        Text(
+                          '₹${provider.grandTotal.toStringAsFixed(0)}',
+                          style: const TextStyle(
+                            color: Color(0xFFC5A059),
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Dispatch Button
+                    GestureDetector(
+                      onTap: _placeWhatsAppOrder,
+                      child: Container(
+                        height: 50,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF25D366), Color(0xFF128C7E)], // Iconic WhatsApp Green gradient
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0x3325D366),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.chat_bubble_outline_rounded, color: Colors.white, size: 20),
+                            const SizedBox(width: 10),
+                            Text(
+                              'PLACE ORDER VIA WHATSAPP',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 90,
+              height: 90,
+              decoration: const BoxDecoration(
+                color: Color(0xFFF9F6F0),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.shopping_bag_outlined,
+                size: 36,
+                color: Color(0xFFC5A059),
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Your Basket is Empty',
+              style: TextStyle(
+                color: Color(0xFF2C2C2C),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Add premium gold bangles, chains, and classic rings to your basket. We will automatically calculate the best live price with zero hassle!',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Color(0xFF707070),
+                fontSize: 13,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 28),
+            GestureDetector(
+              onTap: () => widget.onTabChange(1), // Jump to Shop Tab
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFD4AF37), Color(0xFFC5A059)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(25),
+                ),
+                child: const Text(
+                  'BROWSE PRODUCTS',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
