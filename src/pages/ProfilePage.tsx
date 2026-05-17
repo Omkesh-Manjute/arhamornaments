@@ -23,20 +23,20 @@ const ProfilePage: React.FC = () => {
   // ─── Not logged in ───────────────────────────────────────────────
   if (!user) {
     return (
-      <div className="min-h-screen bg-[#FCFBF7] py-24 px-4 flex flex-col items-center justify-center space-y-12">
-        <div className="text-center space-y-4 max-w-2xl">
-          <span className="text-gold uppercase tracking-[0.4em] text-[10px] font-black block">Elite Membership</span>
-          <h1 className="text-4xl md:text-6xl font-heading font-bold text-charcoal leading-tight">
+      <div className="min-h-screen bg-[#FCFBF7] py-8 md:py-16 px-4 flex flex-col items-center justify-center space-y-6 md:space-y-10">
+        <div className="text-center space-y-3 max-w-2xl">
+          <span className="text-gold uppercase tracking-[0.4em] text-[9px] font-black block">Elite Membership</span>
+          <h1 className="text-3xl md:text-5xl font-heading font-bold text-charcoal leading-tight">
             Spin to Join the <br /><span className="italic text-gold">Arham Elite</span>
           </h1>
-          <p className="text-gray-400 text-sm max-w-md mx-auto">
+          <p className="text-gray-400 text-xs max-w-sm mx-auto">
             Create your account, unlock exclusive rewards, track orders, and claim your welcome bonus.
           </p>
         </div>
-        <div className="w-full max-w-5xl">
+        <div className="w-full max-w-4xl">
           <LuckyWheel isEmbedded={true} />
         </div>
-        <p className="text-[10px] text-gray-300 uppercase tracking-widest font-bold">
+        <p className="text-[9px] text-gray-400 uppercase tracking-widest font-black">
           Assured rewards up to ₹500 for every new member
         </p>
       </div>
@@ -189,7 +189,7 @@ const ProfilePage: React.FC = () => {
 
             {/* ─── PROFILE TAB ─── */}
             {activeTab === 'profile' && (
-              <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm">
+              <div className="bg-white rounded-[2rem] sm:rounded-[2.5rem] p-4 sm:p-8 border border-gray-100 shadow-sm">
                 <div className="flex items-center justify-between mb-8">
                   <h3 className="text-xl font-heading font-bold text-charcoal">Personal Information</h3>
                   {!isEditing ? (
@@ -270,7 +270,7 @@ const ProfilePage: React.FC = () => {
 
             {/* ─── NOTIFICATIONS TAB ─── */}
             {activeTab === 'notifications' && (
-              <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm">
+              <div className="bg-white rounded-[2rem] sm:rounded-[2.5rem] p-4 sm:p-8 border border-gray-100 shadow-sm">
                 <div className="flex items-center justify-between mb-8">
                   <h3 className="text-xl font-heading font-bold text-charcoal">Notifications</h3>
                   <Bell className="text-gold/30" size={28} />
@@ -361,7 +361,7 @@ const ProfilePage: React.FC = () => {
                 </div>
 
                 {/* Transaction History */}
-                <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm">
+                <div className="bg-white rounded-[2rem] sm:rounded-[2.5rem] p-4 sm:p-8 border border-gray-100 shadow-sm">
                   <h3 className="text-xl font-heading font-bold text-charcoal mb-6">Transaction History</h3>
                   <div className="space-y-3">
                     {/* Referral bonus if any */}

@@ -48,19 +48,19 @@ const ReferAndEarn: React.FC = () => {
         url: referralUrl
       }).catch(err => {
         // Fallback to WhatsApp if share fails or is cancelled
-        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + referralUrl)}`;
+        const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + ' ' + referralUrl)}`;
         window.open(whatsappUrl, '_blank');
       });
     } else {
       // Fallback for browsers/WebViews that don't support navigator.share
-      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + referralUrl)}`;
+      const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + ' ' + referralUrl)}`;
       window.open(whatsappUrl, '_blank');
     }
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6">
-      <div className="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-2xl border border-gray-100 relative overflow-hidden">
+    <div className="max-w-5xl mx-auto px-2 sm:px-4 py-6">
+      <div className="bg-white rounded-[2rem] sm:rounded-[2.5rem] p-4 sm:p-8 md:p-12 shadow-xl md:shadow-2xl border border-gray-100 relative overflow-hidden">
         {/* Decorative elements */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-gold/5 rounded-full blur-3xl -mr-32 -mt-32" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-orange-500/5 rounded-full blur-3xl -ml-32 -mb-32" />
@@ -79,9 +79,9 @@ const ReferAndEarn: React.FC = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
             {/* Referral Code Card */}
-            <div className="bg-gray-50/50 rounded-[2rem] p-8 border border-gray-100 space-y-6">
+            <div className="bg-gray-50/50 rounded-[1.5rem] sm:rounded-[2rem] p-5 sm:p-8 border border-gray-100 space-y-6">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-gold">
                   <Tag size={20} />
@@ -106,7 +106,7 @@ const ReferAndEarn: React.FC = () => {
             </div>
 
             {/* Share Card */}
-            <div className="bg-gradient-to-br from-gold to-amber-600 rounded-[2rem] p-8 text-white space-y-6 shadow-xl shadow-gold/20">
+            <div className="bg-gradient-to-br from-gold to-amber-600 rounded-[1.5rem] sm:rounded-[2rem] p-5 sm:p-8 text-white space-y-6 shadow-xl shadow-gold/20">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-white/20 rounded-xl backdrop-blur-md flex items-center justify-center">
                   <Share2 size={20} />
@@ -187,8 +187,8 @@ const ReferAndEarn: React.FC = () => {
           )}
         </div>
         {/* Rules & Guidelines Section */}
-        <div className="max-w-4xl mx-auto mt-24">
-          <div className="bg-white rounded-[3rem] p-10 md:p-16 shadow-sm border border-gray-100 relative overflow-hidden group">
+        <div className="max-w-4xl mx-auto mt-16 md:mt-24">
+          <div className="bg-white/80 backdrop-blur-md rounded-[2rem] sm:rounded-[3rem] p-5 sm:p-10 md:p-16 shadow-lg border border-gold/10 relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-64 h-64 bg-gold/5 rounded-full blur-3xl -mr-32 -mt-32 transition-transform duration-700 group-hover:scale-110" />
             
             <div className="relative z-10 space-y-12">
@@ -200,8 +200,8 @@ const ReferAndEarn: React.FC = () => {
                 <h2 className="text-3xl font-heading font-bold text-charcoal">Terms & Guidelines</h2>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-4 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100/50 hover:border-gold/30 transition-all">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+                <div className="space-y-4 p-5 sm:p-8 bg-gray-50/50 rounded-[1.5rem] sm:rounded-[2.5rem] border border-gray-100/50 hover:border-gold/30 transition-all">
                   <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-gold shadow-sm">
                     <History size={20} />
                   </div>
@@ -211,7 +211,7 @@ const ReferAndEarn: React.FC = () => {
                   </p>
                 </div>
 
-                <div className="space-y-4 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100/50 hover:border-gold/30 transition-all">
+                <div className="space-y-4 p-5 sm:p-8 bg-gray-50/50 rounded-[1.5rem] sm:rounded-[2.5rem] border border-gray-100/50 hover:border-gold/30 transition-all">
                   <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-amber-600 shadow-sm">
                     <Wallet size={20} />
                   </div>

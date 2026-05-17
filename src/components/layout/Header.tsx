@@ -39,6 +39,12 @@ const Header: React.FC = () => {
 
   // PWA Install Prompt
   useEffect(() => {
+    const isWebView = window.navigator.userAgent.includes('ArhamOrnamentsWebView');
+    if (isWebView) {
+      setShowInstallBanner(false);
+      return;
+    }
+
     const handler = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
@@ -137,10 +143,10 @@ const Header: React.FC = () => {
             )}
 
             {/* PWA Install Button - Desktop */}
-            {showInstallBanner && (
+            {showInstallBanner && !isMobile && (
               <button
                 onClick={handleInstallClick}
-                className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-gold to-gold-dark text-white text-[10px] font-bold uppercase tracking-wider shadow-lg shadow-gold/25 hover:shadow-gold/40 transition-all transform hover:scale-105 active:scale-95"
+                className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-gold to-gold-dark text-white text-[10px] font-bold uppercase tracking-wider shadow-lg shadow-gold/25 hover:shadow-gold/40 transition-all transform hover:scale-105 active:scale-95"
                 title="Install Arham Ornaments App"
               >
                 <Download size={14} />
@@ -148,7 +154,7 @@ const Header: React.FC = () => {
               </button>
             )}
 
-            <button className="p-2 transition-colors hover:text-gold text-charcoal">
+            <button className="hidden sm:block p-2 transition-colors hover:text-gold text-charcoal">
               <Search size={20} />
             </button>
 
@@ -199,7 +205,7 @@ const Header: React.FC = () => {
             {isLoggedIn && (
               <Link
                 to="/profile#notifications"
-                className="p-2 relative transition-colors hover:text-gold text-charcoal"
+                className="hidden md:flex p-2 relative transition-colors hover:text-gold text-charcoal"
                 onClick={(e) => {
                   if (location.pathname === '/profile') {
                     e.preventDefault();
@@ -217,7 +223,7 @@ const Header: React.FC = () => {
             )}
             <Link
               to="/wishlist"
-              className="p-2 relative transition-colors hover:text-gold text-charcoal"
+              className="hidden md:flex p-2 relative transition-colors hover:text-gold text-charcoal"
             >
               <Heart size={20} />
               {wishlist.length > 0 && (

@@ -1,15 +1,16 @@
 import React from 'react';
+import { openWhatsApp } from '../../utils/whatsapp';
 
 const FloatingWhatsApp: React.FC = () => {
   const handleClick = () => {
-    const message = encodeURIComponent('Hi! I\'m interested in your jewellery collection. Please share more details.');
-    window.open(`https://wa.me/919876543210?text=${message}`, '_blank');
+    const message = encodeURIComponent("Hi! I'm interested in your jewellery collection. Please share more details.");
+    openWhatsApp(message);
   };
 
   return (
     <button
       onClick={handleClick}
-      className="fixed bottom-6 right-6 z-40 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 transition-all duration-300 hover:scale-110 whatsapp-pulse"
+      className="fixed bottom-24 lg:bottom-6 right-6 z-40 bg-gradient-to-r from-emerald-500 to-green-500 text-white p-4 rounded-full shadow-lg shadow-emerald-500/25 border border-white/10 hover:scale-110 hover:shadow-emerald-500/40 active:scale-95 transition-all duration-300 whatsapp-pulse flex items-center justify-center cursor-pointer"
       aria-label="Chat on WhatsApp"
     >
       <svg

@@ -256,19 +256,19 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
   if (!isOpen) return null;
 
   const WheelPanel = (
-    <div className="flex-1 bg-gradient-to-br from-[#E0F7F9] to-[#F1FCFD] p-4 sm:p-6 md:p-10 flex flex-col items-center justify-center space-y-4 md:space-y-6 min-h-[400px] relative overflow-hidden">
+    <div className="flex-1 bg-gradient-to-br from-[#FAF6EE] to-[#FFFBF2] p-4 sm:p-6 md:p-10 flex flex-col items-center justify-center space-y-4 md:space-y-6 min-h-[400px] relative overflow-hidden">
       <div className="absolute inset-0 opacity-10 pointer-events-none">
-        <div className="absolute top-10 left-10 w-32 h-32 bg-[#40C0CB] rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-10 right-10 w-32 h-32 bg-[#c5a059] rounded-full blur-3xl animate-pulse delay-700" />
+        <div className="absolute top-10 left-10 w-32 h-32 bg-[#c5a059] rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-10 right-10 w-32 h-32 bg-amber-500 rounded-full blur-3xl animate-pulse delay-700" />
       </div>
       <div id="recaptcha-container" />
       <div className="text-center z-10">
-        <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/50 backdrop-blur-md rounded-full border border-white/50 shadow-sm mb-2">
+        <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/50 backdrop-blur-md rounded-full border border-[#c5a059]/20 shadow-sm mb-2">
           <Sparkles size={10} className="text-[#c5a059]" />
-          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#0D4449]">Exclusive Rewards</span>
+          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-charcoal">Exclusive Rewards</span>
         </div>
-        <h2 className="text-3xl sm:text-4xl font-bold text-[#0D4449] leading-tight">ARHAM <span className="text-[#c5a059]">LUCKY</span> WHEEL</h2>
-        <p className="text-[#5A8D92] text-xs sm:text-sm max-w-xs mx-auto mt-1">Spin the wheel of fortune!</p>
+        <h2 className="text-3xl sm:text-4xl font-bold text-charcoal leading-tight">ARHAM <span className="text-[#c5a059]">LUCKY</span> WHEEL</h2>
+        <p className="text-gray-400 text-xs sm:text-sm max-w-xs mx-auto mt-1">Spin the wheel of fortune!</p>
       </div>
 
       {/* Wheel container */}
@@ -301,31 +301,31 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
 
   const renderRightPanel = () => {
     if (showResult && winningSegment) return (
-      <div className="flex-1 p-8 md:p-12 flex flex-col justify-center">
-        <div className="text-center space-y-6">
-          <div className="w-20 h-20 bg-[#c5a059]/10 text-[#c5a059] rounded-full flex items-center justify-center mx-auto ring-8 ring-[#c5a059]/5">
-            <Gift size={36} className="animate-bounce" />
+      <div className="flex-1 p-6 sm:p-8 md:p-10 flex flex-col justify-center bg-white">
+        <div className="text-center space-y-5">
+          <div className="w-16 h-16 bg-[#c5a059]/10 text-[#c5a059] rounded-full flex items-center justify-center mx-auto ring-8 ring-[#c5a059]/5">
+            <Gift size={28} className="animate-bounce" />
           </div>
           <div>
-            <h3 className="text-4xl font-bold text-[#1a1a1a] uppercase tracking-tighter">CONGRATULATIONS!</h3>
-            <p className="text-gray-400 text-sm uppercase tracking-widest font-bold mt-1">You won an exclusive reward</p>
+            <h3 className="text-3xl font-extrabold text-charcoal uppercase tracking-tight">CONGRATULATIONS!</h3>
+            <p className="text-gray-400 text-[10px] uppercase tracking-widest font-black mt-1">You won an exclusive reward</p>
           </div>
-          <div className="py-8 px-10 bg-gradient-to-br from-[#E0F7F9] to-white rounded-[2.5rem] border border-[#40C0CB]/20 shadow-2xl">
-            <p className="text-6xl font-black text-[#0D4449]">₹{winningSegment.value}</p>
-            <p className="text-xs text-[#40C0CB] font-black tracking-[0.3em] uppercase mt-2">
+          <div className="py-6 px-8 bg-gradient-to-br from-[#FAF6EE] to-white rounded-[2rem] border border-[#c5a059]/20 shadow-xl">
+            <p className="text-5xl font-black text-charcoal">₹{winningSegment.value}</p>
+            <p className="text-[10px] text-[#c5a059] font-black tracking-[0.3em] uppercase mt-2">
               {winningSegment.value > 0 ? 'Cash Prize' : 'Reward Won'}
             </p>
           </div>
           {winningSegment.value > 0 ? (
-            <div className="bg-green-50 text-green-700 p-4 rounded-2xl flex items-center justify-center gap-3 border border-green-100">
-              <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center"><Check size={14} className="text-white"/></div>
-              <span className="font-bold text-sm">₹{winningSegment.value} credited to your wallet!</span>
+            <div className="bg-green-50 text-green-700 p-3.5 rounded-xl flex items-center justify-center gap-2.5 border border-green-100">
+              <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center shrink-0"><Check size={12} className="text-white"/></div>
+              <span className="font-bold text-xs">₹{winningSegment.value} credited to your wallet!</span>
             </div>
           ) : (
-            <p className="text-xs text-gray-500 bg-gray-50 p-4 rounded-2xl border border-dashed border-gray-200">Our VIP team will contact you within 24h.</p>
+            <p className="text-[11px] text-gray-500 bg-gray-50 p-3.5 rounded-xl border border-dashed border-gray-200">Our VIP team will contact you within 24h.</p>
           )}
           <button onClick={() => { if(!isEmbedded) setIsOpen(false); else setShowResult(false); }}
-            className="w-full bg-[#1a1a1a] text-white py-5 rounded-full font-bold uppercase tracking-[0.2em] hover:bg-[#c5a059] transition-all shadow-xl text-xs">
+            className="w-full bg-charcoal text-white py-4 rounded-xl font-bold uppercase tracking-[0.2em] hover:bg-[#c5a059] transition-all shadow-lg text-xs">
             {isEmbedded ? 'Go to My Profile →' : 'Continue Shopping →'}
           </button>
         </div>
@@ -334,53 +334,53 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
 
     if (!isLoggedIn) {
       if (showOtpInput) return (
-        <div className="flex-1 p-8 md:p-12 flex flex-col justify-center">
-          <form onSubmit={handleVerifyOtp} className="space-y-6">
+        <div className="flex-1 p-6 sm:p-8 md:p-10 flex flex-col justify-center bg-white">
+          <form onSubmit={handleVerifyOtp} className="space-y-5">
             <div>
-              <h3 className="text-2xl font-bold text-[#1a1a1a] flex items-center gap-2"><Lock size={24} className="text-[#40C0CB]"/>Verify OTP</h3>
-              <p className="text-gray-400 text-sm mt-1">Code sent to <span className="font-bold text-[#1a1a1a]">+91 {formData.phone}</span></p>
+              <h3 className="text-2xl font-bold text-charcoal flex items-center gap-2"><Lock size={20} className="text-[#c5a059]"/>Verify OTP</h3>
+              <p className="text-gray-400 text-xs mt-1">Code sent to <span className="font-bold text-charcoal">+91 {formData.phone}</span></p>
             </div>
             <input type="text" maxLength={6} placeholder="0 0 0 0 0 0" required
-              className="w-full text-center text-3xl tracking-[0.5em] font-black px-5 py-5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-[#40C0CB] outline-none"
+              className="w-full text-center text-2xl tracking-[0.4em] font-black px-4 py-4 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-[#c5a059] outline-none"
               value={otp} onChange={e => setOtp(e.target.value.replace(/\D/g,''))} />
             {error && <p className="text-red-500 text-xs font-bold text-center bg-red-50 p-3 rounded-xl border border-red-100">{error}</p>}
             <div className="flex flex-col gap-3">
               <button type="submit" disabled={loading||otp.length<6}
-                className="w-full bg-[#1a1a1a] text-white py-4 rounded-2xl font-bold uppercase tracking-[0.2em] hover:bg-[#c5a059] disabled:opacity-50 transition-all shadow-lg text-sm flex items-center justify-center gap-2">
-                {loading?<Loader2 className="animate-spin" size={18}/>:<Check size={18}/>} Verify & Create Account
+                className="w-full bg-charcoal text-white py-3.5 rounded-xl font-bold uppercase tracking-[0.2em] hover:bg-[#c5a059] disabled:opacity-50 transition-all shadow-md text-xs flex items-center justify-center gap-2">
+                {loading?<Loader2 className="animate-spin" size={16}/>:<Check size={16}/>} Verify & Create Account
               </button>
-              <button type="button" onClick={() => setShowOtpInput(false)} className="text-xs text-gray-400 font-bold uppercase tracking-widest hover:text-[#1a1a1a] transition-colors">Back to Details</button>
+              <button type="button" onClick={() => setShowOtpInput(false)} className="text-[11px] text-gray-400 font-bold uppercase tracking-widest hover:text-charcoal transition-colors">Back to Details</button>
             </div>
           </form>
         </div>
       );
 
       return (
-        <div className="flex-1 p-8 md:p-12 flex flex-col justify-center">
-          <form onSubmit={handleSendOtp} className="space-y-5">
+        <div className="flex-1 p-6 sm:p-8 md:p-10 flex flex-col justify-center bg-white">
+          <form onSubmit={handleSendOtp} className="space-y-4">
             <div>
-              <h3 className="text-2xl font-bold text-[#1a1a1a]">Join & Win</h3>
-              <p className="text-gray-400 text-sm mt-1">Sign up to unlock your free spin.</p>
+              <h3 className="text-2xl font-bold text-charcoal">Join & Win</h3>
+              <p className="text-gray-400 text-xs mt-1">Sign up to unlock your free spin.</p>
             </div>
-            <div className="space-y-3">
-              <input type="text" placeholder="Full Name" required className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-[#40C0CB] outline-none text-sm font-bold" value={formData.name} onChange={e=>setFormData({...formData,name:e.target.value})}/>
-              <input type="email" placeholder="Email Address" required className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-[#40C0CB] outline-none text-sm font-bold" value={formData.email} onChange={e=>setFormData({...formData,email:e.target.value})}/>
+            <div className="space-y-2.5">
+              <input type="text" placeholder="Full Name" required className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-[#c5a059] outline-none text-xs font-bold text-charcoal" value={formData.name} onChange={e=>setFormData({...formData,name:e.target.value})}/>
+              <input type="email" placeholder="Email Address" required className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-[#c5a059] outline-none text-xs font-bold text-charcoal" value={formData.email} onChange={e=>setFormData({...formData,email:e.target.value})}/>
               <div className="flex gap-2">
-                <div className="w-20 px-3 py-4 bg-gray-50 border border-gray-100 rounded-2xl flex items-center gap-1.5 shrink-0">
+                <div className="w-20 px-3 py-3 bg-gray-50 border border-gray-100 rounded-xl flex items-center gap-1.5 shrink-0">
                   <img src="https://flagcdn.com/in.svg" className="w-5" alt="IN"/>
-                  <span className="text-sm font-bold text-[#1a1a1a]">+91</span>
+                  <span className="text-xs font-bold text-charcoal">+91</span>
                 </div>
-                <input type="tel" placeholder="Phone Number" required pattern="[0-9]{10}" className="flex-1 px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-[#40C0CB] outline-none text-sm font-bold" value={formData.phone} onChange={e=>setFormData({...formData,phone:e.target.value})}/>
+                <input type="tel" placeholder="Phone Number" required pattern="[0-9]{10}" className="flex-1 px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-[#c5a059] outline-none text-xs font-bold text-charcoal" value={formData.phone} onChange={e=>setFormData({...formData,phone:e.target.value})}/>
               </div>
-              <input type="text" placeholder="Referral Code (Optional — get ₹100 bonus)" className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-[#40C0CB] outline-none text-sm font-bold" value={formData.referralCode} onChange={e=>setFormData({...formData,referralCode:e.target.value})}/>
+              <input type="text" placeholder="Referral Code (Optional — get ₹100 bonus)" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-[#c5a059] outline-none text-xs font-bold text-charcoal" value={formData.referralCode} onChange={e=>setFormData({...formData,referralCode:e.target.value})}/>
             </div>
             {error && <p className="text-red-500 text-xs font-bold bg-red-50 p-3 rounded-xl border border-red-100">{error}</p>}
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input type="checkbox" required className="mt-1 w-4 h-4 rounded border-gray-300 accent-[#40C0CB]" checked={formData.agreed} onChange={e=>setFormData({...formData,agreed:e.target.checked})}/>
-              <span className="text-[10px] text-gray-400 leading-relaxed font-medium">I agree to the Terms & Privacy Policy and consent to receiving updates from Arham Ornaments.</span>
+            <label className="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" required className="mt-1 w-3.5 h-3.5 rounded border-gray-300 accent-[#c5a059]" checked={formData.agreed} onChange={e=>setFormData({...formData,agreed:e.target.checked})}/>
+              <span className="text-[9px] text-gray-400 leading-relaxed font-medium">I agree to the Terms & Privacy Policy and consent to receiving updates from Arham Ornaments.</span>
             </label>
-            <button type="submit" disabled={loading} className="w-full bg-[#40C0CB] text-white py-4 rounded-2xl font-bold uppercase tracking-[0.2em] hover:bg-[#0D4449] disabled:opacity-50 transition-all shadow-lg text-sm flex items-center justify-center gap-2">
-              {loading?<Loader2 className="animate-spin" size={18}/>:<Sparkles size={16}/>} Send OTP & Continue
+            <button type="submit" disabled={loading} className="w-full bg-[#c5a059] text-white py-3.5 rounded-xl font-bold uppercase tracking-[0.2em] hover:bg-[#a88241] disabled:opacity-50 transition-all shadow-md text-xs flex items-center justify-center gap-2">
+              {loading?<Loader2 className="animate-spin" size={16}/>:<Sparkles size={14}/>} Send OTP & Continue
             </button>
           </form>
         </div>
@@ -388,19 +388,19 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ isEmbedded = false }) => {
     }
 
     return (
-      <div className="flex-1 p-8 md:p-12 flex flex-col justify-center bg-white/50 backdrop-blur-sm">
-        <div className="text-center space-y-10 relative">
-          <div className="space-y-4">
-            <div className="w-20 h-20 bg-gradient-to-br from-[#c5a059] to-amber-600 text-white rounded-[2rem] flex items-center justify-center mx-auto mb-4 shadow-xl shadow-[#c5a059]/20 rotate-3">
-              <Gift size={36}/>
+      <div className="flex-1 p-6 sm:p-8 md:p-10 flex flex-col justify-center bg-white/50 backdrop-blur-sm">
+        <div className="text-center space-y-8 relative">
+          <div className="space-y-3">
+            <div className="w-16 h-16 bg-gradient-to-br from-[#c5a059] to-amber-600 text-white rounded-2xl flex items-center justify-center mx-auto mb-2 shadow-lg shadow-[#c5a059]/20 rotate-3">
+              <Gift size={28}/>
             </div>
-            <h3 className="text-3xl font-bold text-[#1a1a1a] tracking-tight">Welcome, <span className="text-[#c5a059]">{user?.name?.split(' ')[0]||'Guest'}</span>! 🎉</h3>
-            <p className="text-gray-500 text-sm leading-relaxed max-w-[250px] mx-auto font-medium">
+            <h3 className="text-2xl font-bold text-charcoal tracking-tight">Welcome, <span className="text-[#c5a059]">{user?.name?.split(' ')[0]||'Guest'}</span>! 🎉</h3>
+            <p className="text-gray-500 text-xs leading-relaxed max-w-[240px] mx-auto font-medium">
               {canSpin() ? 'Unlock your exclusive welcome gift! Spin now to win cash rewards for your first purchase.' : 'You have already claimed your unique welcome reward! Explore our collections to use your winnings.'}
             </p>
           </div>
           <button id="spin-now-button" onClick={spinWheel} disabled={isSpinning||!canSpin()}
-            className={`w-full py-5 rounded-[2rem] font-black uppercase tracking-[0.25em] transition-all shadow-2xl text-lg relative overflow-hidden ${isSpinning||!canSpin()?'bg-gray-100 text-gray-400 cursor-not-allowed':'bg-[#1a1a1a] text-white hover:bg-[#c5a059] hover:scale-[1.02] active:scale-95'}`}>
+            className={`w-full py-4 rounded-xl font-black uppercase tracking-[0.25em] transition-all shadow-xl text-base relative overflow-hidden ${isSpinning||!canSpin()?'bg-gray-100 text-gray-400 cursor-not-allowed':'bg-charcoal text-white hover:bg-[#c5a059] hover:scale-[1.02] active:scale-95'}`}>
             {isSpinning ? '✨ SPINNING...' : !canSpin() ? 'CLAIMED' : '🎰 SPIN NOW!'}
           </button>
         </div>

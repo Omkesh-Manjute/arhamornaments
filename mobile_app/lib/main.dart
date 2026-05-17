@@ -51,6 +51,7 @@ class _WebAppScreenState extends State<WebAppScreen> {
     controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setDomStorageEnabled(true) // Crucial to prevent React LocalStorage crashes!
+      ..setUserAgent("ArhamOrnamentsWebView")
       ..setBackgroundColor(const Color(0x00000000))
       ..setNavigationDelegate(
         NavigationDelegate(
