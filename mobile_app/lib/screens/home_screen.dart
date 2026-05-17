@@ -320,7 +320,7 @@ class HomeScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.06),
+                        color: Colors.black.withValues(alpha: 0.06),
                         blurRadius: 8,
                         offset: const Offset(0, 3),
                       ),
@@ -351,8 +351,8 @@ class HomeScreen extends StatelessWidget {
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
-                                Colors.black.withOpacity(0.8),
-                                Colors.black.withOpacity(0.3),
+                                Colors.black.withValues(alpha: 0.8),
+                                Colors.black.withValues(alpha: 0.3),
                                 Colors.transparent,
                               ],
                               begin: Alignment.bottomCenter,
@@ -381,7 +381,7 @@ class HomeScreen extends StatelessWidget {
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                  color: Colors.white.withOpacity(0.7),
+                                  color: Colors.white.withValues(alpha: 0.7),
                                   fontSize: 9,
                                   height: 1.2,
                                 ),
@@ -518,7 +518,7 @@ class HomeScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(18),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 8,
               offset: const Offset(0, 3),
             ),
@@ -549,8 +549,8 @@ class HomeScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      Colors.black.withOpacity(0.75),
-                      Colors.black.withOpacity(0.2),
+                      Colors.black.withValues(alpha: 0.75),
+                      Colors.black.withValues(alpha: 0.2),
                       Colors.transparent,
                     ],
                     begin: Alignment.bottomLeft,
@@ -690,7 +690,7 @@ class HomeScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
+                        color: Colors.black.withValues(alpha: 0.04),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -1176,9 +1176,9 @@ class _PremiumBannerCarouselState extends State<_PremiumBannerCarousel> {
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
-                              Colors.black.withOpacity(0.75),
-                              Colors.black.withOpacity(0.3),
-                              Colors.black.withOpacity(0.1),
+                              Colors.black.withValues(alpha: 0.75),
+                              Colors.black.withValues(alpha: 0.3),
+                              Colors.black.withValues(alpha: 0.1),
                             ],
                             begin: Alignment.bottomLeft,
                             end: Alignment.topRight,
@@ -1226,7 +1226,7 @@ class _PremiumBannerCarouselState extends State<_PremiumBannerCarousel> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFC5A059).withOpacity(0.15),
+                                color: const Color(0xFFC5A059).withValues(alpha: 0.15),
                                 border: Border.all(color: const Color(0xFFC5A059), width: 1),
                                 borderRadius: BorderRadius.circular(20),
                               ),
@@ -1300,7 +1300,7 @@ class _PremiumBannerCarouselState extends State<_PremiumBannerCarousel> {
                     decoration: BoxDecoration(
                       color: _currentPage == index
                           ? const Color(0xFFC5A059)
-                          : const Color(0xFFE5E7EB).withOpacity(0.4),
+                          : const Color(0xFFE5E7EB).withValues(alpha: 0.4),
                       borderRadius: BorderRadius.circular(3),
                     ),
                   ),
