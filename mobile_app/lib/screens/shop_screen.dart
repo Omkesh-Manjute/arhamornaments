@@ -5,11 +5,13 @@ import '../providers/store_provider.dart';
 class ShopScreen extends StatefulWidget {
   final StoreProvider provider;
   final String initialCategory; // Supports navigating from home category selections
+  final String initialSearch; // Supports search filters from the drawer menu
 
   const ShopScreen({
     super.key,
     required this.provider,
     required this.initialCategory,
+    this.initialSearch = '',
   });
 
   @override
@@ -25,15 +27,23 @@ class _ShopScreenState extends State<ShopScreen> {
   void initState() {
     super.initState();
     _selectedCategory = widget.initialCategory;
+    _searchQuery = widget.initialSearch;
+    _searchController.text = widget.initialSearch;
   }
 
   @override
   void didUpdateWidget(covariant ShopScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Sync category updates from home screen selections
+    // Sync category and search updates from shell selections
     if (widget.initialCategory != oldWidget.initialCategory) {
       setState(() {
         _selectedCategory = widget.initialCategory;
+      });
+    }
+    if (widget.initialSearch != oldWidget.initialSearch) {
+      setState(() {
+        _searchQuery = widget.initialSearch;
+        _searchController.text = widget.initialSearch;
       });
     }
   }
