@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, ShoppingBag, Menu, User, Heart, Wallet, Settings, LogOut, ChevronRight, Gift, Bell, Download, X } from 'lucide-react';
+import { Search, ShoppingBag, Menu, User, Heart, Wallet, Settings, LogOut, ChevronRight, Gift, Bell, X } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useUser } from '../../context/UserContext';
 import { useWishlist } from '../../context/WishlistContext';
@@ -18,10 +18,6 @@ const Header: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // PWA Install State
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [showInstallBanner, setShowInstallBanner] = useState(false);
-
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
@@ -37,39 +33,6 @@ const Header: React.FC = () => {
     };
   }, []);
 
-  // PWA Install Prompt
-  useEffect(() => {
-    const isWebView = window.navigator.userAgent.includes('ArhamOrnamentsWebView');
-    if (isWebView) {
-      setShowInstallBanner(false);
-      return;
-    }
-
-    const handler = (e: any) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-      setShowInstallBanner(true);
-    };
-    window.addEventListener('beforeinstallprompt', handler);
-
-    // Hide if already installed
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      setShowInstallBanner(false);
-    }
-
-    return () => window.removeEventListener('beforeinstallprompt', handler);
-  }, []);
-
-  const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') {
-      setShowInstallBanner(false);
-    }
-    setDeferredPrompt(null);
-  };
-
   const navLinks = [
     { name: 'New In', path: '/products?filter=new' },
     { name: 'Necklaces', path: '/products?category=necklaces' },
@@ -83,7 +46,8 @@ const Header: React.FC = () => {
   const isHomePage = location.pathname === '/';
 
   return (
-    <header
+    <>
+      <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${
         isScrolled 
           ? 'bg-white/85 backdrop-blur-md shadow-sm border-gray-100/80 py-1.5' 
@@ -142,17 +106,6 @@ const Header: React.FC = () => {
               </div>
             )}
 
-            {/* PWA Install Button - Desktop */}
-            {showInstallBanner && !isMobile && (
-              <button
-                onClick={handleInstallClick}
-                className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-gold to-gold-dark text-white text-[10px] font-bold uppercase tracking-wider shadow-lg shadow-gold/25 hover:shadow-gold/40 transition-all transform hover:scale-105 active:scale-95"
-                title="Install Arham Ornaments App"
-              >
-                <Download size={14} />
-                <span>Get App</span>
-              </button>
-            )}
 
             <button className="hidden sm:block p-2 transition-colors hover:text-gold text-charcoal">
               <Search size={20} />
@@ -223,7 +176,7 @@ const Header: React.FC = () => {
             )}
             <Link
               to="/wishlist"
-              className="hidden md:flex p-2 relative transition-colors hover:text-gold text-charcoal"
+              className="flex p-2 relative transition-colors hover:text-gold text-charcoal"
             >
               <Heart size={20} />
               {wishlist.length > 0 && (
@@ -246,35 +199,8 @@ const Header: React.FC = () => {
           </div>
         </div>
       </div>
+    </header>
 
-      {/* Mobile PWA Install Banner - Slides down below header */}
-      {showInstallBanner && isMobile && (
-        <div className="lg:hidden bg-gradient-to-r from-[#0D4449] via-[#1a5c63] to-[#0D4449] border-t border-gold/20 px-4 py-2.5 flex items-center justify-between animate-slideDown">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center overflow-hidden p-1">
-              <img src="/images/logo.png?v=1.1" alt="Arham" className="w-full h-full object-contain" />
-            </div>
-            <div>
-              <p className="text-white text-xs font-bold">Arham Ornaments</p>
-              <p className="text-white/50 text-[9px]">Install app for best experience</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleInstallClick}
-              className="px-4 py-1.5 rounded-full bg-gold text-white text-[10px] font-bold uppercase tracking-wider shadow-lg shadow-gold/30 active:scale-95 transition-transform"
-            >
-              Install
-            </button>
-            <button
-              onClick={() => setShowInstallBanner(false)}
-              className="p-1 text-white/40 hover:text-white transition-colors"
-            >
-              <X size={16} />
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Mobile Drawer */}
       <div
@@ -297,16 +223,6 @@ const Header: React.FC = () => {
               <h2 className="text-base font-bold tracking-[0.12em] font-heading text-charcoal leading-none">ARHAM</h2>
               <span className="text-[7px] tracking-[0.3em] text-gold uppercase font-bold leading-none mt-0.5">ORNAMENTS</span>
             </div>
-            {/* Install button in drawer header */}
-            {showInstallBanner && (
-              <button
-                onClick={handleInstallClick}
-                className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gold text-white text-[9px] font-bold uppercase tracking-wider shadow-md active:scale-95 transition-transform"
-              >
-                <Download size={12} />
-                <span>Install</span>
-              </button>
-            )}
           </div>
 
           <div className="flex items-center justify-between mb-4">
@@ -522,7 +438,7 @@ const Header: React.FC = () => {
           </div>
         </div>
       </div>
-    </header>
+    </>
   );
 };
 

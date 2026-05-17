@@ -66,6 +66,21 @@ class _WebAppScreenState extends State<WebAppScreen> {
             });
           },
           onWebResourceError: (WebResourceError error) {
+            // Ignore non-main-frame resource errors (like fonts, images, trackers)
+            if (error.isForMainFrame != true) {
+              debugPrint('Ignoring subresource error: ${error.description}');
+              return;
+            }
+
+            // Ignore custom scheme or WhatsApp launching errors
+            final String desc = error.description.toLowerCase();
+            if (desc.contains('whatsapp') || 
+                desc.contains('unknown url scheme') || 
+                error.errorCode == -10) {
+              debugPrint('Ignoring custom scheme/whatsapp error: ${error.description}');
+              return;
+            }
+
             // Auto-fallback if the custom domain fails to load
             if (!usedFallback && currentUrl == primaryUrl) {
               usedFallback = true;

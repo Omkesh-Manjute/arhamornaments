@@ -27,7 +27,6 @@ import { SlideCartDrawer } from './components/cart/SlideCartDrawer';
 import LivePriceTicker from './components/layout/LivePriceTicker';
 import MobileBottomNav from './components/layout/MobileBottomNav';
 import NotificationWatcher from './components/layout/NotificationWatcher';
-import FloatingWhatsApp from './components/layout/FloatingWhatsApp';
 
 const AppContent: React.FC = () => {
   const location = useLocation();
@@ -63,7 +62,6 @@ const AppContent: React.FC = () => {
       {!hideHeaderFooter && <Footer />}
       {!hideHeaderFooter && <MobileBottomNav />}
       {!isAdminPage && <LuckyWheel />}
-      {!isAdminPage && <FloatingWhatsApp />}
       <NotificationWatcher />
       <SlideCartDrawer />
     </div>
