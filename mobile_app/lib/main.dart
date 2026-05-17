@@ -35,6 +35,7 @@ class _WebAppScreenState extends State<WebAppScreen> {
   late final WebViewController controller;
   bool isLoading = true;
   String? errorMessage;
+  bool isOfflineMode = false;
   
   // Custom domain & fallback URLs
   final String primaryUrl = 'https://www.arhamornaments.com';
@@ -63,6 +64,10 @@ class _WebAppScreenState extends State<WebAppScreen> {
           onPageFinished: (String url) {
             setState(() {
               isLoading = false;
+              // If dynamic online URL is loaded, ensure offline mode is disabled
+              if (url.startsWith('http')) {
+                isOfflineMode = false;
+              }
             });
           },
           onWebResourceError: (WebResourceError error) {
@@ -90,12 +95,25 @@ class _WebAppScreenState extends State<WebAppScreen> {
               return;
             }
             
-            final errorMsg = 'Error (${error.errorCode}): ${error.description}';
-            setState(() {
-              errorMessage = errorMsg;
-              isLoading = false;
-            });
-            debugPrint('WebView Error: $errorMsg');
+            // Both primary and fallback URLs failed. We are definitely offline.
+            // Load the bundled offline shell natively for a flawless offline experience!
+            debugPrint('Both network connection attempts failed. Gracefully loading offline shell asset...');
+            try {
+              controller.loadFlutterAsset('assets/offline_shell.html');
+              setState(() {
+                errorMessage = null; // Clear error to prevent blocking overlay
+                isLoading = false;
+                isOfflineMode = true; // Mark as offline mode to show the floating Reconnect button
+              });
+            } catch (e) {
+              debugPrint('Failed to load local offline asset: $e');
+              final errorMsg = 'Error (${error.errorCode}): ${error.description}';
+              setState(() {
+                errorMessage = errorMsg;
+                isLoading = false;
+                isOfflineMode = false;
+              });
+            }
           },
           onNavigationRequest: (NavigationRequest request) async {
             final String url = request.url;
@@ -148,6 +166,7 @@ class _WebAppScreenState extends State<WebAppScreen> {
       errorMessage = null;
       isLoading = true;
       usedFallback = false;
+      isOfflineMode = false; // Reset offline mode flag on explicit manual retry
       currentUrl = primaryUrl;
     });
     controller.loadRequest(Uri.parse(currentUrl));
@@ -164,6 +183,55 @@ class _WebAppScreenState extends State<WebAppScreen> {
               const Center(
                 child: CircularProgressIndicator(color: Color(0xFFC5A059)),
               ),
+            
+            // Premium Floating "Go Live" indicator button in offline mode
+            if (isOfflineMode)
+              Positioned(
+                bottom: 24,
+                right: 24,
+                child: GestureDetector(
+                  onTap: _retryConnection,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFD4AF37), Color(0xFFC5A059)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0x4DC5A059),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.wifi_rounded,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'Go Live',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
             if (errorMessage != null)
               Positioned.fill(
                 child: Container(
