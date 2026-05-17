@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void main() {
   runApp(const MyApp());
@@ -34,14 +35,22 @@ class _WebAppScreenState extends State<WebAppScreen> {
   late final WebViewController controller;
   bool isLoading = true;
   String? errorMessage;
-  // Bhai yaha par apna Vercel wala custom domain daaliye (ex: https://arhamornaments.com)
-  final String baseUrl = 'https://www.arhamornaments.com'; 
+  
+  // Custom domain & fallback URLs
+  final String primaryUrl = 'https://www.arhamornaments.com';
+  final String fallbackUrl = 'https://arham-ornaments-ee5f3.web.app';
+  
+  late String currentUrl;
+  bool usedFallback = false;
 
   @override
   void initState() {
     super.initState();
+    currentUrl = primaryUrl;
+    
     controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setDomStorageEnabled(true) // Crucial to prevent React LocalStorage crashes!
       ..setBackgroundColor(const Color(0x00000000))
       ..setNavigationDelegate(
         NavigationDelegate(
@@ -57,6 +66,15 @@ class _WebAppScreenState extends State<WebAppScreen> {
             });
           },
           onWebResourceError: (WebResourceError error) {
+            // Auto-fallback if the custom domain fails to load
+            if (!usedFallback && currentUrl == primaryUrl) {
+              usedFallback = true;
+              currentUrl = fallbackUrl;
+              debugPrint('Primary URL failed: ${error.description}. Retrying with fallback: $fallbackUrl');
+              controller.loadRequest(Uri.parse(fallbackUrl));
+              return;
+            }
+            
             final errorMsg = 'Error (${error.errorCode}): ${error.description}';
             setState(() {
               errorMessage = errorMsg;
@@ -64,17 +82,43 @@ class _WebAppScreenState extends State<WebAppScreen> {
             });
             debugPrint('WebView Error: $errorMsg');
           },
+          onNavigationRequest: (NavigationRequest request) async {
+            final String url = request.url;
+            
+            // Check for custom schemes (whatsapp, phone calls, mail, or direct wa.me links)
+            if (url.startsWith('whatsapp:') || 
+                url.startsWith('tel:') || 
+                url.startsWith('mailto:') || 
+                url.contains('wa.me') || 
+                url.contains('api.whatsapp.com')) {
+              try {
+                final Uri uri = Uri.parse(url);
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                } else {
+                  // Fallback for custom schemes in newer Android versions
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                }
+              } catch (e) {
+                debugPrint('Could not launch URL externally: $e');
+              }
+              return NavigationDecision.prevent;
+            }
+            return NavigationDecision.navigate;
+          },
         ),
       )
-      ..loadRequest(Uri.parse(baseUrl));
+      ..loadRequest(Uri.parse(currentUrl));
   }
 
   void _retryConnection() {
     setState(() {
       errorMessage = null;
       isLoading = true;
+      usedFallback = false;
+      currentUrl = primaryUrl;
     });
-    controller.loadRequest(Uri.parse(baseUrl));
+    controller.loadRequest(Uri.parse(currentUrl));
   }
 
   @override
@@ -119,7 +163,7 @@ class _WebAppScreenState extends State<WebAppScreen> {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'Trying to connect to: $baseUrl',
+                        'Trying to connect to: $currentUrl',
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           color: Colors.grey,

@@ -315,7 +315,7 @@ const Header: React.FC = () => {
                 )}
               </div>
               <div className="flex flex-col">
-                <h3 className="text-xl font-bold text-charcoal">Hi {isLoggedIn ? user?.name?.split(' ')[0] : 'Guest'}!</h3>
+                <h3 className="text-xl font-bold text-charcoal">Hi {isLoggedIn && user?.name ? user.name.split(' ')[0] : 'Guest'}!</h3>
               </div>
             </div>
             <div className="flex items-center gap-2">
