@@ -12,7 +12,7 @@ const Header: React.FC = () => {
   const [openCategories, setOpenCategories] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
-  const { totalItems } = useCart();
+  const { totalItems, setCartDrawerOpen } = useCart();
   const { user, isLoggedIn, logout } = useUser();
   const { wishlist } = useWishlist();
   const location = useLocation();
@@ -78,7 +78,11 @@ const Header: React.FC = () => {
 
   return (
     <header
-      className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md py-1.5 border-b border-gray-100"
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${
+        isScrolled 
+          ? 'bg-white/85 backdrop-blur-md shadow-sm border-gray-100/80 py-1.5' 
+          : 'bg-white/70 backdrop-blur-md shadow-none border-transparent py-2.5'
+      }`}
     >
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         <div className="flex items-center justify-between">
@@ -222,14 +226,17 @@ const Header: React.FC = () => {
                 </span>
               )}
             </Link>
-            <Link to="/cart" className="relative p-2 transition-colors hover:text-gold text-charcoal">
+            <button
+              onClick={() => setCartDrawerOpen(true)}
+              className="relative p-2 transition-colors hover:text-gold text-charcoal"
+            >
               <ShoppingBag size={20} />
               {totalItems > 0 && (
                 <span className="absolute top-1 right-1 bg-gold text-white text-[9px] w-4 h-4 flex items-center justify-center rounded-full animate-bounce-in">
                   {totalItems}
                 </span>
               )}
-            </Link>
+            </button>
           </div>
         </div>
       </div>

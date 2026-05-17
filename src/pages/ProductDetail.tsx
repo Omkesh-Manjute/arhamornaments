@@ -9,6 +9,7 @@ import { useWishlist } from '../context/WishlistContext';
 import { usePrice } from '../context/PriceContext';
 import { formatPrice, calculateDiscount, generateProductEnquiryMessage, openWhatsApp } from '../utils/whatsapp';
 import ProductCard from '../components/product/ProductCard';
+import CustomerReviews from '../components/product/CustomerReviews';
 import { productService } from '../services/productService';
 import { Product } from '../types';
 
@@ -274,9 +275,9 @@ const ProductDetail: React.FC = () => {
                       navigateToSibling('prev');
                     }}
                     aria-label="Previous product"
-                    className="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 bg-white/95 shadow-lg rounded-full flex items-center justify-center text-charcoal active:scale-95 transition-all z-10"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center text-white/90 active:text-white active:scale-90 transition-all z-10 filter drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)]"
                   >
-                    <ChevronLeft size={22} strokeWidth={2.5} />
+                    <ChevronLeft size={36} strokeWidth={2.5} />
                   </button>
                   <button
                     type="button"
@@ -285,9 +286,9 @@ const ProductDetail: React.FC = () => {
                       navigateToSibling('next');
                     }}
                     aria-label="Next product"
-                    className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 bg-white/95 shadow-lg rounded-full flex items-center justify-center text-charcoal active:scale-95 transition-all z-10"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center text-white/90 active:text-white active:scale-90 transition-all z-10 filter drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)]"
                   >
-                    <ChevronRight size={22} strokeWidth={2.5} />
+                    <ChevronRight size={36} strokeWidth={2.5} />
                   </button>
                 </>
               )}
@@ -520,6 +521,9 @@ const ProductDetail: React.FC = () => {
                 )}
               </div>
             </div>
+
+            {/* Customer Reviews Section */}
+            <CustomerReviews />
 
             {/* Related sections */}
             {relatedProducts.length > 0 && (

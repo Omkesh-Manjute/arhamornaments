@@ -20,6 +20,7 @@ import { Product } from '../types';
 import { productService } from '../services/productService';
 import { homepageService, HomeCategory, HomeCollectionItem } from '../services/homepageService';
 import { Loader2 } from 'lucide-react';
+import { GoldSkeletonGrid } from '../components/ui/GoldSkeleton';
 
 const HomePage: React.FC = () => {
   const [newArrivals, setNewArrivals] = useState<Product[]>([]);
@@ -140,9 +141,16 @@ const HomePage: React.FC = () => {
 
       {/* New Arrivals Section */}
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-20">
-          <Loader2 className="animate-spin text-gold" size={40} />
-          <p className="text-gray-400 text-xs uppercase tracking-widest mt-4">Loading Products...</p>
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-16">
+          <div className="text-center mb-12 space-y-3 animate-pulse">
+            <span className="text-gold uppercase tracking-[0.4em] text-[10px] font-bold block">Curating Masterpieces</span>
+            <h2 className="text-3xl md:text-5xl font-heading font-bold text-charcoal">Arham Creations</h2>
+            <p className="text-gray-500 text-sm md:text-base font-medium">Fine jewelry is loading beautifully for you...</p>
+            <div className="flex justify-center py-2">
+              <div className="w-24 h-px bg-gradient-to-r from-transparent via-gold to-transparent"></div>
+            </div>
+          </div>
+          <GoldSkeletonGrid count={8} />
         </div>
       ) : (
         <>

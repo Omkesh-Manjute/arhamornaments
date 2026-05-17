@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useCallback, ReactNode } fr
 import { CartItem, Product, GiftOptions } from '../types';
 
 interface CartContextType {
+  isCartDrawerOpen: boolean;
+  setCartDrawerOpen: (open: boolean) => void;
   items: CartItem[];
   giftOptions: GiftOptions;
   addToCart: (product: Product, quantity?: number, metadata?: { selectedPurity?: string, selectedQuality?: string }) => void;
@@ -27,6 +29,7 @@ const defaultGiftOptions: GiftOptions = {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [isCartDrawerOpen, setCartDrawerOpen] = useState(false);
   const [items, setItems] = useState<CartItem[]>(() => {
     const saved = localStorage.getItem('cart');
     try {
@@ -82,6 +85,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }];
       }
       saveToStorage(newItems, giftOptions);
+      setCartDrawerOpen(true); // Automatically open the premium sliding drawer!
       return newItems;
     });
   }, [saveToStorage, giftOptions]);
@@ -135,6 +139,8 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   return (
     <CartContext.Provider value={{
+      isCartDrawerOpen,
+      setCartDrawerOpen,
       items,
       giftOptions,
       addToCart,

@@ -22,6 +22,7 @@ import SupportPage from './pages/SupportPage';
 import LuckyWheel from './components/promotions/LuckyWheel';
 import { WishlistProvider } from './context/WishlistContext';
 import { PriceProvider } from './context/PriceContext';
+import { SlideCartDrawer } from './components/cart/SlideCartDrawer';
 
 import LivePriceTicker from './components/layout/LivePriceTicker';
 import MobileBottomNav from './components/layout/MobileBottomNav';
@@ -62,6 +63,7 @@ const AppContent: React.FC = () => {
       {!hideHeaderFooter && <MobileBottomNav />}
       {!isAdminPage && <LuckyWheel />}
       <NotificationWatcher />
+      <SlideCartDrawer />
     </div>
   );
 };

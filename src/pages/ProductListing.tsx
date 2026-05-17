@@ -6,6 +6,7 @@ import { products, categories, materials, occasions } from '../data/products';
 import { Product } from '../types';
 import { productService } from '../services/productService';
 import { Loader2, ChevronRight } from 'lucide-react';
+import { GoldSkeletonGrid } from '../components/ui/GoldSkeleton';
 
 
 const ProductListing: React.FC = () => {
@@ -487,9 +488,11 @@ const ProductListing: React.FC = () => {
 
             {/* Products Grid */}
             {loading ? (
-              <div className="flex flex-col items-center justify-center py-24 space-y-4">
-                <Loader2 className="animate-spin text-amber-500" size={48} />
-                <p className="text-gray-400 font-medium uppercase tracking-widest text-xs">Curating Collection...</p>
+              <div className="py-6 space-y-6">
+                <div className="flex flex-col items-center justify-center mb-6 py-4 animate-pulse">
+                  <p className="text-gold font-bold uppercase tracking-widest text-xs">Curating Finest Masterpieces...</p>
+                </div>
+                <GoldSkeletonGrid count={6} />
               </div>
             ) : filteredProducts.length > 0 ? (
               <>
