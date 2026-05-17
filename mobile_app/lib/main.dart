@@ -61,10 +61,10 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
                 _currentIndex = index;
               });
             },
-            onCategorySelect: (category) {
+            onCategorySelect: (category, {search}) {
               setState(() {
                 _selectedCategory = category;
-                _searchQuery = '';
+                _searchQuery = search ?? '';
                 _currentIndex = 1; // Direct to Shop
               });
             },

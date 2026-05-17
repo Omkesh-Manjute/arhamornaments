@@ -62,7 +62,9 @@ class _ShopScreenState extends State<ShopScreen> {
           product.category.toLowerCase() == _selectedCategory.toLowerCase();
       
       final bool matchesSearch = product.name.toLowerCase().contains(_searchQuery.toLowerCase()) || 
-          product.description.toLowerCase().contains(_searchQuery.toLowerCase());
+          product.description.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          product.category.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          product.purity.toLowerCase().contains(_searchQuery.toLowerCase());
       
       return matchesCategory && matchesSearch;
     }).toList();
