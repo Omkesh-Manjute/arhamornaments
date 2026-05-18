@@ -911,7 +911,7 @@ class _ProductGridSkeletonState extends State<ProductGridSkeleton> with SingleTi
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
+                    color: Colors.black.withValues(alpha: 0.04),
                     blurRadius: 6,
                     offset: const Offset(0, 2),
                   ),
@@ -924,7 +924,7 @@ class _ProductGridSkeletonState extends State<ProductGridSkeleton> with SingleTi
                   Container(
                     height: 190,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF6F3EB).withOpacity(_opacity.value),
+                      color: Color(0xFFF6F3EB).withValues(alpha: _opacity.value),
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                     ),
                   ),
@@ -938,7 +938,7 @@ class _ProductGridSkeletonState extends State<ProductGridSkeleton> with SingleTi
                           height: 12,
                           width: 100,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFE8E2D5).withOpacity(_opacity.value),
+                            color: Color(0xFFE8E2D5).withValues(alpha: _opacity.value),
                             borderRadius: BorderRadius.circular(4),
                           ),
                         ),
@@ -948,7 +948,7 @@ class _ProductGridSkeletonState extends State<ProductGridSkeleton> with SingleTi
                           height: 10,
                           width: 60,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFEFECE5).withOpacity(_opacity.value),
+                            color: Color(0xFFEFECE5).withValues(alpha: _opacity.value),
                             borderRadius: BorderRadius.circular(4),
                           ),
                         ),
@@ -958,7 +958,7 @@ class _ProductGridSkeletonState extends State<ProductGridSkeleton> with SingleTi
                           height: 14,
                           width: 80,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFC5A059).withOpacity(_opacity.value * 0.4),
+                            color: Color(0xFFC5A059).withValues(alpha: _opacity.value * 0.4),
                             borderRadius: BorderRadius.circular(4),
                           ),
                         ),

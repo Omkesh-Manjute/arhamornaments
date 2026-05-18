@@ -77,14 +77,14 @@ class _CustomLogoLoaderState extends State<CustomLogoLoader> with TickerProvider
                   boxShadow: [
                     // Outer golden luxurious glow shadow
                     BoxShadow(
-                      color: const Color(0xFFC5A059).withOpacity(0.35),
+                      color: const Color(0xFFC5A059).withValues(alpha: 0.35),
                       blurRadius: 16,
                       spreadRadius: 2,
                       offset: const Offset(0, 8),
                     ),
                     // Ambient drop shadow for the 3D depth floating feel
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.12),
+                      color: Colors.black.withValues(alpha: 0.12),
                       blurRadius: 6,
                       offset: const Offset(0, 3),
                     ),

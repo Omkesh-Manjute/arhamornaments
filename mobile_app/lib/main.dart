@@ -83,7 +83,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
                     decoration: BoxDecoration(
                       gradient: RadialGradient(
                         colors: [
-                          const Color(0xFFFFF9EE).withOpacity(0.4),
+                          Color(0xFFFFF9EE).withValues(alpha: 0.4),
                           const Color(0xFFFCFAF6),
                         ],
                         radius: 1.2,
