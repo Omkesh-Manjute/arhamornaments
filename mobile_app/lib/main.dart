@@ -7,6 +7,8 @@ import 'screens/wishlist_screen.dart';
 import 'screens/cart_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/lucky_wheel_dialog.dart';
+import 'screens/categories_screen.dart';
+import 'widgets/ornaments_accordion_filter.dart';
 
 void main() {
   runApp(const MyApp());
@@ -47,6 +49,13 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
   int _currentIndex = 0;
   String _selectedCategory = 'All';
   String _searchQuery = '';
+  FilterState _activeFilterState = const FilterState();
+
+  @override
+  void initState() {
+    super.initState();
+    _storeProvider.loadPersistentState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,10 +70,20 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
                 _currentIndex = index;
               });
             },
-            onCategorySelect: (category, {search}) {
+            onCategorySelect: (category, {search, collection}) {
               setState(() {
                 _selectedCategory = category;
                 _searchQuery = search ?? '';
+                if (collection != null) {
+                  _activeFilterState = FilterState(
+                    categories: category != 'All' ? [category] : [],
+                    collections: [collection],
+                  );
+                } else {
+                  _activeFilterState = FilterState(
+                    categories: category != 'All' ? [category] : [],
+                  );
+                }
                 _currentIndex = 1; // Direct to Shop
               });
             },
@@ -73,12 +92,18 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
             provider: _storeProvider,
             initialCategory: _selectedCategory,
             initialSearch: _searchQuery,
+            initialFilterState: _activeFilterState,
           ),
-          WishlistScreen(
+          CategoriesScreen(
             provider: _storeProvider,
-            onTabChange: (index) {
+            onApplyFilters: (filterState) {
               setState(() {
-                _currentIndex = index;
+                _activeFilterState = filterState;
+                _selectedCategory = filterState.categories.isNotEmpty
+                    ? filterState.categories.first
+                    : 'All';
+                _searchQuery = '';
+                _currentIndex = 1; // Direct to Shop
               });
             },
           ),
@@ -132,6 +157,53 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
               ],
             ),
             actions: [
+              IconButton(
+                icon: Badge(
+                  label: Text('${_storeProvider.wishlistItems.length}'),
+                  isLabelVisible: _storeProvider.wishlistItems.isNotEmpty,
+                  backgroundColor: const Color(0xFFC5A059),
+                  textColor: Colors.white,
+                  child: const Icon(Icons.favorite_border_rounded, color: Color(0xFFC5A059)),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Scaffold(
+                        backgroundColor: const Color(0xFFFCFAF6),
+                        appBar: AppBar(
+                          title: const Text(
+                            'MY WISHLIST',
+                            style: TextStyle(
+                              color: Color(0xFF2C2C2C),
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.5,
+                            ),
+                          ),
+                          elevation: 0,
+                          backgroundColor: Colors.white,
+                          surfaceTintColor: Colors.transparent,
+                          iconTheme: const IconThemeData(color: Color(0xFFC5A059)),
+                          bottom: PreferredSize(
+                            preferredSize: const Size.fromHeight(1.0),
+                            child: Container(color: const Color(0x1AC5A059), height: 1.0),
+                          ),
+                        ),
+                        body: WishlistScreen(
+                          provider: _storeProvider,
+                          onTabChange: (index) {
+                            Navigator.pop(context);
+                            setState(() {
+                              _currentIndex = index;
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
               IconButton(
                 icon: const Icon(Icons.support_agent_rounded, color: Color(0xFFC5A059)),
                 onPressed: _callSupport,
@@ -187,14 +259,10 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
                   selectedIcon: Icon(Icons.search_rounded),
                   label: 'Shop',
                 ),
-                NavigationDestination(
-                  icon: Badge(
-                    label: Text('${_storeProvider.wishlistItems.length}'),
-                    isLabelVisible: _storeProvider.wishlistItems.isNotEmpty,
-                    child: const Icon(Icons.favorite_border_rounded),
-                  ),
-                  selectedIcon: const Icon(Icons.favorite_rounded),
-                  label: 'Wishlist',
+                const NavigationDestination(
+                  icon: Icon(Icons.grid_view_outlined),
+                  selectedIcon: Icon(Icons.grid_view_rounded),
+                  label: 'Categories',
                 ),
                 NavigationDestination(
                   icon: Badge(
@@ -254,18 +322,18 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
                 ),
               ),
             ),
-            accountName: const Text(
-              'Hi Guest!',
-              style: TextStyle(
+            accountName: Text(
+              _storeProvider.isLoggedIn ? 'Hi ${_storeProvider.userName}!' : 'Hi Guest!',
+              style: const TextStyle(
                 fontFamily: 'Outfit',
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
                 color: Color(0xFFC5A059),
               ),
             ),
-            accountEmail: const Text(
-              'Welcome to Arham Ornaments',
-              style: TextStyle(
+            accountEmail: Text(
+              _storeProvider.isLoggedIn ? _storeProvider.userEmail : 'Welcome to Arham Ornaments',
+              style: const TextStyle(
                 color: Colors.white70,
                 fontSize: 11,
               ),

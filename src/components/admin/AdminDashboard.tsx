@@ -36,12 +36,20 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ sendNotification }) => 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [allProducts, logs] = await Promise.all([
-        productService.getAllProducts(),
-        errorLogService.getErrorLogs()
-      ]);
-      setProducts(allProducts);
-      setErrorCount(logs.filter(l => l.status === 'new').length);
+      const productsPromise = productService.getAllProducts()
+        .catch(err => {
+          console.error("Failed to fetch products for dashboard:", err);
+          return [] as Product[];
+        });
+      const logsPromise = errorLogService.getErrorLogs()
+        .catch(err => {
+          console.error("Failed to fetch error logs for dashboard:", err);
+          return [];
+        });
+
+      const [allProducts, logs] = await Promise.all([productsPromise, logsPromise]);
+      setProducts(allProducts || []);
+      setErrorCount((logs || []).filter(l => l && l.status === 'new').length);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
     } finally {
@@ -148,22 +156,31 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ sendNotification }) => 
                 {/* Group Header Row */}
                 <div 
                   onClick={() => toggleGroup(groupName)}
-                  className="grid grid-cols-12 gap-4 px-6 items-center h-[56px] hover:bg-white/[0.03] transition-all cursor-pointer group border-l-2 border-transparent hover:border-amber-500/50"
+                  className="grid grid-cols-12 gap-4 px-6 items-center h-[64px] hover:bg-white/[0.03] transition-all cursor-pointer group border-l-2 border-transparent hover:border-amber-500/50"
                 >
                   <div className="col-span-4 flex items-center gap-3">
                     <div className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
                       <ChevronDown size={14} className="text-gray-500" />
                     </div>
-                    <img src={firstP.images?.[0]} className="w-8 h-8 rounded-lg object-cover opacity-50" alt="" />
+                    <div className="w-10 h-10 rounded-xl overflow-hidden border border-[#333333] bg-[#0D0D0D]">
+                      <img src={firstP.images?.[0]} className="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-all" alt="" />
+                    </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-bold text-gray-200 truncate">{groupName}</p>
-                      <p className="text-[9px] text-amber-500/60 font-mono uppercase tracking-widest leading-none">{groupItems.length} Variations</p>
+                      <p className="text-sm font-bold text-gray-200 truncate group-hover:text-amber-500 transition-colors">{firstP.name}</p>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="text-[9px] text-amber-500/60 font-mono font-bold uppercase tracking-wider">{groupName}</span>
+                        <span className="text-[8px] text-gray-600 font-mono">•</span>
+                        <span className="text-[9px] text-gray-500/80 font-mono uppercase tracking-wider">{groupItems.length} Variations</span>
+                      </div>
                     </div>
                   </div>
-                  <div className="col-span-2 text-xs text-gray-500 uppercase font-bold tracking-tighter truncate">{firstP.name}</div>
-                  <div className="col-span-3 text-sm font-mono text-right text-gray-500">₹{Number(firstP.price).toLocaleString('en-IN')}</div>
-                  <div className="col-span-3 flex justify-center">
-                    <span className="text-[10px] font-black bg-amber-500/10 text-amber-500 px-3 py-1 rounded-full border border-amber-500/20">GROUP</span>
+                  <div className="col-span-2 text-[10px] text-gray-500 uppercase tracking-widest font-black truncate">{firstP.category}</div>
+                  <div className="col-span-3 text-sm font-mono text-right text-white font-bold">₹{Number(firstP.price).toLocaleString('en-IN')}</div>
+                  <div className="col-span-3 flex justify-center items-center">
+                    <div className={`w-1.5 h-1.5 rounded-full ${groupItems.some(item => item.inStock) ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'} mr-2`}></div>
+                    <span className={`text-[10px] font-black uppercase tracking-widest ${groupItems.some(item => item.inStock) ? 'text-emerald-500/80' : 'text-rose-500/80'}`}>
+                      {groupItems.some(item => item.inStock) ? 'In Stock' : 'Sold'}
+                    </span>
                   </div>
                 </div>
 

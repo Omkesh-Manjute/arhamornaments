@@ -9,6 +9,7 @@ class Product {
   final double basePrice; // Base price excluding dynamic gold rate changes
   final bool isBestSeller;
   final bool isNewArrival;
+  final String designNo;
 
   const Product({
     required this.id,
@@ -21,6 +22,7 @@ class Product {
     required this.basePrice,
     this.isBestSeller = false,
     this.isNewArrival = false,
+    this.designNo = '',
   });
 
   // Calculate current price dynamically based on live gold rates (per gram)
@@ -32,6 +34,8 @@ class Product {
     final double gst = subtotal * 0.03;
     return subtotal + gst;
   }
+
+  String get displayDesignNo => designNo.isNotEmpty ? designNo : id.toUpperCase();
 
   factory Product.fromJson(Map<String, dynamic> jsonDoc) {
     final String namePath = jsonDoc['name'] ?? '';
@@ -126,6 +130,7 @@ class Product {
     // Parse featured/trending
     final bool isBestSeller = fields['trending']?['booleanValue'] ?? false;
     final bool isNewArrival = fields['featured']?['booleanValue'] ?? true;
+    final String parsedDesignNo = fields['designNo']?['stringValue'] ?? '';
     
     return Product(
       id: parsedId,
@@ -138,6 +143,7 @@ class Product {
       basePrice: parsedBasePrice,
       isBestSeller: isBestSeller,
       isNewArrival: isNewArrival,
+      designNo: parsedDesignNo,
     );
   }
 }
@@ -155,6 +161,7 @@ const List<Product> mockProducts = [
     description: 'Exquisite handcrafted antique finish gold kada, detailed with traditional carvings. Perfect for bridal and festive occasions.',
     basePrice: 5500.0,
     isBestSeller: true,
+    designNo: 'AO-B1',
   ),
   Product(
     id: 'b2',
@@ -166,6 +173,7 @@ const List<Product> mockProducts = [
     description: 'Modern laser-cut design bangles set of 4, styled with micro-cuts for extreme sparkle and light reflection.',
     basePrice: 3200.0,
     isNewArrival: true,
+    designNo: 'AO-B2',
   ),
 
   // 2. Rings (अंगूठी)
@@ -179,6 +187,7 @@ const List<Product> mockProducts = [
     description: 'Traditional cocktail peacock ring intricately designed with minakari work and ruby drop accents.',
     basePrice: 1800.0,
     isBestSeller: true,
+    designNo: 'AO-R1',
   ),
   Product(
     id: 'r2',
@@ -190,6 +199,7 @@ const List<Product> mockProducts = [
     description: 'Timeless engagement band featuring a premium American diamond solitaire nested in polished solid gold.',
     basePrice: 1200.0,
     isNewArrival: true,
+    designNo: 'AO-R2',
   ),
 
   // 3. Necklaces (हार)
@@ -203,6 +213,7 @@ const List<Product> mockProducts = [
     description: 'Breathtaking heavy temple choker necklace detailing Goddess Lakshmi motifs and green gem drops.',
     basePrice: 12000.0,
     isBestSeller: true,
+    designNo: 'AO-N1',
   ),
   Product(
     id: 'n2',
@@ -214,6 +225,7 @@ const List<Product> mockProducts = [
     description: 'Elegant daily wear chain with a floating floral motif slider, highly polished and lightweight.',
     basePrice: 2800.0,
     isNewArrival: true,
+    designNo: 'AO-N2',
   ),
 
   // 4. Mangalsutras (मंगलसूत्र)
@@ -227,6 +239,7 @@ const List<Product> mockProducts = [
     description: 'Authentic maharashtrian style wati pendant mangalsutra arranged with auspicious double-layered black beads.',
     basePrice: 3500.0,
     isBestSeller: true,
+    designNo: 'AO-M1',
   ),
   Product(
     id: 'm2',
@@ -238,6 +251,7 @@ const List<Product> mockProducts = [
     description: 'Contemporary daily wear mangalsutra pendant featuring an infinity loop decorated with floral accents.',
     basePrice: 2200.0,
     isNewArrival: true,
+    designNo: 'AO-M2',
   ),
 
   // 5. Chains (चेन)
@@ -251,6 +265,7 @@ const List<Product> mockProducts = [
     description: 'Classic heavy ropes braid chain for men. Very strong links with a secure lobster clasp lock.',
     basePrice: 4000.0,
     isBestSeller: true,
+    designNo: 'AO-C1',
   ),
   Product(
     id: 'c2',
@@ -262,5 +277,6 @@ const List<Product> mockProducts = [
     description: 'Ultra-smooth premium imported box chain with dynamic multi-faceted shine, highly refined.',
     basePrice: 1500.0,
     isNewArrival: true,
+    designNo: 'AO-C2',
   ),
 ];

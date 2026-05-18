@@ -80,6 +80,12 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
     
+    // Error Logs
+    match /error_logs/{logId} {
+      allow create: if true;
+      allow read, write: if isAdmin();
+    }
+    
     // Block all other access by default
     match /{document=**} {
       allow read, write: if false;

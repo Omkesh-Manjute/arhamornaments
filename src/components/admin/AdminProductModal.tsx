@@ -352,8 +352,8 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
                   <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Gender</label>
                   <div className="flex gap-2">
                     {[
-                      { id: 'men', label: 'Man' },
-                      { id: 'women', label: 'Woman' },
+                      { id: 'men', label: 'Men' },
+                      { id: 'women', label: 'Women' },
                       { id: 'unisex', label: 'Unisex' }
                     ].map(g => (
                       <button key={g.id} type="button" onClick={() => setFormData({...formData, gender: g.id as any})}

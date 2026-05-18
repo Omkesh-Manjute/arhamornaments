@@ -17,6 +17,14 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
+  final TextEditingController _couponController = TextEditingController();
+
+  @override
+  void dispose() {
+    _couponController.dispose();
+    super.dispose();
+  }
+
   // Direct WhatsApp dispatch helper
   void _placeWhatsAppOrder() async {
     const String phone = "919833216777"; // Arham Ornaments official sales number
@@ -37,8 +45,10 @@ class _CartScreenState extends State<CartScreen> {
     buffer.writeln("💳 *BILL DETAILS (ESTIMATED):*");
     buffer.writeln("Basket Subtotal: ₹${widget.provider.subtotal.toStringAsFixed(0)}");
     
+    double walletDiscountUsed = 0.0;
     if (widget.provider.isWalletRedeemed) {
-      buffer.writeln("Wallet Bonus Applied: -₹${widget.provider.walletDiscount.toStringAsFixed(0)}");
+      walletDiscountUsed = widget.provider.walletDiscount;
+      buffer.writeln("Wallet Bonus Applied: -₹${walletDiscountUsed.toStringAsFixed(0)}");
     }
     if (widget.provider.activeCouponCode != null) {
       buffer.writeln("Coupon (${widget.provider.activeCouponCode}): -₹${widget.provider.couponDiscountAmount.toStringAsFixed(0)}");
@@ -53,6 +63,9 @@ class _CartScreenState extends State<CartScreen> {
 
     try {
       if (await canLaunchUrl(whatsappUrl)) {
+        if (walletDiscountUsed > 0) {
+          widget.provider.deductWallet(walletDiscountUsed);
+        }
         await launchUrl(whatsappUrl, mode: LaunchMode.externalApplication);
       } else {
         throw 'Could not launch WA';
@@ -228,38 +241,9 @@ class _CartScreenState extends State<CartScreen> {
                 ),
               ),
 
-              // 2. Coupon Applied Info (If user spun lucky wheel)
-              if (provider.activeCouponCode != null)
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFDFBF7),
-                    border: Border.all(color: const Color(0x66C5A059)),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.local_offer_outlined, color: Color(0xFFC5A059), size: 18),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Promo coupon "${provider.activeCouponCode}" active (5% Extra Discount)',
-                          style: const TextStyle(
-                            color: Color(0xFFC5A059),
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      const Icon(Icons.check_circle_rounded, color: Colors.green, size: 18),
-                    ],
-                  ),
-                ),
-
-              // 3. Referral Wallet Redemption Switch Card
+              // 2. Referral Wallet Redemption Switch Card
               Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -317,6 +301,152 @@ class _CartScreenState extends State<CartScreen> {
                 ),
               ),
 
+              // 3. Dynamic Promo Coupon Card
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withAlpha(5),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.confirmation_number_outlined, color: Color(0xFFC5A059), size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          provider.activeCouponCode != null 
+                              ? 'Applied: ${provider.activeCouponCode}' 
+                              : 'Have a Promo Coupon Code?',
+                          style: const TextStyle(
+                            color: Color(0xFF2C2C2C),
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const Spacer(),
+                        if (provider.activeCouponCode != null)
+                          GestureDetector(
+                            onTap: () {
+                              provider.removeCoupon();
+                              _couponController.clear();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Coupon code removed!')),
+                              );
+                            },
+                            child: const Text(
+                              'REMOVE',
+                              style: TextStyle(
+                                color: Colors.redAccent,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    if (provider.activeCouponCode == null) ...[
+                      Row(
+                        children: [
+                          Expanded(
+                            child: SizedBox(
+                              height: 42,
+                              child: TextField(
+                                controller: _couponController,
+                                textCapitalization: TextCapitalization.characters,
+                                decoration: InputDecoration(
+                                  hintText: 'Enter code (e.g. ARHAM20, OMKESH10)',
+                                  hintStyle: const TextStyle(fontSize: 12, color: Color(0xFFB0B0B0)),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: const BorderSide(color: Color(0xFFC5A059)),
+                                  ),
+                                ),
+                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          GestureDetector(
+                            onTap: () {
+                              final code = _couponController.text.trim();
+                              if (code.isEmpty) return;
+                              final success = provider.applyCoupon(code);
+                              if (success) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Coupon "$code" applied successfully!'),
+                                    backgroundColor: const Color(0xFFC5A059),
+                                  ),
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Invalid coupon code. Try OMKESH10 or ARHAM20'),
+                                    backgroundColor: Colors.redAccent,
+                                  ),
+                                );
+                              }
+                            },
+                            child: Container(
+                              height: 42,
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFC5A059),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  'APPLY',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ] else ...[
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFFDF9),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFFE5D5B5)),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.check_circle_rounded, color: Colors.green, size: 16),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                '${(provider.couponDiscountPercentage * 100).toInt()}% discount active on this order!',
+                                style: const TextStyle(color: Color(0xFF705010), fontSize: 12, fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+
               // 4. Elegant Transaction Invoice Summary
               Container(
                 margin: const EdgeInsets.all(16),
@@ -349,7 +479,7 @@ class _CartScreenState extends State<CartScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Spin Wheel Coupon (5%)', style: TextStyle(color: Color(0xFF707070), fontSize: 13)),
+                          Text('Coupon (${provider.activeCouponCode} ${(provider.couponDiscountPercentage * 100).toInt()}%)', style: const TextStyle(color: Color(0xFF707070), fontSize: 13)),
                           Text('-₹${provider.couponDiscountAmount.toStringAsFixed(0)}', style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 13)),
                         ],
                       ),
