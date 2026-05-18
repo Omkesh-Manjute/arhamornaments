@@ -9,6 +9,7 @@ import 'screens/profile_screen.dart';
 import 'screens/lucky_wheel_dialog.dart';
 import 'screens/categories_screen.dart';
 import 'widgets/ornaments_accordion_filter.dart';
+import 'widgets/custom_logo_loader.dart';
 
 void main() {
   runApp(const MyApp());
@@ -50,11 +51,21 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
   String _selectedCategory = 'All';
   String _searchQuery = '';
   FilterState _activeFilterState = const FilterState();
+  bool _showSplash = true;
 
   @override
   void initState() {
     super.initState();
     _storeProvider.loadPersistentState();
+    
+    // Animate and fade out luxury 3D splash after 2500ms
+    Future.delayed(const Duration(milliseconds: 2500), () {
+      if (mounted) {
+        setState(() {
+          _showSplash = false;
+        });
+      }
+    });
   }
 
   @override
@@ -62,6 +73,56 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
     return AnimatedBuilder(
       animation: _storeProvider,
       builder: (context, _) {
+        if (_showSplash) {
+          return Scaffold(
+            backgroundColor: const Color(0xFFFCFAF6),
+            body: Stack(
+              children: [
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: RadialGradient(
+                        colors: [
+                          const Color(0xFFFFF9EE).withOpacity(0.4),
+                          const Color(0xFFFCFAF6),
+                        ],
+                        radius: 1.2,
+                      ),
+                    ),
+                  ),
+                ),
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const CustomLogoLoader(size: 110),
+                      const SizedBox(height: 24),
+                      const Text(
+                        'ARHAM ORNAMENTS',
+                        style: TextStyle(
+                          color: Color(0xFF2C2C2C),
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 4.0,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'CRAFTING TIMELESS LUXURY',
+                        style: TextStyle(
+                          color: Color(0xFFC5A059),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 2.0,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
         final List<Widget> screens = [
           HomeScreen(
             provider: _storeProvider,

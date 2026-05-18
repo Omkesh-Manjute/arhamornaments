@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../providers/store_provider.dart';
 import '../widgets/product_detail_sheet.dart';
 import '../widgets/ornaments_accordion_filter.dart';
+import '../widgets/custom_logo_loader.dart';
 
 class ShopScreen extends StatefulWidget {
   final StoreProvider provider;
@@ -30,6 +32,9 @@ class _ShopScreenState extends State<ShopScreen> {
   // Advanced Sorting & Filtering State
   String _sortBy = 'Best Selling';
   late FilterState _filterState;
+  
+  bool _isListingLoading = false;
+  Timer? _searchDebounce;
 
   @override
   void initState() {
@@ -41,6 +46,16 @@ class _ShopScreenState extends State<ShopScreen> {
     if (_selectedCategory != 'All' && !_filterState.categories.contains(_selectedCategory)) {
       _filterState = _filterState.copyWith(categories: [_selectedCategory]);
     }
+
+    // Trigger premium listing load simulation for initial build
+    _isListingLoading = true;
+    Future.delayed(const Duration(milliseconds: 650), () {
+      if (mounted) {
+        setState(() {
+          _isListingLoading = false;
+        });
+      }
+    });
   }
 
   @override
@@ -74,13 +89,27 @@ class _ShopScreenState extends State<ShopScreen> {
     }
 
     if (changed) {
-      setState(() {});
+      _triggerListingLoad(ms: 500);
     }
+  }
+
+  void _triggerListingLoad({int ms = 500}) {
+    setState(() {
+      _isListingLoading = true;
+    });
+    Future.delayed(Duration(milliseconds: ms), () {
+      if (mounted) {
+        setState(() {
+          _isListingLoading = false;
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _searchDebounce?.cancel();
     super.dispose();
   }
 
@@ -144,6 +173,7 @@ class _ShopScreenState extends State<ShopScreen> {
                     setState(() {
                       _sortBy = opt;
                     });
+                    _triggerListingLoad(ms: 450);
                     Navigator.pop(context);
                   },
                 );
@@ -228,7 +258,7 @@ class _ShopScreenState extends State<ShopScreen> {
                           });
                         },
                         onApply: () {
-                          setState(() {});
+                          _triggerListingLoad(ms: 500);
                           Navigator.pop(context);
                         },
                       ),
@@ -245,6 +275,32 @@ class _ShopScreenState extends State<ShopScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Check for major initial database load
+    if (widget.provider.products.isEmpty && widget.provider.isLoading) {
+      return Scaffold(
+        backgroundColor: const Color(0xFFFCFAF6),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CustomLogoLoader(size: 95),
+              const SizedBox(height: 24),
+              const Text(
+                'RETRIEVING EXQUISITE COLLECTIONS',
+                style: TextStyle(
+                  fontFamily: 'Outfit',
+                  color: Color(0xFFC5A059),
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 2.0,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     // 1. Dynamic filtering logic
     final List<Product> filteredProducts = widget.provider.products.where((product) {
       final double price = widget.provider.getProductPrice(product);
@@ -414,6 +470,12 @@ class _ShopScreenState extends State<ShopScreen> {
                 setState(() {
                   _searchQuery = val;
                 });
+                _searchDebounce?.cancel();
+                _searchDebounce = Timer(const Duration(milliseconds: 350), () {
+                  if (mounted) {
+                    _triggerListingLoad(ms: 500);
+                  }
+                });
               },
               decoration: InputDecoration(
                 hintText: 'Search ornaments, rings, necklaces...',
@@ -473,6 +535,7 @@ class _ShopScreenState extends State<ShopScreen> {
                           _selectedCategory = cat;
                         }
                       });
+                      _triggerListingLoad(ms: 500);
                     }
                   },
                   selectedColor: const Color(0xFFC5A059),
@@ -579,9 +642,11 @@ class _ShopScreenState extends State<ShopScreen> {
 
         // Dynamic Product Double-Column Grid
         Expanded(
-          child: filteredProducts.isEmpty
-              ? _buildEmptyState()
-              : GridView.builder(
+          child: _isListingLoading
+              ? const ProductGridSkeleton()
+              : filteredProducts.isEmpty
+                  ? _buildEmptyState()
+                  : GridView.builder(
                   padding: const EdgeInsets.all(12),
                   physics: const BouncingScrollPhysics(),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -791,5 +856,121 @@ class _ShopScreenState extends State<ShopScreen> {
       // Trigger setState on sheet close in case favorites were toggled
       setState(() {});
     });
+  }
+}
+
+// Beautiful Premium Shimmer Skeleton Grid Placeholder for Jewelry
+class ProductGridSkeleton extends StatefulWidget {
+  const ProductGridSkeleton({super.key});
+
+  @override
+  State<ProductGridSkeleton> createState() => _ProductGridSkeletonState();
+}
+
+class _ProductGridSkeletonState extends State<ProductGridSkeleton> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _opacity;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    )..repeat(reverse: true);
+    _opacity = Tween<double>(begin: 0.35, end: 0.75).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _opacity,
+      builder: (context, child) {
+        return GridView.builder(
+          padding: const EdgeInsets.all(12),
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: 0.58,
+          ),
+          itemCount: 4,
+          itemBuilder: (context, index) {
+            return Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Image Skeleton
+                  Container(
+                    height: 190,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF6F3EB).withOpacity(_opacity.value),
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Title Skeleton
+                        Container(
+                          height: 12,
+                          width: 100,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE8E2D5).withOpacity(_opacity.value),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        // Subtitle Skeleton
+                        Container(
+                          height: 10,
+                          width: 60,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEFECE5).withOpacity(_opacity.value),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        // Price Skeleton
+                        Container(
+                          height: 14,
+                          width: 80,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFC5A059).withOpacity(_opacity.value * 0.4),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 }

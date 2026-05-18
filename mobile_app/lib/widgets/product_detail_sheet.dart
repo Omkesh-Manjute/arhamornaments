@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/product.dart';
 import '../providers/store_provider.dart';
+import 'custom_logo_loader.dart';
 
 class ProductDetailSheet extends StatefulWidget {
   final List<Product> itemsList;
@@ -23,12 +24,22 @@ class ProductDetailSheet extends StatefulWidget {
 class _ProductDetailSheetState extends State<ProductDetailSheet> {
   late PageController _pageController;
   late int _currentIndex;
+  bool _isDetailsLoading = true;
 
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
     _pageController = PageController(initialPage: widget.initialIndex);
+    
+    // Simulate premium details load for 800 milliseconds
+    Future.delayed(const Duration(milliseconds: 800), () {
+      if (mounted) {
+        setState(() {
+          _isDetailsLoading = false;
+        });
+      }
+    });
   }
 
   @override
@@ -62,6 +73,34 @@ class _ProductDetailSheetState extends State<ProductDetailSheet> {
     final double statusBarHeight = MediaQuery.of(context).viewPadding.top;
     final double appBarHeight = kToolbarHeight;
     final double sheetHeight = MediaQuery.of(context).size.height - (statusBarHeight + appBarHeight);
+
+    if (_isDetailsLoading) {
+      return Container(
+        height: sheetHeight,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CustomLogoLoader(size: 85),
+              SizedBox(height: 18),
+              Text(
+                'RETRIEVING SPECIFICATIONS',
+                style: TextStyle(
+                  color: Color(0xFFC5A059),
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 2.0,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Container(
       height: sheetHeight,

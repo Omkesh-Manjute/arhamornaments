@@ -759,10 +759,10 @@ class HomeScreen extends StatelessWidget {
                 child: InkWell(
                   onTap: () {
                     final String lowerName = name.toLowerCase();
-                    if (lowerName.contains('men')) {
-                      onCategorySelect('All', collection: "Men's Collection");
-                    } else if (lowerName.contains('women')) {
+                    if (lowerName.contains('women')) {
                       onCategorySelect('All', collection: "Women's Collection");
+                    } else if (lowerName.contains('men')) {
+                      onCategorySelect('All', collection: "Men's Collection");
                     } else if (lowerName.contains('kid')) {
                       onCategorySelect('All', collection: "Kids Collection");
                     } else {
