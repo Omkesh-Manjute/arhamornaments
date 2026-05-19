@@ -1,5 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'providers/store_provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/shop_screen.dart';
@@ -11,7 +15,15 @@ import 'screens/categories_screen.dart';
 import 'widgets/ornaments_accordion_filter.dart';
 import 'widgets/custom_logo_loader.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    if (kDebugMode) {
+      debugPrint("Firebase initialization error: $e");
+    }
+  }
   runApp(const MyApp());
 }
 
@@ -23,7 +35,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Arham Ornaments',
       theme: ThemeData(
-        scaffoldBackgroundColor: const Color(0xFFFCFAF6), // Luxurious clean warm background
+        scaffoldBackgroundColor: const Color(
+          0xFFFCFAF6,
+        ), // Luxurious clean warm background
         primaryColor: const Color(0xFFC5A059),
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFFC5A059),
@@ -57,7 +71,8 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
   void initState() {
     super.initState();
     _storeProvider.loadPersistentState();
-    
+    _printFcmToken();
+
     // Animate and fade out luxury 3D splash after 2500ms
     Future.delayed(const Duration(milliseconds: 2500), () {
       if (mounted) {
@@ -66,6 +81,95 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
         });
       }
     });
+  }
+
+  Future<void> _printFcmToken() async {
+    try {
+      await FirebaseMessaging.instance.requestPermission();
+      String? token = await FirebaseMessaging.instance.getToken();
+      if (kDebugMode) {
+        debugPrint("\n\nFCM_TOKEN: $token\n\n");
+      }
+
+      // Delay it by 3 seconds so the splash screen has faded out first
+      Future.delayed(const Duration(milliseconds: 3000), () {
+        if (mounted && token != null) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) {
+              return AlertDialog(
+                backgroundColor: const Color(0xFFFCFAF6),
+                title: const Text(
+                  "FCM DEVICE TOKEN",
+                  style: TextStyle(
+                    color: Color(0xFF2C2C2C),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      "Copy this token and paste it in Firebase Console:",
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: SelectableText(
+                        token,
+                        style: const TextStyle(
+                          fontFamily: 'monospace',
+                          fontSize: 11,
+                          color: Color(0xFFC5A059),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: token));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Token copied to clipboard!"),
+                          backgroundColor: Color(0xFFC5A059),
+                        ),
+                      );
+                    },
+                    child: const Text(
+                      "COPY TOKEN",
+                      style: TextStyle(
+                        color: Color(0xFFC5A059),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text(
+                      "CLOSE",
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ),
+                ],
+              );
+            },
+          );
+        }
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint("Error fetching FCM token: $e");
+      }
+    }
   }
 
   @override
@@ -176,9 +280,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
               });
             },
           ),
-          ProfileScreen(
-            provider: _storeProvider,
-          ),
+          ProfileScreen(provider: _storeProvider),
         ];
 
         return Scaffold(
@@ -187,7 +289,9 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
             elevation: 0,
             backgroundColor: Colors.white,
             surfaceTintColor: Colors.transparent,
-            iconTheme: const IconThemeData(color: Color(0xFFC5A059)), // Gold hamburger icon!
+            iconTheme: const IconThemeData(
+              color: Color(0xFFC5A059),
+            ), // Gold hamburger icon!
             title: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -224,7 +328,10 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
                   isLabelVisible: _storeProvider.wishlistItems.isNotEmpty,
                   backgroundColor: const Color(0xFFC5A059),
                   textColor: Colors.white,
-                  child: const Icon(Icons.favorite_border_rounded, color: Color(0xFFC5A059)),
+                  child: const Icon(
+                    Icons.favorite_border_rounded,
+                    color: Color(0xFFC5A059),
+                  ),
                 ),
                 onPressed: () {
                   Navigator.push(
@@ -245,10 +352,15 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
                           elevation: 0,
                           backgroundColor: Colors.white,
                           surfaceTintColor: Colors.transparent,
-                          iconTheme: const IconThemeData(color: Color(0xFFC5A059)),
+                          iconTheme: const IconThemeData(
+                            color: Color(0xFFC5A059),
+                          ),
                           bottom: PreferredSize(
                             preferredSize: const Size.fromHeight(1.0),
-                            child: Container(color: const Color(0x1AC5A059), height: 1.0),
+                            child: Container(
+                              color: const Color(0x1AC5A059),
+                              height: 1.0,
+                            ),
                           ),
                         ),
                         body: WishlistScreen(
@@ -266,7 +378,10 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
                 },
               ),
               IconButton(
-                icon: const Icon(Icons.support_agent_rounded, color: Color(0xFFC5A059)),
+                icon: const Icon(
+                  Icons.support_agent_rounded,
+                  color: Color(0xFFC5A059),
+                ),
                 onPressed: _callSupport,
               ),
             ],
@@ -276,23 +391,27 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
             ),
           ),
           body: SafeArea(
-            child: IndexedStack(
-              index: _currentIndex,
-              children: screens,
-            ),
+            child: IndexedStack(index: _currentIndex, children: screens),
           ),
           bottomNavigationBar: NavigationBarTheme(
             data: NavigationBarThemeData(
               indicatorColor: const Color(0xFFFDFBF7),
               labelTextStyle: WidgetStateProperty.resolveWith((states) {
                 if (states.contains(WidgetState.selected)) {
-                  return const TextStyle(color: Color(0xFFC5A059), fontSize: 11, fontWeight: FontWeight.bold);
+                  return const TextStyle(
+                    color: Color(0xFFC5A059),
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                  );
                 }
                 return const TextStyle(color: Color(0xFF707070), fontSize: 11);
               }),
               iconTheme: WidgetStateProperty.resolveWith((states) {
                 if (states.contains(WidgetState.selected)) {
-                  return const IconThemeData(color: Color(0xFFC5A059), size: 24);
+                  return const IconThemeData(
+                    color: Color(0xFFC5A059),
+                    size: 24,
+                  );
                 }
                 return const IconThemeData(color: Color(0xFF707070), size: 22);
               }),
@@ -384,7 +503,9 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
               ),
             ),
             accountName: Text(
-              _storeProvider.isLoggedIn ? 'Hi ${_storeProvider.userName}!' : 'Hi Guest!',
+              _storeProvider.isLoggedIn
+                  ? 'Hi ${_storeProvider.userName}!'
+                  : 'Hi Guest!',
               style: const TextStyle(
                 fontFamily: 'Outfit',
                 fontWeight: FontWeight.bold,
@@ -393,11 +514,10 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
               ),
             ),
             accountEmail: Text(
-              _storeProvider.isLoggedIn ? _storeProvider.userEmail : 'Welcome to Arham Ornaments',
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 11,
-              ),
+              _storeProvider.isLoggedIn
+                  ? _storeProvider.userEmail
+                  : 'Welcome to Arham Ornaments',
+              style: const TextStyle(color: Colors.white70, fontSize: 11),
             ),
           ),
 
@@ -452,13 +572,24 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
                       LuckyWheelDialog.show(context, _storeProvider);
                     },
                     icon: const Icon(Icons.stars_rounded, size: 14),
-                    label: const Text('SPIN & WIN', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold)),
+                    label: const Text(
+                      'SPIN & WIN',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFC5A059),
                       foregroundColor: Colors.white,
                       elevation: 1,
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                   ),
                 ],
@@ -472,12 +603,24 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
               padding: const EdgeInsets.symmetric(horizontal: 8),
               children: [
                 ListTile(
-                  leading: const Icon(Icons.grid_view_rounded, color: Color(0xFFC5A059), size: 20),
+                  leading: const Icon(
+                    Icons.grid_view_rounded,
+                    color: Color(0xFFC5A059),
+                    size: 20,
+                  ),
                   title: const Text(
                     'All Jewellery Store',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF2C2C2C)),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                      color: Color(0xFF2C2C2C),
+                    ),
                   ),
-                  trailing: const Icon(Icons.chevron_right_rounded, color: Colors.black26, size: 18),
+                  trailing: const Icon(
+                    Icons.chevron_right_rounded,
+                    color: Colors.black26,
+                    size: 18,
+                  ),
                   onTap: () {
                     setState(() {
                       _selectedCategory = 'All';
@@ -490,58 +633,114 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
 
                 // Metal Submenu
                 ExpansionTile(
-                  leading: const Icon(Icons.auto_awesome_rounded, color: Color(0xFFC5A059), size: 20),
+                  leading: const Icon(
+                    Icons.auto_awesome_rounded,
+                    color: Color(0xFFC5A059),
+                    size: 20,
+                  ),
                   title: const Text(
                     'Browse Metal',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF2C2C2C)),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                      color: Color(0xFF2C2C2C),
+                    ),
                   ),
                   iconColor: const Color(0xFFC5A059),
                   collapsedIconColor: Colors.black38,
                   childrenPadding: EdgeInsets.zero,
                   children: [
                     _buildSubcategoryItem(context, 'Gold Jewellery', 'Gold'),
-                    _buildSubcategoryItem(context, 'Silver Jewellery', 'Silver'),
-                    _buildSubcategoryItem(context, 'Diamond Jewellery', 'Diamond'),
+                    _buildSubcategoryItem(
+                      context,
+                      'Silver Jewellery',
+                      'Silver',
+                    ),
+                    _buildSubcategoryItem(
+                      context,
+                      'Diamond Jewellery',
+                      'Diamond',
+                    ),
                   ],
                 ),
 
                 // Collections Submenu
                 ExpansionTile(
-                  leading: const Icon(Icons.collections_bookmark_rounded, color: Color(0xFFC5A059), size: 20),
+                  leading: const Icon(
+                    Icons.collections_bookmark_rounded,
+                    color: Color(0xFFC5A059),
+                    size: 20,
+                  ),
                   title: const Text(
                     'Collections',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF2C2C2C)),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                      color: Color(0xFF2C2C2C),
+                    ),
                   ),
                   iconColor: const Color(0xFFC5A059),
                   collapsedIconColor: Colors.black38,
                   children: [
-                    _buildSubcategoryItem(context, 'Bridal Masterpieces', 'Bridal'),
-                    _buildSubcategoryItem(context, 'Antique Heritage', 'Antique'),
-                    _buildSubcategoryItem(context, 'Everyday Premium Wear', 'Everyday'),
+                    _buildSubcategoryItem(
+                      context,
+                      'Bridal Masterpieces',
+                      'Bridal',
+                    ),
+                    _buildSubcategoryItem(
+                      context,
+                      'Antique Heritage',
+                      'Antique',
+                    ),
+                    _buildSubcategoryItem(
+                      context,
+                      'Everyday Premium Wear',
+                      'Everyday',
+                    ),
                   ],
                 ),
 
                 // Gender Submenu
                 ExpansionTile(
-                  leading: const Icon(Icons.people_alt_rounded, color: Color(0xFFC5A059), size: 20),
+                  leading: const Icon(
+                    Icons.people_alt_rounded,
+                    color: Color(0xFFC5A059),
+                    size: 20,
+                  ),
                   title: const Text(
                     'Gender Store',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF2C2C2C)),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                      color: Color(0xFF2C2C2C),
+                    ),
                   ),
                   iconColor: const Color(0xFFC5A059),
                   collapsedIconColor: Colors.black38,
                   children: [
                     _buildSubcategoryItem(context, "Men's Collection", 'Men'),
-                    _buildSubcategoryItem(context, "Women's Collection", 'Women'),
+                    _buildSubcategoryItem(
+                      context,
+                      "Women's Collection",
+                      'Women',
+                    ),
                   ],
                 ),
 
                 // Main Jewelry Categories
                 ExpansionTile(
-                  leading: const Icon(Icons.category_rounded, color: Color(0xFFC5A059), size: 20),
+                  leading: const Icon(
+                    Icons.category_rounded,
+                    color: Color(0xFFC5A059),
+                    size: 20,
+                  ),
                   title: const Text(
                     'Jewelry Categories',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF2C2C2C)),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                      color: Color(0xFF2C2C2C),
+                    ),
                   ),
                   iconColor: const Color(0xFFC5A059),
                   collapsedIconColor: Colors.black38,
@@ -558,10 +757,18 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
                 const Divider(color: Color(0x1AC5A059), height: 32),
 
                 ListTile(
-                  leading: const Icon(Icons.phone_in_talk_rounded, color: Colors.green, size: 20),
+                  leading: const Icon(
+                    Icons.phone_in_talk_rounded,
+                    color: Colors.green,
+                    size: 20,
+                  ),
                   title: const Text(
                     'Direct Sales Support',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF2C2C2C)),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                      color: Color(0xFF2C2C2C),
+                    ),
                   ),
                   onTap: () {
                     Navigator.pop(context);
@@ -576,7 +783,11 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
     );
   }
 
-  Widget _buildSubcategoryItem(BuildContext context, String title, String searchKey) {
+  Widget _buildSubcategoryItem(
+    BuildContext context,
+    String title,
+    String searchKey,
+  ) {
     return ListTile(
       contentPadding: const EdgeInsets.only(left: 32, right: 16),
       title: Text(
