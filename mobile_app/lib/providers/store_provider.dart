@@ -29,6 +29,10 @@ class StoreProvider extends ChangeNotifier {
   String get referralCode => userReferralCode;
   String appliedReferralCode = "";
 
+  // Dynamic Firestore State
+  String? userUid;
+  bool isSyncingUser = false;
+
   // Wallet & Referral State
   double walletBalance = 0.0; // Starts at ₹0 for fresh users, gets loaded with signup & spins!
   double referralEarnings = 200.0; // Displayed on green Referral card
@@ -561,6 +565,7 @@ class StoreProvider extends ChangeNotifier {
       successfulReferrals = prefs.getInt('successfulReferrals') ?? 0;
       hasSpunWheel = prefs.getBool('hasSpunWheel') ?? false;
       appliedReferralCode = prefs.getString('appliedReferralCode') ?? "";
+      userUid = prefs.getString('userUid');
       
       final String? refHistStr = prefs.getString('referralsHistory');
       if (refHistStr != null) {
@@ -614,6 +619,11 @@ class StoreProvider extends ChangeNotifier {
       }
       
       notifyListeners();
+
+      // Trigger automatic live sync if logged in
+      if (isLoggedIn && userPhone.isNotEmpty) {
+        fetchLiveUserData(userPhone);
+      }
     } catch (e) {
       debugPrint("Error loading persistent state: $e");
     }
@@ -631,6 +641,11 @@ class StoreProvider extends ChangeNotifier {
       await prefs.setInt('successfulReferrals', successfulReferrals);
       await prefs.setBool('hasSpunWheel', hasSpunWheel);
       await prefs.setString('appliedReferralCode', appliedReferralCode);
+      if (userUid != null) {
+        await prefs.setString('userUid', userUid!);
+      } else {
+        await prefs.remove('userUid');
+      }
       
       await prefs.setString('referralsHistory', jsonEncode(referralsHistory));
       await prefs.setString('transactionsHistory', jsonEncode(transactionsHistory));
@@ -672,6 +687,12 @@ class StoreProvider extends ChangeNotifier {
     }
     _syncToRegistry();
     notifyListeners();
+
+    // TWO-WAY SYNC: Sync wallet balance and spin date to Firestore
+    updateFirestoreUserFields({
+      'walletBalance': {'integerValue': walletBalance.toInt().toString()},
+      'lastSpinDate': {'stringValue': DateTime.now().toUtc().toIso8601String()},
+    });
   }
 
   void deductWallet(double amount) {
@@ -731,54 +752,24 @@ class StoreProvider extends ChangeNotifier {
     userPhone = phone.isNotEmpty ? phone : "+91 9833216777";
     appliedReferralCode = refCode;
 
-    final String cleanPhone = userPhone.replaceAll(RegExp(r'\s+'), '');
+    // Set temporary local state while fetching
+    walletBalance = 0.0;
+    hasSpunWheel = false;
+    successfulReferrals = 0;
+    referralEarnings = 0.0;
+    referralsHistory = [];
+    transactionsHistory = [];
 
-    if (_phoneToWallet.containsKey(cleanPhone)) {
-      // Restore user state from persistent static registry!
-      walletBalance = _phoneToWallet[cleanPhone] ?? 0.0;
-      hasSpunWheel = _phoneToHasSpun[cleanPhone] ?? false;
-      successfulReferrals = _phoneToReferralCount[cleanPhone] ?? 0;
-      referralEarnings = _phoneToReferralEarnings[cleanPhone] ?? 0.0;
-      referralsHistory = List<Map<String, dynamic>>.from(_phoneToReferralsHistory[cleanPhone] ?? []);
-      transactionsHistory = List<Map<String, dynamic>>.from(_phoneToTransactionsHistory[cleanPhone] ?? []);
-    } else {
-      // First-time signup for this phone number!
-      walletBalance = 0.0;
-      hasSpunWheel = false;
-      successfulReferrals = 0;
-      referralEarnings = 0.0;
-      referralsHistory = [];
-      transactionsHistory = [];
-
-      if (refCode.isNotEmpty) {
-        walletBalance = 100.0; // ₹100 Welcome Referral Signup Bonus!
-        transactionsHistory.insert(0, {
-          'title': 'Welcome Referral Signup Bonus',
-          'date': 'Today',
-          'amount': 100.0,
-          'type': 'welcome',
-        });
-        notificationsList.insert(0, {
-          'id': DateTime.now().millisecondsSinceEpoch.toString(),
-          'title': 'Welcome Bonus Claimed! 🎁',
-          'description': 'You received ₹100 signup credit for using referral code $refCode.',
-          'date': 'Today',
-          'link': '/profile',
-          'read': false,
-        });
-      } else {
-        notificationsList.insert(0, {
-          'id': DateTime.now().millisecondsSinceEpoch.toString(),
-          'title': 'Welcome to Arham Ornaments!',
-          'description': 'Enjoy shopping. Share your code to earn ₹100 on every invite.',
-          'date': 'Today',
-          'link': '/profile',
-          'read': false,
-        });
-      }
-      _syncToRegistry();
-    }
+    _syncToRegistry();
     notifyListeners();
+
+    // Call dynamic Firestore user registration/fetching flow
+    fetchLiveUserData(userPhone).then((_) {
+      if (userUid == null) {
+        // If not found in database, create the user
+        createFirestoreUser(userName, userEmail, userPhone, refCode);
+      }
+    });
   }
 
   // Update Profile details
@@ -828,6 +819,388 @@ class StoreProvider extends ChangeNotifier {
     return true;
   }
 
+  // Dynamic User & Referrals Fetching from Firestore REST API
+  Future<void> fetchLiveUserData(String phone) async {
+    if (phone.isEmpty || phone == "+91 9833216777") return;
+
+    String cleanPhone = phone.replaceAll(RegExp(r'\D'), '');
+    if (cleanPhone.length > 10) {
+      cleanPhone = cleanPhone.substring(cleanPhone.length - 10);
+    }
+    if (cleanPhone.isEmpty) return;
+
+    isSyncingUser = true;
+    notifyListeners();
+
+    final client = HttpClient();
+    try {
+      final request = await client.postUrl(Uri.parse(
+        'https://firestore.googleapis.com/v1/projects/arham-ornaments-ee5f3/databases/(default)/documents:runQuery'
+      ));
+      request.headers.contentType = ContentType.json;
+      
+      final queryBody = {
+        'structuredQuery': {
+          'from': [{'collectionId': 'users'}],
+          'where': {
+            'fieldFilter': {
+              'field': {'fieldPath': 'phone'},
+              'op': 'EQUAL',
+              'value': {'stringValue': cleanPhone}
+            }
+          }
+        }
+      };
+      
+      request.write(jsonEncode(queryBody));
+      final response = await request.close();
+      
+      if (response.statusCode == 200) {
+        final responseBody = await response.transform(utf8.decoder).join();
+        final List<dynamic> results = json.decode(responseBody);
+        
+        List<String> uids = [];
+        double maxWallet = -1.0;
+        Map<String, dynamic>? primaryFields;
+        String? primaryUid;
+        
+        for (var result in results) {
+          if (result['document'] != null) {
+            final doc = result['document'];
+            final fields = doc['fields'];
+            final docName = doc['name'] as String;
+            final uid = docName.split('/').last;
+            uids.add(uid);
+            
+            double docWallet = 0.0;
+            if (fields != null && fields['walletBalance'] != null) {
+              final wVal = fields['walletBalance'];
+              if (wVal['integerValue'] != null) {
+                docWallet = double.tryParse(wVal['integerValue'].toString()) ?? 0.0;
+              } else if (wVal['doubleValue'] != null) {
+                docWallet = double.tryParse(wVal['doubleValue'].toString()) ?? 0.0;
+              } else if (wVal['stringValue'] != null) {
+                docWallet = double.tryParse(wVal['stringValue'].toString()) ?? 0.0;
+              }
+            }
+            
+            // Choose primary account as the one with the maximum wallet balance or matching our structure
+            if (primaryUid == null || docWallet > maxWallet) {
+              maxWallet = docWallet;
+              primaryUid = uid;
+              primaryFields = fields;
+            }
+          }
+        }
+        
+        if (primaryUid != null && primaryFields != null) {
+          userUid = primaryUid;
+          userName = _getString(primaryFields['name'], userName);
+          userEmail = _getString(primaryFields['email'], userEmail);
+          userReferralCode = _getString(primaryFields['referralCode'], userReferralCode);
+          programTier = _getString(primaryFields['tier'], programTier);
+          streetAddress = _getString(primaryFields['streetAddress'], streetAddress);
+          city = _getString(primaryFields['city'], city);
+          pinCode = _getString(primaryFields['pincode'], pinCode);
+          walletBalance = maxWallet;
+
+          if (primaryFields['lastSpinDate'] != null) {
+            final spinDateStr = _getString(primaryFields['lastSpinDate'], "");
+            if (spinDateStr.isNotEmpty) {
+              hasSpunWheel = true;
+            }
+          }
+
+          _syncToRegistry();
+          notifyListeners();
+
+          await _fetchLiveReferrals(uids);
+        }
+      }
+    } catch (e) {
+      debugPrint("Error fetching live user data: $e");
+    } finally {
+      client.close();
+      isSyncingUser = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> _fetchLiveReferrals(List<String> uids) async {
+    final List<Map<String, dynamic>> fetchedReferrals = [];
+    double totalEarnings = 0.0;
+    
+    for (String uid in uids) {
+      final client = HttpClient();
+      try {
+        final request = await client.postUrl(Uri.parse(
+          'https://firestore.googleapis.com/v1/projects/arham-ornaments-ee5f3/databases/(default)/documents:runQuery'
+        ));
+        request.headers.contentType = ContentType.json;
+        
+        final queryBody = {
+          'structuredQuery': {
+            'from': [{'collectionId': 'users'}],
+            'where': {
+              'fieldFilter': {
+                'field': {'fieldPath': 'referredBy'},
+                'op': 'EQUAL',
+                'value': {'stringValue': uid}
+              }
+            }
+          }
+        };
+        
+        request.write(jsonEncode(queryBody));
+        final response = await request.close();
+        
+        if (response.statusCode == 200) {
+          final responseBody = await response.transform(utf8.decoder).join();
+          final List<dynamic> results = json.decode(responseBody);
+          
+          for (var result in results) {
+            if (result['document'] != null) {
+              final doc = result['document'];
+              final fields = doc['fields'];
+              final String docName = doc['name'] as String? ?? "";
+              final String referredUid = docName.split('/').last;
+              if (fields != null) {
+                final String rName = _getString(fields['name'], "Arham Member");
+                final String rDateRaw = _getString(fields['joinedDate'], _getString(fields['createdAt'], ""));
+                
+                String formattedDate = "Recently";
+                if (rDateRaw.isNotEmpty) {
+                  try {
+                    final dt = DateTime.parse(rDateRaw);
+                    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    formattedDate = "${dt.day} ${months[dt.month - 1]} ${dt.year}";
+                  } catch (_) {}
+                }
+                
+                // Avoid adding duplicate UIDs in case of multiple queries returning the same referred user
+                bool alreadyAdded = fetchedReferrals.any((ref) => ref['uid'] == referredUid);
+                if (!alreadyAdded) {
+                  fetchedReferrals.add({
+                    'uid': referredUid,
+                    'name': rName,
+                    'date': formattedDate,
+                    'amount': 100.0,
+                    'avatar': rName.isNotEmpty ? rName.substring(0, 1).toUpperCase() : 'A'
+                  });
+                  totalEarnings += 100.0;
+                }
+              }
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint("Error fetching live referrals for UID $uid: $e");
+      } finally {
+        client.close();
+      }
+    }
+    
+    referralsHistory = fetchedReferrals;
+    successfulReferrals = fetchedReferrals.length;
+    referralEarnings = totalEarnings;
+    
+    final List<Map<String, dynamic>> updatedTxHistory = [];
+    if (hasSpunWheel) {
+      updatedTxHistory.add({
+        'title': 'Lucky Spin Wheel Reward',
+        'date': 'Unlocked',
+        'amount': 150.0,
+        'type': 'spin'
+      });
+    }
+    for (var ref in fetchedReferrals) {
+      updatedTxHistory.add({
+        'title': 'Referral Bonus - ${ref['name']}',
+        'date': ref['date'],
+        'amount': 100.0,
+        'type': 'referral'
+      });
+    }
+    transactionsHistory = updatedTxHistory;
+    _syncToRegistry();
+    notifyListeners();
+  }
+
+  Future<void> updateFirestoreUserFields(Map<String, Map<String, dynamic>> fieldsToUpdate) async {
+    if (userUid == null || userUid!.isEmpty) return;
+    final client = HttpClient();
+    try {
+      String queryParams = fieldsToUpdate.keys.map((k) => "updateMask.fieldPaths=$k").join("&");
+      final request = await client.patchUrl(Uri.parse(
+        'https://firestore.googleapis.com/v1/projects/arham-ornaments-ee5f3/databases/(default)/documents/users/$userUid?$queryParams'
+      ));
+      request.headers.contentType = ContentType.json;
+      
+      final body = {
+        'fields': fieldsToUpdate
+      };
+      
+      request.write(jsonEncode(body));
+      final response = await request.close();
+      if (response.statusCode == 200) {
+        debugPrint("Successfully updated Firestore fields: ${fieldsToUpdate.keys}");
+      }
+    } catch (e) {
+      debugPrint("Error updating Firestore fields: $e");
+    } finally {
+      client.close();
+    }
+  }
+
+  Future<void> createFirestoreUser(String name, String email, String phone, String refCode) async {
+    String cleanPhone = phone.replaceAll(RegExp(r'\D'), '');
+    if (cleanPhone.length > 10) {
+      cleanPhone = cleanPhone.substring(cleanPhone.length - 10);
+    }
+    if (cleanPhone.isEmpty) return;
+
+    String safeName = name.trim().replaceAll(RegExp(r'\s+'), '');
+    if (safeName.isEmpty) safeName = "USR";
+    String namePrefix = safeName.length >= 3 ? safeName.substring(0, 3).toUpperCase() : safeName.toUpperCase().padRight(3, 'X');
+    String randomSuffix = DateTime.now().millisecondsSinceEpoch.toString().substring(9);
+    String generatedCode = "$namePrefix$randomSuffix";
+
+    final client = HttpClient();
+    try {
+      String? referrerUid;
+      if (refCode.isNotEmpty) {
+        referrerUid = await _findUidByReferralCode(refCode);
+      }
+
+      final uid = "m_${DateTime.now().millisecondsSinceEpoch}_$cleanPhone";
+      final request = await client.postUrl(Uri.parse(
+        'https://firestore.googleapis.com/v1/projects/arham-ornaments-ee5f3/databases/(default)/documents/users?documentId=$uid'
+      ));
+      request.headers.contentType = ContentType.json;
+
+      final userData = {
+        'fields': {
+          'name': {'stringValue': name},
+          'email': {'stringValue': email},
+          'phone': {'stringValue': cleanPhone},
+          'walletBalance': {'integerValue': (referrerUid != null ? 100 : 0).toString()},
+          'tier': {'stringValue': 'silver'},
+          'points': {'integerValue': '450'},
+          'joinedDate': {'stringValue': DateTime.now().toUtc().toIso8601String()},
+          'referralCode': {'stringValue': generatedCode},
+          'referredBy': referrerUid != null ? {'stringValue': referrerUid} : {'nullValue': null},
+          'referralCount': {'integerValue': '0'},
+        }
+      };
+
+      request.write(jsonEncode(userData));
+      final response = await request.close();
+      if (response.statusCode == 200) {
+        userUid = uid;
+        userReferralCode = generatedCode;
+        if (referrerUid != null) {
+          walletBalance = 100.0;
+          await _creditReferrerOnFirestore(referrerUid, name);
+        }
+        _syncToRegistry();
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint("Error creating user document: $e");
+    } finally {
+      client.close();
+    }
+  }
+
+  Future<String?> _findUidByReferralCode(String refCode) async {
+    final client = HttpClient();
+    try {
+      final request = await client.postUrl(Uri.parse(
+        'https://firestore.googleapis.com/v1/projects/arham-ornaments-ee5f3/databases/(default)/documents:runQuery'
+      ));
+      request.headers.contentType = ContentType.json;
+      
+      final queryBody = {
+        'structuredQuery': {
+          'from': [{'collectionId': 'users'}],
+          'where': {
+            'fieldFilter': {
+              'field': {'fieldPath': 'referralCode'},
+              'op': 'EQUAL',
+              'value': {'stringValue': refCode.trim().toUpperCase()}
+            }
+          },
+          'limit': 1
+        }
+      };
+      
+      request.write(jsonEncode(queryBody));
+      final response = await request.close();
+      if (response.statusCode == 200) {
+        final responseBody = await response.transform(utf8.decoder).join();
+        final List<dynamic> results = json.decode(responseBody);
+        if (results.isNotEmpty && results[0]['document'] != null) {
+          final docName = results[0]['document']['name'] as String;
+          return docName.split('/').last;
+        }
+      }
+    } catch (e) {
+      debugPrint("Error validating referral code: $e");
+    } finally {
+      client.close();
+    }
+    return null;
+  }
+
+  Future<void> _creditReferrerOnFirestore(String referrerUid, String friendName) async {
+    final client = HttpClient();
+    try {
+      final getRequest = await client.getUrl(Uri.parse(
+        'https://firestore.googleapis.com/v1/projects/arham-ornaments-ee5f3/databases/(default)/documents/users/$referrerUid'
+      ));
+      final getResponse = await getRequest.close();
+      if (getResponse.statusCode == 200) {
+        final getBody = await getResponse.transform(utf8.decoder).join();
+        final Map<String, dynamic> data = json.decode(getBody);
+        final fields = data['fields'];
+        if (fields != null) {
+          int currentWallet = 0;
+          if (fields['walletBalance'] != null) {
+            final wVal = fields['walletBalance'];
+            currentWallet = int.tryParse(wVal['integerValue']?.toString() ?? wVal['stringValue']?.toString() ?? '0') ?? 0;
+          }
+          int currentRefCount = 0;
+          if (fields['referralCount'] != null) {
+            final rCountVal = fields['referralCount'];
+            currentRefCount = int.tryParse(rCountVal['integerValue']?.toString() ?? '0') ?? 0;
+          }
+
+          final patchRequest = await client.patchUrl(Uri.parse(
+            'https://firestore.googleapis.com/v1/projects/arham-ornaments-ee5f3/databases/(default)/documents/users/$referrerUid?updateMask.fieldPaths=walletBalance&updateMask.fieldPaths=referralCount'
+          ));
+          patchRequest.headers.contentType = ContentType.json;
+
+          final patchBody = {
+            'fields': {
+              'walletBalance': {'integerValue': (currentWallet + 100).toString()},
+              'referralCount': {'integerValue': (currentRefCount + 1).toString()},
+            }
+          };
+
+          patchRequest.write(jsonEncode(patchBody));
+          final patchResponse = await patchRequest.close();
+          if (patchResponse.statusCode == 200) {
+            debugPrint("Successfully credited referrer $referrerUid with bonus!");
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint("Error crediting referrer: $e");
+    } finally {
+      client.close();
+    }
+  }
+
   // Sign out user session
   void signOut() {
     isLoggedIn = false;
@@ -841,6 +1214,7 @@ class StoreProvider extends ChangeNotifier {
     appliedReferralCode = "";
     referralsHistory = [];
     transactionsHistory = [];
+    userUid = null;
     _syncToRegistry();
     notifyListeners();
   }
