@@ -26,7 +26,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
         ? _buildEmptyState() 
         : GridView.builder(
             padding: const EdgeInsets.all(12),
-            physics: const BouncingScrollPhysics(),
+            physics: const ClampingScrollPhysics(),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               mainAxisSpacing: 12,
@@ -240,15 +240,14 @@ class _WishlistScreenState extends State<WishlistScreen> {
     int initialIndex = itemsList.indexOf(initialProduct);
     if (initialIndex == -1) initialIndex = 0;
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      useSafeArea: false,
-      builder: (context) => ProductDetailSheet(
-        itemsList: itemsList,
-        initialIndex: initialIndex,
-        provider: widget.provider,
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProductDetailSheet(
+          itemsList: itemsList,
+          initialIndex: initialIndex,
+          provider: widget.provider,
+        ),
       ),
     ).then((_) {
       // Trigger setState on sheet close in case favorites were toggled

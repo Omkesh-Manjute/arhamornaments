@@ -38,6 +38,8 @@ dependencies:
   url_launcher: ^6.3.2
   shared_preferences: ^2.5.5
   share_plus: ^10.1.0
+  http: ^1.2.2
+  path_provider: ^2.1.5
   firebase_core: ^3.0.0
   firebase_messaging: ^15.0.0
   flutter_local_notifications: ^17.0.0
@@ -76,6 +78,9 @@ flutter:
     - assets/logo.jpg
     - assets/offline_shell.html
     - assets/collection_banner.jpg
+    - assets/men_gender.png
+    - assets/women_gender.png
+    - assets/kids_gender.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

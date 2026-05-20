@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'firebase_options.dart';
+import 'services/notification_service.dart';
 import 'providers/store_provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/shop_screen.dart';
@@ -8,10 +11,25 @@ import 'screens/cart_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/lucky_wheel_dialog.dart';
 import 'screens/categories_screen.dart';
+import 'screens/contact_us_screen.dart';
+import 'screens/privacy_policy_screen.dart';
 import 'widgets/ornaments_accordion_filter.dart';
 import 'widgets/custom_logo_loader.dart';
+import 'widgets/arham_app_bar.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  // Register the background message handler
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
+  // Initialize the notification service
+  await NotificationService().initialize();
+
   runApp(const MyApp());
 }
 
@@ -22,6 +40,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Arham Ornaments',
+      scrollBehavior: const LuxuryScrollBehavior(),
       theme: ThemeData(
         scaffoldBackgroundColor: const Color(0xFFFCFAF6), // Luxurious clean warm background
         primaryColor: const Color(0xFFC5A059),
@@ -75,7 +94,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
       builder: (context, _) {
         if (_showSplash) {
           return Scaffold(
-            backgroundColor: const Color(0xFFFCFAF6),
+            backgroundColor: const Color(0xFF0B132B), // Premium luxury dark navy backing
             body: Stack(
               children: [
                 Positioned.fill(
@@ -83,41 +102,16 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
                     decoration: BoxDecoration(
                       gradient: RadialGradient(
                         colors: [
-                          Color(0xFFFFF9EE).withValues(alpha: 0.4),
-                          const Color(0xFFFCFAF6),
+                          const Color(0xFF1B263B), // Elegant navy center
+                          const Color(0xFF0B132B), // Very deep navy edge
                         ],
-                        radius: 1.2,
+                        radius: 1.3,
                       ),
                     ),
                   ),
                 ),
-                Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const CustomLogoLoader(size: 110),
-                      const SizedBox(height: 24),
-                      const Text(
-                        'ARHAM ORNAMENTS',
-                        style: TextStyle(
-                          color: Color(0xFF2C2C2C),
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 4.0,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'CRAFTING TIMELESS LUXURY',
-                        style: TextStyle(
-                          color: Color(0xFFC5A059),
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 2.0,
-                        ),
-                      ),
-                    ],
-                  ),
+                const Center(
+                  child: CustomLogoLoader(size: 120), // Premium enlarged loader centered in place
                 ),
               ],
             ),
@@ -183,97 +177,10 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
 
         return Scaffold(
           drawer: _buildMainDrawer(context),
-          appBar: AppBar(
-            elevation: 0,
-            backgroundColor: Colors.white,
-            surfaceTintColor: Colors.transparent,
-            iconTheme: const IconThemeData(color: Color(0xFFC5A059)), // Gold hamburger icon!
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: Image.asset(
-                    'assets/logo.jpg',
-                    height: 24,
-                    width: 24,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => const Icon(
-                      Icons.filter_vintage_rounded,
-                      color: Color(0xFFC5A059),
-                      size: 20,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  'ARHAM ORNAMENTS',
-                  style: TextStyle(
-                    color: Color(0xFF2C2C2C),
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.5,
-                  ),
-                ),
-              ],
-            ),
-            actions: [
-              IconButton(
-                icon: Badge(
-                  label: Text('${_storeProvider.wishlistItems.length}'),
-                  isLabelVisible: _storeProvider.wishlistItems.isNotEmpty,
-                  backgroundColor: const Color(0xFFC5A059),
-                  textColor: Colors.white,
-                  child: const Icon(Icons.favorite_border_rounded, color: Color(0xFFC5A059)),
-                ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => Scaffold(
-                        backgroundColor: const Color(0xFFFCFAF6),
-                        appBar: AppBar(
-                          title: const Text(
-                            'MY WISHLIST',
-                            style: TextStyle(
-                              color: Color(0xFF2C2C2C),
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1.5,
-                            ),
-                          ),
-                          elevation: 0,
-                          backgroundColor: Colors.white,
-                          surfaceTintColor: Colors.transparent,
-                          iconTheme: const IconThemeData(color: Color(0xFFC5A059)),
-                          bottom: PreferredSize(
-                            preferredSize: const Size.fromHeight(1.0),
-                            child: Container(color: const Color(0x1AC5A059), height: 1.0),
-                          ),
-                        ),
-                        body: WishlistScreen(
-                          provider: _storeProvider,
-                          onTabChange: (index) {
-                            Navigator.pop(context);
-                            setState(() {
-                              _currentIndex = index;
-                            });
-                          },
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.support_agent_rounded, color: Color(0xFFC5A059)),
-                onPressed: _callSupport,
-              ),
-            ],
-            bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(1.0),
-              child: Container(color: const Color(0x1AC5A059), height: 1.0),
-            ),
+          appBar: ArhamAppBar(
+            provider: _storeProvider,
+            showHamburger: _currentIndex == 0,
+            onWishlistTap: () => _openWishlist(context),
           ),
           body: SafeArea(
             child: IndexedStack(
@@ -352,9 +259,9 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
       backgroundColor: const Color(0xFFFCFAF6),
       child: Column(
         children: [
-          // Elegant Drawer Header with Profile
-          UserAccountsDrawerHeader(
-            margin: EdgeInsets.zero,
+          // ── Slim Greeting Header (no logo, no email) ─────────
+          Container(
+            width: double.infinity,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 colors: [Color(0xFF111827), Color(0xFF1E3A8A)],
@@ -362,48 +269,95 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
                 end: Alignment.bottomRight,
               ),
             ),
-            currentAccountPicture: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFFC5A059), width: 2),
-              ),
-              child: CircleAvatar(
-                backgroundColor: const Color(0xFFFCFAF6),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(40),
-                  child: Image.asset(
-                    'assets/logo.jpg',
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => const Icon(
-                      Icons.person_rounded,
-                      color: Color(0xFFC5A059),
-                      size: 40,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            accountName: Text(
-              _storeProvider.isLoggedIn ? 'Hi ${_storeProvider.userName}!' : 'Hi Guest!',
+            padding: const EdgeInsets.fromLTRB(20, 48, 20, 18),
+            child: Text(
+              _storeProvider.isLoggedIn
+                  ? 'Hi ${_storeProvider.userName}!'
+                  : 'Hi Guest!',
               style: const TextStyle(
                 fontFamily: 'Outfit',
                 fontWeight: FontWeight.bold,
-                fontSize: 16,
+                fontSize: 22,
                 color: Color(0xFFC5A059),
-              ),
-            ),
-            accountEmail: Text(
-              _storeProvider.isLoggedIn ? _storeProvider.userEmail : 'Welcome to Arham Ornaments',
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 11,
               ),
             ),
           ),
 
-          // Virtual Wallet & Lucky Spin Promotion Panel
+          // ── Live Metal Rates Card (directly below header) ─────
           Padding(
-            padding: const EdgeInsets.all(12.0),
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFFFDF9), Color(0xFFFFF9EE)],
+                ),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0x55C5A059), width: 1),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x0A000000),
+                    blurRadius: 8,
+                    offset: Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFC5A059),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Text(
+                            'LIVE RATES',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.show_chart_rounded, color: Color(0xFFC5A059), size: 14),
+                      ],
+                    ),
+                  ),
+                  _buildDrawerRateRow('22KT Gold', _storeProvider.gold22Rate, '/g', const Color(0xFFD4AF37)),
+                  _buildDrawerRateRow('24KT Gold', _storeProvider.gold24Rate, '/g', const Color(0xFFFFD700)),
+                  _buildDrawerRateRow('Silver', _storeProvider.silverRate, '/g', const Color(0xFFA0A0A0)),
+                  if (_storeProvider.silver1kgRate > 0)
+                    _buildDrawerRateRow('Silver 1 kg', _storeProvider.silver1kgRate, '/kg', const Color(0xFFC0C0C0)),
+                  if (_storeProvider.platinumRate > 0)
+                    _buildDrawerRateRow('Platinum', _storeProvider.platinumRate, '/g', const Color(0xFF9B9B9B)),
+                  if (_storeProvider.ratesLastUpdated != null)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(14, 4, 14, 10),
+                      child: Text(
+                        'Updated: ${_formatRateTime(_storeProvider.ratesLastUpdated!)}',
+                        style: const TextStyle(
+                          color: Color(0xFFA0A0A0),
+                          fontSize: 9,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    )
+                  else
+                    const SizedBox(height: 10),
+                ],
+              ),
+            ),
+          ),
+
+          // ── Virtual Wallet & Lucky Spin ───────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
@@ -490,6 +444,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
 
                 // Metal Submenu
                 ExpansionTile(
+
                   leading: const Icon(Icons.auto_awesome_rounded, color: Color(0xFFC5A059), size: 20),
                   title: const Text(
                     'Browse Metal',
@@ -568,12 +523,88 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
                     _callSupport();
                   },
                 ),
+
+                ListTile(
+                  leading: const Icon(Icons.storefront_rounded, color: Color(0xFFC5A059), size: 20),
+                  title: const Text(
+                    'Contact Us',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF2C2C2C)),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context); // close drawer
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ContactUsScreen(),
+                      ),
+                    );
+                  },
+                ),
+
+                ListTile(
+                  leading: const Icon(Icons.policy_rounded, color: Color(0xFFC5A059), size: 20),
+                  title: const Text(
+                    'Privacy Policy',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF2C2C2C)),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context); // close drawer
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PrivacyPolicyScreen(provider: _storeProvider),
+                      ),
+                    );
+                  },
+                ),
               ],
             ),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildDrawerRateRow(String label, double rate, String unit, Color dotColor) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+      child: Row(
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: Color(0xFF4A4A4A),
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          Text(
+            '₹${rate.toStringAsFixed(0)}$unit',
+            style: const TextStyle(
+              color: Color(0xFFC5A059),
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatRateTime(DateTime dt) {
+    final hour = dt.hour > 12 ? dt.hour - 12 : dt.hour == 0 ? 12 : dt.hour;
+    final minute = dt.minute.toString().padLeft(2, '0');
+    final ampm = dt.hour >= 12 ? 'PM' : 'AM';
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return '$hour:$minute $ampm, ${dt.day} ${months[dt.month - 1]}';
   }
 
   Widget _buildSubcategoryItem(BuildContext context, String title, String searchKey) {
@@ -614,8 +645,33 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
     );
   }
 
+  void _openWishlist(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => Scaffold(
+          backgroundColor: const Color(0xFFFCFAF6),
+          appBar: ArhamAppBar(
+            provider: _storeProvider,
+            showHamburger: false,
+            onWishlistTap: null, // already on wishlist, disable
+          ),
+          body: WishlistScreen(
+            provider: _storeProvider,
+            onTabChange: (index) {
+              Navigator.pop(context);
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
   void _callSupport() async {
-    final Uri tel = Uri.parse('tel:+919833216777');
+    final Uri tel = Uri.parse('tel:+919371504182');
     try {
       if (await canLaunchUrl(tel)) {
         await launchUrl(tel);
@@ -626,11 +682,26 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Support line: +91 98332 16777'),
+            content: Text('Support line: +91 93715 04182'),
             backgroundColor: Color(0xFFC5A059),
           ),
         );
       }
     }
+  }
+}
+
+class LuxuryScrollBehavior extends ScrollBehavior {
+  const LuxuryScrollBehavior();
+
+  @override
+  Widget buildOverscrollIndicator(
+      BuildContext context, Widget child, ScrollableDetails details) {
+    return child;
+  }
+
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) {
+    return const ClampingScrollPhysics();
   }
 }

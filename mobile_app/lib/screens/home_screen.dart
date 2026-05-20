@@ -22,14 +22,11 @@ class HomeScreen extends StatelessWidget {
     final List<Product> newArrivals = provider.newArrivalsProducts;
 
     return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
+      physics: const ClampingScrollPhysics(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. Live Gold Rate Ticker Widget
-          _buildLiveTicker(),
-
-          // 2. Premium Auto-playing Sliding Hero Carousel
+          // 1. Premium Auto-playing Sliding Hero Carousel
           _PremiumBannerCarousel(
             banners: provider.heroBanners,
             onTap: _handleNavigationLink,
@@ -38,14 +35,14 @@ class HomeScreen extends StatelessWidget {
           // 3. Category Circles Section
           _buildCategoriesSection(context),
 
-          // 4. Shop by Occasion Grid
-          _buildOccasionsSection(context),
+          // 4. Interactive Three-Tier Promotional Banner Section / Featured Collections
+          _buildCollectionBannerSection(context),
 
           // 5. Shop by Gender Section
           _buildGendersSection(context),
 
-          // 5.5. Interactive Three-Tier Promotional Banner Section
-          _buildCollectionBannerSection(context),
+          // 6. Shop by Occasion Grid
+          _buildOccasionsSection(context),
 
           // 6. New Arrivals Scroll
           _buildHorizontalProductSection(
@@ -228,77 +225,6 @@ class HomeScreen extends StatelessWidget {
     onCategorySelect(category, search: search);
   }
 
-  // Live Price Ticker
-  Widget _buildLiveTicker() {
-    return Container(
-      width: double.infinity,
-      color: const Color(0xFF1C1C1C), // Rich charcoal/black
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        physics: const NeverScrollableScrollPhysics(),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: const Color(0xFFD4AF37),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: const Text(
-                'LIVE RATE',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            _buildTickerItem('22KT Gold', provider.gold22Rate),
-            _buildDivider(),
-            _buildTickerItem('24KT Gold', provider.gold24Rate),
-            _buildDivider(),
-            _buildTickerItem('Silver', provider.silverRate, isGold: false),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTickerItem(String name, double price, {bool isGold = true}) {
-    return Row(
-      children: [
-        Text(
-          '$name: ',
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        Text(
-          '₹${price.toStringAsFixed(0)}/g',
-          style: TextStyle(
-            color: isGold ? const Color(0xFFD4AF37) : const Color(0xFFE0E0E0),
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDivider() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16),
-      child: Text(
-        '•',
-        style: TextStyle(color: Colors.white38),
-      ),
-    );
-  }
 
   // Categories Circles
   Widget _buildCategoriesSection(BuildContext context) {
@@ -331,7 +257,7 @@ class HomeScreen extends StatelessWidget {
           height: 96,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
+            physics: const ClampingScrollPhysics(),
             itemCount: categories.length,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             itemBuilder: (context, index) {
@@ -565,15 +491,15 @@ class HomeScreen extends StatelessWidget {
 
     // Separate Men, Kids, Women based on name
     final Map<String, dynamic> men = gendersList.firstWhere(
-      (g) => (g['name'] ?? '').toLowerCase() == 'men',
+      (g) => (g['name'] ?? '').toLowerCase().contains('men') || (g['name'] ?? '').toLowerCase().contains('man'),
       orElse: () => gendersList.isNotEmpty ? gendersList[0] : {},
     );
     final Map<String, dynamic> kids = gendersList.firstWhere(
-      (g) => (g['name'] ?? '').toLowerCase() == 'kids',
+      (g) => (g['name'] ?? '').toLowerCase().contains('kid'),
       orElse: () => gendersList.length > 1 ? gendersList[1] : {},
     );
     final Map<String, dynamic> women = gendersList.firstWhere(
-      (g) => (g['name'] ?? '').toLowerCase() == 'women',
+      (g) => (g['name'] ?? '').toLowerCase().contains('women') || (g['name'] ?? '').toLowerCase().contains('woman'),
       orElse: () => gendersList.length > 2 ? gendersList[2] : {},
     );
 
@@ -689,16 +615,27 @@ class HomeScreen extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             // Background Image
-            Image.network(
-              image,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  color: const Color(0xFFF9F6F0),
-                  child: const Icon(Icons.person_outline_rounded, color: Color(0xFFC5A059)),
-                );
-              },
-            ),
+            image.startsWith('assets/')
+                ? Image.asset(
+                    image,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: const Color(0xFFF9F6F0),
+                        child: const Icon(Icons.person_outline_rounded, color: Color(0xFFC5A059)),
+                      );
+                    },
+                  )
+                : Image.network(
+                    image,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: const Color(0xFFF9F6F0),
+                        child: const Icon(Icons.person_outline_rounded, color: Color(0xFFC5A059)),
+                      );
+                    },
+                  ),
             // Gradient Overlay
             Container(
               decoration: BoxDecoration(
@@ -759,9 +696,9 @@ class HomeScreen extends StatelessWidget {
                 child: InkWell(
                   onTap: () {
                     final String lowerName = name.toLowerCase();
-                    if (lowerName.contains('women')) {
+                    if (lowerName.contains('women') || lowerName.contains('woman')) {
                       onCategorySelect('All', collection: "Women's Collection");
-                    } else if (lowerName.contains('men')) {
+                    } else if (lowerName.contains('men') || lowerName.contains('man')) {
                       onCategorySelect('All', collection: "Men's Collection");
                     } else if (lowerName.contains('kid')) {
                       onCategorySelect('All', collection: "Kids Collection");
@@ -849,7 +786,7 @@ class HomeScreen extends StatelessWidget {
           height: 315, // Increased height to make products look larger and premium
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
+            physics: const ClampingScrollPhysics(),
             itemCount: products.length,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             itemBuilder: (context, index) {
@@ -987,21 +924,20 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // Dynamic Product Details Native Bottom Sheet
+  // Dynamic Product Details — full-screen push with branded header
   void _showProductDetails(BuildContext context, Product initialProduct) {
     final List<Product> itemsList = provider.products;
     int initialIndex = itemsList.indexOf(initialProduct);
     if (initialIndex == -1) initialIndex = 0;
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      useSafeArea: false,
-      builder: (context) => ProductDetailSheet(
-        itemsList: itemsList,
-        initialIndex: initialIndex,
-        provider: provider,
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProductDetailSheet(
+          itemsList: itemsList,
+          initialIndex: initialIndex,
+          provider: provider,
+        ),
       ),
     );
   }

@@ -3,7 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/product.dart';
 import '../providers/store_provider.dart';
+import '../widgets/arham_app_bar.dart';
 import 'custom_logo_loader.dart';
+import '../screens/wishlist_screen.dart';
 
 class ProductDetailSheet extends StatefulWidget {
   final List<Product> itemsList;
@@ -48,16 +50,39 @@ class _ProductDetailSheetState extends State<ProductDetailSheet> {
     super.dispose();
   }
 
+  void _openWishlist(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => Scaffold(
+          backgroundColor: const Color(0xFFFCFAF6),
+          appBar: ArhamAppBar(
+            provider: widget.provider,
+            showHamburger: false,
+            onWishlistTap: null, // already on wishlist, disable
+          ),
+          body: WishlistScreen(
+            provider: widget.provider,
+            onTabChange: (index) {
+              Navigator.popUntil(context, (route) => route.isFirst);
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (widget.itemsList.isEmpty) {
-      return Container(
-        height: 100,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      return Scaffold(
+        backgroundColor: Colors.white,
+        appBar: ArhamAppBar(
+          provider: widget.provider,
+          showHamburger: false,
+          onWishlistTap: () => _openWishlist(context),
         ),
-        child: const Center(child: Text('No products available')),
+        body: const Center(child: Text('No products available')),
       );
     }
 
@@ -70,18 +95,16 @@ class _ProductDetailSheetState extends State<ProductDetailSheet> {
     }
 
     final currentProduct = widget.itemsList[_currentIndex];
-    final double statusBarHeight = MediaQuery.of(context).viewPadding.top;
-    final double appBarHeight = kToolbarHeight;
-    final double sheetHeight = MediaQuery.of(context).size.height - (statusBarHeight + appBarHeight);
 
     if (_isDetailsLoading) {
-      return Container(
-        height: sheetHeight,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      return Scaffold(
+        backgroundColor: Colors.white,
+        appBar: ArhamAppBar(
+          provider: widget.provider,
+          showHamburger: false,
+          onWishlistTap: () => _openWishlist(context),
         ),
-        child: const Center(
+        body: const Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -102,19 +125,20 @@ class _ProductDetailSheetState extends State<ProductDetailSheet> {
       );
     }
 
-    return Container(
-      height: sheetHeight,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: ArhamAppBar(
+        provider: widget.provider,
+        showHamburger: false,
+        onWishlistTap: () => _openWishlist(context),
       ),
-      child: Column(
+      body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Scrollable content area containing the PageView
           Expanded(
             child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              borderRadius: BorderRadius.zero,
               child: Stack(
                 children: [
                   // Horizontal PageView of all products
@@ -131,36 +155,11 @@ class _ProductDetailSheetState extends State<ProductDetailSheet> {
                       return _buildProductContent(product);
                     },
                   ),
-                  
-                  // Premium Floating Drag Handle
-                  Positioned(
-                    top: 10,
-                    left: 0,
-                    right: 0,
-                    child: Align(
-                      alignment: Alignment.topCenter,
-                      child: Container(
-                        width: 40,
-                        height: 5,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.6),
-                          borderRadius: BorderRadius.circular(2.5),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.15),
-                              blurRadius: 4,
-                              offset: const Offset(0, 1),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
           ),
-          
+
           // Fixed / Sticky bottom actions bar matching safety rules
           _buildStickyBottomBar(currentProduct),
         ],
@@ -175,11 +174,15 @@ class _ProductDetailSheetState extends State<ProductDetailSheet> {
     final double gst = price * 0.03;
     final bool isSaved = widget.provider.isWishlisted(product.id);
 
+    // Calculate hero image height based on screen size for maximum impact
+    final double screenHeight = MediaQuery.of(context).size.height;
+    final double heroImageHeight = screenHeight * 0.48; // ~48% of screen height for large, prominent images
+
     return MediaQuery.removePadding(
       context: context,
       removeTop: true,
       child: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
+        physics: const ClampingScrollPhysics(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -189,11 +192,11 @@ class _ProductDetailSheetState extends State<ProductDetailSheet> {
               Image.network(
                 product.imageUrl,
                 width: double.infinity,
-                height: 310,
+                height: heroImageHeight,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
-                    height: 310,
+                    height: heroImageHeight,
                     color: const Color(0xFFF9F6F0),
                     child: const Icon(Icons.image_outlined, size: 48, color: Color(0xFFC5A059)),
                   );
@@ -218,10 +221,10 @@ class _ProductDetailSheetState extends State<ProductDetailSheet> {
                   ),
                 ),
               ),
-              // Previous product transition navigation arrow
+              // Previous product navigation arrow — clean gold icon with subtle shadow
               Positioned(
-                left: 12,
-                top: 130, // exact middle alignment
+                left: 14,
+                top: (heroImageHeight / 2) - 20,
                 child: GestureDetector(
                   onTap: () {
                     if (_currentIndex > 0) {
@@ -237,34 +240,33 @@ class _ProductDetailSheetState extends State<ProductDetailSheet> {
                       );
                     }
                   },
-                  child: Container(
-                    height: 50,
-                    width: 50,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.8),
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 6,
+                  behavior: HitTestBehavior.opaque,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      color: const Color(0xFFC5A059),
+                      size: 26,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withValues(alpha: 0.45),
+                          blurRadius: 8,
+                          offset: const Offset(0, 1),
+                        ),
+                        Shadow(
+                          color: Colors.black.withValues(alpha: 0.25),
+                          blurRadius: 16,
                           offset: const Offset(0, 2),
                         ),
                       ],
                     ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.arrow_back_ios_new_rounded,
-                        color: Color(0xFFC5A059),
-                        size: 20,
-                      ),
-                    ),
                   ),
                 ),
               ),
-              // Next product transition navigation arrow
+              // Next product navigation arrow — clean gold icon with subtle shadow
               Positioned(
-                right: 12,
-                top: 130,
+                right: 14,
+                top: (heroImageHeight / 2) - 20,
                 child: GestureDetector(
                   onTap: () {
                     if (_currentIndex < widget.itemsList.length - 1) {
@@ -280,26 +282,25 @@ class _ProductDetailSheetState extends State<ProductDetailSheet> {
                       );
                     }
                   },
-                  child: Container(
-                    height: 50,
-                    width: 50,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.8),
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 6,
+                  behavior: HitTestBehavior.opaque,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      color: const Color(0xFFC5A059),
+                      size: 26,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withValues(alpha: 0.45),
+                          blurRadius: 8,
+                          offset: const Offset(0, 1),
+                        ),
+                        Shadow(
+                          color: Colors.black.withValues(alpha: 0.25),
+                          blurRadius: 16,
                           offset: const Offset(0, 2),
                         ),
                       ],
-                    ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.arrow_forward_ios_rounded,
-                        color: Color(0xFFC5A059),
-                        size: 20,
-                      ),
                     ),
                   ),
                 ),
@@ -308,7 +309,7 @@ class _ProductDetailSheetState extends State<ProductDetailSheet> {
           ),
 
           Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -446,7 +447,7 @@ class _ProductDetailSheetState extends State<ProductDetailSheet> {
                       iconColor: const Color(0xFFE67E22),
                       onTap: () async {
                         final messenger = ScaffoldMessenger.of(context);
-                        final Uri url = Uri.parse('tel:+919833216777');
+                        final Uri url = Uri.parse('tel:+919371504182');
                         if (await canLaunchUrl(url)) {
                           await launchUrl(url);
                         } else {
@@ -474,7 +475,7 @@ class _ProductDetailSheetState extends State<ProductDetailSheet> {
                       onTap: () async {
                         final messenger = ScaffoldMessenger.of(context);
                         final String message = "Hello! I am interested in inquiring about your product: ${product.name} (Weight: ${product.weight}g, Category: ${product.category}, Price: ₹${price.toStringAsFixed(0)}). Can you share more details?";
-                        final Uri url = Uri.parse("https://wa.me/919833216777?text=${Uri.encodeComponent(message)}");
+                        final Uri url = Uri.parse("https://wa.me/919371504182?text=${Uri.encodeComponent(message)}");
                         if (await canLaunchUrl(url)) {
                           await launchUrl(url, mode: LaunchMode.externalApplication);
                         } else {

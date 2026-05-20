@@ -380,7 +380,21 @@ class _ShopScreenState extends State<ShopScreen> {
             return (hasMen && !hasWomen) || nameLower.contains('gent') || descLower.contains('gent') || nameLower.contains('male') || descLower.contains('male');
           }
           if (colLower.contains('women')) {
-            return nameLower.contains('women') || descLower.contains('women') || nameLower.contains('lady') || descLower.contains('lady') || nameLower.contains('ladies') || descLower.contains('ladies') || nameLower.contains('girl') || descLower.contains('girl') || nameLower.contains('wati') || descLower.contains('wati');
+            final bool hasMen = nameLower.contains('men') || descLower.contains('men') || nameLower.contains('male') || descLower.contains('male') || nameLower.contains('gent') || descLower.contains('gent');
+            final bool hasKids = nameLower.contains('kids') || descLower.contains('kids') || nameLower.contains('child') || descLower.contains('child') || nameLower.contains('baby') || descLower.contains('baby');
+            if (hasMen || hasKids) return false;
+            
+            final String catLower = product.category.toLowerCase();
+            final bool isWomenCategory = catLower.contains('mangal') || catLower.contains('necklace') || catLower.contains('earring') || catLower.contains('bangle') || catLower.contains('pendant') || catLower.contains('ring') || catLower.contains('chain');
+            
+            return isWomenCategory || 
+                nameLower.contains('women') || descLower.contains('women') || 
+                nameLower.contains('lady') || descLower.contains('lady') || 
+                nameLower.contains('ladies') || descLower.contains('ladies') || 
+                nameLower.contains('girl') || descLower.contains('girl') || 
+                nameLower.contains('wati') || descLower.contains('wati') ||
+                nameLower.contains('bridal') || descLower.contains('wedding') ||
+                descLower.contains('bridal') || descLower.contains('wedding');
           }
           if (colLower.contains('kid')) {
             return nameLower.contains('kids') || descLower.contains('kids') || nameLower.contains('child') || descLower.contains('child') || nameLower.contains('baby') || descLower.contains('baby');
@@ -504,7 +518,7 @@ class _ShopScreenState extends State<ShopScreen> {
           height: 48,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
+            physics: const ClampingScrollPhysics(),
             itemCount: categories.length,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             itemBuilder: (context, index) {
@@ -648,7 +662,7 @@ class _ShopScreenState extends State<ShopScreen> {
                   ? _buildEmptyState()
                   : GridView.builder(
                   padding: const EdgeInsets.all(12),
-                  physics: const BouncingScrollPhysics(),
+                  physics: const ClampingScrollPhysics(),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     mainAxisSpacing: 12,
@@ -842,15 +856,14 @@ class _ShopScreenState extends State<ShopScreen> {
       currentIndex = 0;
     }
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      useSafeArea: false,
-      builder: (context) => ProductDetailSheet(
-        itemsList: catalog,
-        initialIndex: currentIndex,
-        provider: widget.provider,
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProductDetailSheet(
+          itemsList: catalog,
+          initialIndex: currentIndex,
+          provider: widget.provider,
+        ),
       ),
     ).then((_) {
       // Trigger setState on sheet close in case favorites were toggled

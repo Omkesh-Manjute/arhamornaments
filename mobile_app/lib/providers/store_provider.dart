@@ -9,6 +9,9 @@ class StoreProvider extends ChangeNotifier {
   double gold22Rate = 7250.0;
   double gold24Rate = 7910.0;
   double silverRate = 92.5;
+  double silver1kgRate = 0.0;   // Silver per kg
+  double platinumRate = 0.0;    // Platinum per gram
+  DateTime? ratesLastUpdated;   // Last time rates were fetched
 
   // Shopping Cart State
   final List<Product> _cartItems = [];
@@ -21,7 +24,7 @@ class StoreProvider extends ChangeNotifier {
   bool isLoggedIn = false;
   String userName = "Arham Guest";
   String userEmail = "guest@arhamornaments.com";
-  String userPhone = "+91 9833216777";
+  String userPhone = "+91 9371504182";
   String streetAddress = "12, Gold Souk Market";
   String city = "Mumbai";
   String pinCode = "400002";
@@ -70,7 +73,7 @@ class StoreProvider extends ChangeNotifier {
       'title': 'Hello Sir, Welcome!',
       'description': 'Thank you for choosing Arham Ornaments. Check our direct support line if you need anything.',
       'date': '15 May 2026',
-      'link': 'tel:+919833216777',
+      'link': 'tel:+919371504182',
       'read': true
     },
     {
@@ -105,6 +108,8 @@ class StoreProvider extends ChangeNotifier {
   StoreProvider() {
     fetchProducts();
     fetchHomepageConfig();
+    fetchCoupons();
+    fetchMetadataRates();
   }
 
   // Getters
@@ -222,19 +227,19 @@ class StoreProvider extends ChangeNotifier {
   static final List<Map<String, dynamic>> _genderSectionsFallback = [
     {
       'name': 'Men',
-      'image': 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=600&auto=format&fit=crop',
+      'image': 'assets/men_gender.png',
       'path': '/products?gender=men',
       'gridClass': 'col-span-1',
     },
     {
       'name': 'Kids',
-      'image': 'https://images.unsplash.com/photo-1503919545889-aef636e10ad4?q=80&w=600&auto=format&fit=crop',
+      'image': 'assets/kids_gender.png',
       'path': '/products?gender=kids',
       'gridClass': 'col-span-1',
     },
     {
       'name': 'Women',
-      'image': 'https://images.unsplash.com/photo-1589156280159-27698a70f29e?q=80&w=1200&auto=format&fit=crop',
+      'image': 'assets/women_gender.png',
       'path': '/products?gender=women',
       'gridClass': 'col-span-2',
     }
@@ -325,9 +330,22 @@ class StoreProvider extends ChangeNotifier {
               for (var val in values) {
                 final map = val['mapValue']?['fields'];
                 if (map != null) {
+                  final String name = _getString(map['name'], '');
+                  String image = _getString(map['image'], '');
+
+                  // Standardize and force premium local assets if available
+                  final String lowerName = name.toLowerCase();
+                  if (lowerName == 'men') {
+                    image = 'assets/men_gender.png';
+                  } else if (lowerName == 'women') {
+                    image = 'assets/women_gender.png';
+                  } else if (lowerName == 'kids') {
+                    image = 'assets/kids_gender.png';
+                  }
+
                   genders.add({
-                    'name': _getString(map['name'], ''),
-                    'image': _getString(map['image'], ''),
+                    'name': name,
+                    'image': image,
                     'path': _getString(map['path'], ''),
                     'gridClass': _getString(map['gridClass'], ''),
                   });
@@ -413,12 +431,196 @@ class StoreProvider extends ChangeNotifier {
     }
   }
 
+  bool get hasAnyValidCoupon {
+    return adminCoupons.any((c) {
+      final bool isActive = c['isActive'] ?? false;
+      if (!isActive) return false;
+      
+      final String expiryStr = c['expiryDate'] ?? '';
+      if (expiryStr.isNotEmpty) {
+        final DateTime? expiryDate = DateTime.tryParse(expiryStr);
+        if (expiryDate != null) {
+          final DateTime endOfDay = DateTime(expiryDate.year, expiryDate.month, expiryDate.day, 23, 59, 59);
+          if (DateTime.now().isAfter(endOfDay)) return false;
+        }
+      }
+      return true;
+    });
+  }
+
+  Future<void> fetchCoupons() async {
+    final client = HttpClient();
+    try {
+      final request = await client.getUrl(Uri.parse(
+        'https://firestore.googleapis.com/v1/projects/arham-ornaments-ee5f3/databases/(default)/documents/coupons'
+      ));
+      final response = await request.close();
+      
+      if (response.statusCode == 200) {
+        final responseBody = await response.transform(utf8.decoder).join();
+        final Map<String, dynamic> data = json.decode(responseBody);
+        
+        final List<dynamic>? docs = data['documents'];
+        if (docs != null) {
+          final List<Map<String, dynamic>> loadedCoupons = [];
+          for (var doc in docs) {
+            try {
+              final Map<String, dynamic> fields = doc['fields'] ?? {};
+              
+              final String code = _getString(fields['code'], '').trim().toUpperCase();
+              final String discountType = _getString(fields['discountType'], 'fixed');
+              
+              double discountValue = 0.0;
+              final discValObj = fields['discountValue'];
+              if (discValObj != null) {
+                discountValue = double.tryParse(discValObj['integerValue'] ?? discValObj['doubleValue']?.toString() ?? '0') ?? 0.0;
+              }
+              
+              double minOrderAmount = 0.0;
+              final minOrderObj = fields['minOrderAmount'];
+              if (minOrderObj != null) {
+                minOrderAmount = double.tryParse(minOrderObj['integerValue'] ?? minOrderObj['doubleValue']?.toString() ?? '0') ?? 0.0;
+              }
+              
+              final String expiryDate = _getString(fields['expiryDate'], '');
+              final bool isActive = _getBool(fields['isActive'], false);
+              
+              int? usageLimit;
+              final limitObj = fields['usageLimit'];
+              if (limitObj != null) {
+                usageLimit = int.tryParse(limitObj['integerValue'] ?? limitObj['doubleValue']?.toString() ?? '');
+              }
+              
+              int usageCount = 0;
+              final countObj = fields['usageCount'];
+              if (countObj != null) {
+                usageCount = int.tryParse(countObj['integerValue'] ?? countObj['doubleValue']?.toString() ?? '0') ?? 0;
+              }
+              
+              if (code.isNotEmpty) {
+                loadedCoupons.add({
+                  'code': code,
+                  'discountType': discountType,
+                  'discountValue': discountValue,
+                  'minOrderAmount': minOrderAmount,
+                  'expiryDate': expiryDate,
+                  'isActive': isActive,
+                  'usageLimit': usageLimit,
+                  'usageCount': usageCount,
+                });
+              }
+            } catch (e) {
+              debugPrint('Error parsing single coupon: $e');
+            }
+          }
+          adminCoupons.clear();
+          adminCoupons.addAll(loadedCoupons);
+          debugPrint('Successfully loaded ${adminCoupons.length} coupons from Firestore!');
+          
+          validateActiveCoupon();
+        }
+      }
+    } catch (e) {
+      debugPrint('Failed to fetch coupons from Firestore: $e');
+    } finally {
+      client.close();
+      notifyListeners();
+    }
+  }
+
+  void validateActiveCoupon() {
+    if (activeCouponCode == null) return;
+    
+    final matched = adminCoupons.firstWhere(
+      (c) => c['code'] == activeCouponCode,
+      orElse: () => <String, dynamic>{},
+    );
+    
+    if (matched.isEmpty) {
+      activeCouponCode = null;
+      couponDiscountPercentage = 0.0;
+      return;
+    }
+    
+    final bool isActive = matched['isActive'] ?? false;
+    if (!isActive) {
+      activeCouponCode = null;
+      couponDiscountPercentage = 0.0;
+      return;
+    }
+    
+    final String expiryStr = matched['expiryDate'] ?? '';
+    if (expiryStr.isNotEmpty) {
+      final DateTime? expiryDate = DateTime.tryParse(expiryStr);
+      if (expiryDate != null) {
+        final DateTime endOfDay = DateTime(expiryDate.year, expiryDate.month, expiryDate.day, 23, 59, 59);
+        if (DateTime.now().isAfter(endOfDay)) {
+          activeCouponCode = null;
+          couponDiscountPercentage = 0.0;
+          return;
+        }
+      }
+    }
+    
+    final double minAmount = (matched['minOrderAmount'] as num?)?.toDouble() ?? 0.0;
+    if (subtotal < minAmount) {
+      activeCouponCode = null;
+      couponDiscountPercentage = 0.0;
+      return;
+    }
+    
+    final int? limit = matched['usageLimit'];
+    final int count = matched['usageCount'] ?? 0;
+    if (limit != null && count >= limit) {
+      activeCouponCode = null;
+      couponDiscountPercentage = 0.0;
+      return;
+    }
+  }
+
   // Dynamic Rate Updater
   void updateRates(double gold22, double gold24, double silver) {
     gold22Rate = gold22;
     gold24Rate = gold24;
     silverRate = silver;
     notifyListeners();
+  }
+
+  // Fetch all metal rates from Firestore metadata/rates
+  Future<void> fetchMetadataRates() async {
+    final client = HttpClient();
+    try {
+      final request = await client.getUrl(Uri.parse(
+        'https://firestore.googleapis.com/v1/projects/arham-ornaments-ee5f3/databases/(default)/documents/metadata/rates'
+      ));
+      final response = await request.close();
+      if (response.statusCode == 200) {
+        final body = await response.transform(utf8.decoder).join();
+        final Map<String, dynamic> data = json.decode(body);
+        final fields = data['fields'];
+        if (fields != null) {
+          gold22Rate = _getDouble(fields['gold22K'], gold22Rate);
+          gold24Rate = _getDouble(fields['gold24K'], gold24Rate);
+          silverRate = _getDouble(fields['silver'], silverRate);
+          silver1kgRate = _getDouble(fields['silver1kg'], silver1kgRate);
+          platinumRate = _getDouble(fields['platinum'], platinumRate);
+          ratesLastUpdated = DateTime.now();
+          notifyListeners();
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching metadata rates: $e');
+    } finally {
+      client.close();
+    }
+  }
+
+  double _getDouble(dynamic field, double fallback) {
+    if (field == null) return fallback;
+    if (field['doubleValue'] != null) return (field['doubleValue'] as num).toDouble();
+    if (field['integerValue'] != null) return double.tryParse(field['integerValue'].toString()) ?? fallback;
+    if (field['stringValue'] != null) return double.tryParse(field['stringValue'].toString()) ?? fallback;
+    return fallback;
   }
 
   // Get product price based on active live metal rates
@@ -444,6 +646,7 @@ class StoreProvider extends ChangeNotifier {
       _cartItems.add(product);
       _cartQuantities[product.id] = 1;
     }
+    validateActiveCoupon();
     notifyListeners();
   }
 
@@ -456,12 +659,14 @@ class StoreProvider extends ChangeNotifier {
     } else {
       _cartQuantities[product.id] = _cartQuantities[product.id]! - 1;
     }
+    validateActiveCoupon();
     notifyListeners();
   }
 
   void removeFromCart(Product product) {
     _cartItems.removeWhere((item) => item.id == product.id);
     _cartQuantities.remove(product.id);
+    validateActiveCoupon();
     notifyListeners();
   }
 
@@ -469,6 +674,8 @@ class StoreProvider extends ChangeNotifier {
     _cartItems.clear();
     _cartQuantities.clear();
     isWalletRedeemed = false;
+    activeCouponCode = null;
+    couponDiscountPercentage = 0.0;
     notifyListeners();
   }
 
@@ -519,7 +726,21 @@ class StoreProvider extends ChangeNotifier {
 
   double get couponDiscountAmount {
     if (activeCouponCode == null) return 0.0;
-    return (subtotal - walletDiscount) * couponDiscountPercentage;
+    final matched = adminCoupons.firstWhere(
+      (c) => c['code'] == activeCouponCode,
+      orElse: () => <String, dynamic>{},
+    );
+    if (matched.isEmpty) return 0.0;
+    
+    final String type = matched['discountType'] ?? 'fixed';
+    final double value = (matched['discountValue'] as num?)?.toDouble() ?? 0.0;
+    
+    if (type == 'percentage') {
+      return (subtotal - walletDiscount) * (value / 100.0);
+    } else {
+      final double remaining = subtotal - walletDiscount;
+      return value > remaining ? remaining : value;
+    }
   }
 
   double get grandTotal {
@@ -535,11 +756,7 @@ class StoreProvider extends ChangeNotifier {
   static final Map<String, List<Map<String, dynamic>>> _phoneToReferralsHistory = {};
   static final Map<String, List<Map<String, dynamic>>> _phoneToTransactionsHistory = {};
 
-  final List<Map<String, dynamic>> adminCoupons = [
-    {'code': 'OMKESH10', 'discount': 0.10, 'description': 'Flat 10% Off on checkout!'},
-    {'code': 'ARHAM20', 'discount': 0.20, 'description': 'Flat 20% Off (Arham Special)'},
-    {'code': 'GOLD5', 'discount': 0.05, 'description': 'Flat 5% Off Gold Jewelry'},
-  ];
+  final List<Map<String, dynamic>> adminCoupons = [];
 
   void _syncToRegistry() {
     final String cleanPhone = userPhone.replaceAll(RegExp(r'\s+'), '');
@@ -559,7 +776,7 @@ class StoreProvider extends ChangeNotifier {
       isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
       userName = prefs.getString('userName') ?? "Arham Guest";
       userEmail = prefs.getString('userEmail') ?? "member@arhamornaments.com";
-      userPhone = prefs.getString('userPhone') ?? "+91 9833216777";
+      userPhone = prefs.getString('userPhone') ?? "+91 9371504182";
       walletBalance = prefs.getDouble('walletBalance') ?? 0.0;
       referralEarnings = prefs.getDouble('referralEarnings') ?? 0.0;
       successfulReferrals = prefs.getInt('successfulReferrals') ?? 0;
@@ -711,18 +928,54 @@ class StoreProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  bool applyCoupon(String code) {
+  String? applyCoupon(String code) {
+    final cleanCode = code.trim().toUpperCase();
     final matched = adminCoupons.firstWhere(
-      (c) => c['code'] == code.trim().toUpperCase(),
-      orElse: () => {},
+      (c) => c['code'] == cleanCode,
+      orElse: () => <String, dynamic>{},
     );
-    if (matched.isNotEmpty) {
-      activeCouponCode = matched['code'];
-      couponDiscountPercentage = matched['discount'];
-      notifyListeners();
-      return true;
+    if (matched.isEmpty) {
+      return 'Coupon code does not exist';
     }
-    return false;
+    
+    final bool isActive = matched['isActive'] ?? false;
+    if (!isActive) {
+      return 'This coupon is not active';
+    }
+    
+    final String expiryStr = matched['expiryDate'] ?? '';
+    if (expiryStr.isNotEmpty) {
+      final DateTime? expiryDate = DateTime.tryParse(expiryStr);
+      if (expiryDate != null) {
+        final DateTime endOfDay = DateTime(expiryDate.year, expiryDate.month, expiryDate.day, 23, 59, 59);
+        if (DateTime.now().isAfter(endOfDay)) {
+          return 'This coupon has expired';
+        }
+      }
+    }
+    
+    final double minAmount = (matched['minOrderAmount'] as num?)?.toDouble() ?? 0.0;
+    if (subtotal < minAmount) {
+      return 'Minimum order amount of ₹${minAmount.toStringAsFixed(0)} required';
+    }
+    
+    final int? limit = matched['usageLimit'];
+    final int count = matched['usageCount'] ?? 0;
+    if (limit != null && count >= limit) {
+      return 'This coupon usage limit has been exceeded';
+    }
+    
+    activeCouponCode = matched['code'];
+    final String type = matched['discountType'] ?? 'fixed';
+    final double val = (matched['discountValue'] as num?)?.toDouble() ?? 0.0;
+    if (type == 'percentage') {
+      couponDiscountPercentage = val / 100.0;
+    } else {
+      couponDiscountPercentage = 0.0;
+    }
+    
+    notifyListeners();
+    return null; // Success
   }
 
   void removeCoupon() {
@@ -749,7 +1002,7 @@ class StoreProvider extends ChangeNotifier {
     isLoggedIn = true;
     userName = name.isNotEmpty ? name : "Arham Member";
     userEmail = email.isNotEmpty ? email : "member@arhamornaments.com";
-    userPhone = phone.isNotEmpty ? phone : "+91 9833216777";
+    userPhone = phone.isNotEmpty ? phone : "+91 9371504182";
     appliedReferralCode = refCode;
 
     // Set temporary local state while fetching
@@ -821,7 +1074,7 @@ class StoreProvider extends ChangeNotifier {
 
   // Dynamic User & Referrals Fetching from Firestore REST API
   Future<void> fetchLiveUserData(String phone) async {
-    if (phone.isEmpty || phone == "+91 9833216777") return;
+    if (phone.isEmpty || phone == "+91 9371504182") return;
 
     String cleanPhone = phone.replaceAll(RegExp(r'\D'), '');
     if (cleanPhone.length > 10) {
@@ -1206,7 +1459,7 @@ class StoreProvider extends ChangeNotifier {
     isLoggedIn = false;
     userName = "Arham Guest";
     userEmail = "guest@arhamornaments.com";
-    userPhone = "+91 9833216777";
+    userPhone = "+91 9371504182";
     walletBalance = 0.0;
     referralEarnings = 0.0;
     successfulReferrals = 0;

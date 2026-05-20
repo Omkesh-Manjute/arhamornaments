@@ -25,14 +25,14 @@ const Footer: React.FC = () => {
             </p>
             {/* Social Icons for Mobile/Tablet - visible as a row */}
             <div className="flex flex-wrap items-center gap-4 pt-2">
-              <a href="#" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest hover:bg-gold/20 hover:border-gold/30 transition-all text-gray-400 hover:text-gold">
+              <a href="https://www.facebook.com/arhamornaments" target="_blank" rel="noopener noreferrer" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest hover:bg-gold/20 hover:border-gold/30 transition-all text-gray-400 hover:text-gold">
                 Facebook
               </a>
-              <a href="#" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest hover:bg-gold/20 hover:border-gold/30 transition-all text-gray-400 hover:text-gold">
+              <a href="https://www.instagram.com/arham.ornaments?igsh=MTRvaTc2OWgxM2JtYg==" target="_blank" rel="noopener noreferrer" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest hover:bg-gold/20 hover:border-gold/30 transition-all text-gray-400 hover:text-gold">
                 Instagram
               </a>
-              <a href="#" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest hover:bg-gold/20 hover:border-gold/30 transition-all text-gray-400 hover:text-gold">
-                Twitter
+              <a href="https://www.youtube.com/@arhamornaments" target="_blank" rel="noopener noreferrer" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest hover:bg-gold/20 hover:border-gold/30 transition-all text-gray-400 hover:text-gold">
+                YouTube
               </a>
             </div>
           </div>

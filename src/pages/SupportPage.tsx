@@ -120,9 +120,13 @@ const SupportPage: React.FC = () => {
           </p>
 
           <div className="flex flex-wrap justify-center gap-3 pt-2">
-            {['Facebook', 'Instagram', 'Twitter'].map(social => (
-              <a key={social} href="#" className="px-5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest hover:bg-gold/20 hover:border-gold/30 transition-all text-gray-300">
-                {social}
+            {[
+              { name: 'Facebook', url: 'https://www.facebook.com/arhamornaments' },
+              { name: 'Instagram', url: 'https://www.instagram.com/arham.ornaments?igsh=MTRvaTc2OWgxM2JtYg==' },
+              { name: 'YouTube', url: 'https://www.youtube.com/@arhamornaments' }
+            ].map(social => (
+              <a key={social.name} href={social.url} target="_blank" rel="noopener noreferrer" className="px-5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest hover:bg-gold/20 hover:border-gold/30 transition-all text-gray-300">
+                {social.name}
               </a>
             ))}
           </div>

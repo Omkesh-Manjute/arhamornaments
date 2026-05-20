@@ -86,7 +86,7 @@ class OrnamentsAccordionFilter extends StatelessWidget {
         Expanded(
           child: ListView(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            physics: const BouncingScrollPhysics(),
+            physics: const ClampingScrollPhysics(),
             children: [
               _buildAccordionGroup(
                 context: context,
