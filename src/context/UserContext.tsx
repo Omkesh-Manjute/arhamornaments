@@ -18,6 +18,9 @@ interface UserContextType {
   addNotification: (notification: Omit<Notification, 'id' | 'date' | 'isRead'>) => Promise<void>;
   markNotificationsRead: () => Promise<void>;
   updateProfile: (data: Partial<User>) => Promise<void>;
+  isLoginModalOpen: boolean;
+  setLoginModalOpen: (isOpen: boolean) => void;
+  requireLogin: (redirectUrl?: string) => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -25,7 +28,15 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isLoginModalOpen, setLoginModalOpen] = useState(false);
   const prevNotifCount = React.useRef<number>(0);
+
+  const requireLogin = (redirectUrl?: string) => {
+    if (redirectUrl) {
+      sessionStorage.setItem('redirectAfterLogin', redirectUrl);
+    }
+    setLoginModalOpen(true);
+  };
 
   // Sound effect for notifications
   const playNotificationSound = () => {
@@ -193,6 +204,14 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Clear pending referral after successful registration
     localStorage.removeItem('pending_referral');
+    setLoginModalOpen(false);
+
+    // Handle post-login redirect
+    const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
+    if (redirectUrl) {
+      sessionStorage.removeItem('redirectAfterLogin');
+      window.location.hash = redirectUrl;
+    }
   };
 
 
@@ -276,7 +295,10 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       recordSpin,
       addNotification,
       markNotificationsRead,
-      updateProfile
+      updateProfile,
+      isLoginModalOpen,
+      setLoginModalOpen,
+      requireLogin
     }}>
       {children}
     </UserContext.Provider>

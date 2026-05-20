@@ -23,6 +23,8 @@ import LuckyWheel from './components/promotions/LuckyWheel';
 import { WishlistProvider } from './context/WishlistContext';
 import { PriceProvider } from './context/PriceContext';
 import { SlideCartDrawer } from './components/cart/SlideCartDrawer';
+import ProtectedRoute from './components/auth/ProtectedRoute';
+import LoginRequiredModal from './components/auth/LoginRequiredModal';
 
 import LivePriceTicker from './components/layout/LivePriceTicker';
 import MobileBottomNav from './components/layout/MobileBottomNav';
@@ -41,19 +43,19 @@ const AppContent: React.FC = () => {
       <main className={`flex-1 ${!hideHeaderFooter ? 'pt-[64px] md:pt-[72px] pb-[80px] lg:pb-0' : ''}`}>
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/products" element={<ProductListing />} />
-          <Route path="/product/:id" element={<ProductDetail />} />
-          <Route path="/cart" element={<CartPage />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/wishlist" element={<WishlistPage />} />
-          <Route path="/category/:category" element={<ProductListing />} />
+          <Route path="/products" element={<ProtectedRoute><ProductListing /></ProtectedRoute>} />
+          <Route path="/product/:id" element={<ProtectedRoute><ProductDetail /></ProtectedRoute>} />
+          <Route path="/cart" element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
+          <Route path="/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
+          <Route path="/wishlist" element={<ProtectedRoute><WishlistPage /></ProtectedRoute>} />
+          <Route path="/category/:category" element={<ProtectedRoute><ProductListing /></ProtectedRoute>} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/support" element={<SupportPage />} />
           <Route path="/faq" element={<FAQPage />} />
           <Route path="/return" element={<ReturnsPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/account" element={<ProfilePage />} />
+          <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+          <Route path="/account" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
           <Route path="/education" element={<EducationPage />} />
           <Route path="/academy" element={<EducationPage />} />
         </Routes>
@@ -64,6 +66,7 @@ const AppContent: React.FC = () => {
       {!isAdminPage && <LuckyWheel />}
       <NotificationWatcher />
       <SlideCartDrawer />
+      <LoginRequiredModal />
     </div>
   );
 };

@@ -5,6 +5,7 @@ import { Product } from '../../types';
 import { useWishlist } from '../../context/WishlistContext';
 import { formatPrice } from '../../utils/whatsapp';
 import { usePrice } from '../../context/PriceContext';
+import { useUser } from '../../context/UserContext';
 
 interface ProductCardProps {
   product: Product;
@@ -14,6 +15,7 @@ interface ProductCardProps {
 const ProductCard: React.FC<ProductCardProps> = ({ product, hidePrice = false }) => {
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { calculateProductPrice } = usePrice();
+  const { isLoggedIn, requireLogin } = useUser();
 
   const isFavorite = isInWishlist(product.id);
   const currentPrice = calculateProductPrice(product);
@@ -24,6 +26,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hidePrice = false })
       <Link
         to={`/product/${product.id}`}
         className="block"
+        onClick={(e) => {
+          if (!isLoggedIn) {
+            e.preventDefault();
+            requireLogin(`/product/${product.id}`);
+          }
+        }}
       >
         {/* Image Container */}
         <div className="relative aspect-square overflow-hidden bg-white">

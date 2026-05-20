@@ -21,6 +21,7 @@ import { productService } from '../services/productService';
 import { homepageService, HomeCategory, HomeCollectionItem } from '../services/homepageService';
 import { Loader2 } from 'lucide-react';
 import { GoldSkeletonGrid } from '../components/ui/GoldSkeleton';
+import { useUser } from '../context/UserContext';
 
 const HomePage: React.FC = () => {
   const [newArrivals, setNewArrivals] = useState<Product[]>([]);
@@ -33,6 +34,7 @@ const HomePage: React.FC = () => {
   const [spotlight, setSpotlight] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isVisible, setIsVisible] = useState(false);
+  const { isLoggedIn, requireLogin } = useUser();
 
   useEffect(() => {
     setIsVisible(true);
@@ -181,6 +183,12 @@ const HomePage: React.FC = () => {
                 <div className="mt-8 flex justify-center">
                   <Link
                     to="/products"
+                    onClick={(e) => {
+                      if (!isLoggedIn) {
+                        e.preventDefault();
+                        requireLogin('/products');
+                      }
+                    }}
                     className="group flex items-center gap-2 text-charcoal font-bold uppercase tracking-[0.2em] text-[10px] hover:text-gold transition-colors pb-2 border-b-2 border-charcoal/10 hover:border-gold"
                   >
                     View All Products →
@@ -222,6 +230,12 @@ const HomePage: React.FC = () => {
               <Link
                 key={i}
                 to={cat.path}
+                onClick={(e) => {
+                  if (!isLoggedIn) {
+                    e.preventDefault();
+                    requireLogin(cat.path);
+                  }
+                }}
                 className={`group block bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-700 border border-gold/5 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
                 style={{ transitionDelay: `${i * 150}ms` }}
               >
@@ -303,7 +317,16 @@ const HomePage: React.FC = () => {
                       : promo.title
                     }
                   </h2>
-                  <Link to={promo.link} className="group/btn flex items-center gap-2 text-white/90 text-[9px] md:text-xs font-bold uppercase tracking-[0.2em] hover:text-gold transition-colors w-fit">
+                  <Link 
+                    to={promo.link} 
+                    onClick={(e) => {
+                      if (!isLoggedIn && promo.link !== '/' && !promo.link.startsWith('/about')) {
+                        e.preventDefault();
+                        requireLogin(promo.link);
+                      }
+                    }}
+                    className="group/btn flex items-center gap-2 text-white/90 text-[9px] md:text-xs font-bold uppercase tracking-[0.2em] hover:text-gold transition-colors w-fit"
+                  >
                     Explore <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
                   </Link>
                 </div>
@@ -353,7 +376,16 @@ const HomePage: React.FC = () => {
                   <p className="text-white/40 text-[10px] uppercase tracking-widest font-bold mt-1">Hallmarked Quality</p>
                 </div>
               </div>
-              <Link to={spotlight.link} className="btn-premium bg-gold hover:bg-gold-dark inline-block">
+              <Link 
+                to={spotlight.link} 
+                onClick={(e) => {
+                  if (!isLoggedIn && spotlight.link !== '/' && !spotlight.link.startsWith('/about')) {
+                    e.preventDefault();
+                    requireLogin(spotlight.link);
+                  }
+                }}
+                className="btn-premium bg-gold hover:bg-gold-dark inline-block"
+              >
                 Learn About Our Craft
               </Link>
             </div>

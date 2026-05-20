@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Package, Plus, TrendingUp, DollarSign, X, Gem, Settings, Users, Bell, History, Shield, LogOut, Loader2, ChevronRight, Menu, Percent, Bug } from 'lucide-react';
+import { Package, Plus, TrendingUp, DollarSign, X, Gem, Settings, Users, Bell, History, Shield, LogOut, Loader2, ChevronRight, Menu, Percent, Bug, Globe, ArrowLeft } from 'lucide-react';
 import { Product, User } from '../types';
 import { usePrice } from '../context/PriceContext';
 import { auth } from '../lib/firebase';
@@ -134,6 +134,13 @@ const AdminPage: React.FC = () => {
               >
                 {loading ? <Loader2 className="animate-spin" size={20} /> : 'Establish Connection'}
               </button>
+              
+              <div className="pt-4 text-center">
+                <a href="/" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-amber-500 transition-colors font-medium">
+                  <ArrowLeft size={16} />
+                  Return to Main Website
+                </a>
+              </div>
             </form>
           </div>
           <p className="text-center mt-8 text-gray-600 font-mono text-[10px] uppercase tracking-[0.3em]">Secure Environment • End-to-End Encrypted</p>
@@ -190,6 +197,10 @@ const AdminPage: React.FC = () => {
           </nav>
 
           <div className="pt-6 mt-6 border-t border-[#222222]">
+            <a href="/" className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-gray-500 hover:text-amber-500 hover:bg-amber-500/5 transition-all font-bold text-sm mb-2">
+              <Globe size={18} />
+              Visit Website
+            </a>
             <button onClick={handleLogout} className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-gray-500 hover:text-red-400 hover:bg-red-500/5 transition-all font-bold text-sm">
               <LogOut size={18} />
               Sign Out
