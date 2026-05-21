@@ -53,6 +53,10 @@ export const materials = [
 ];
 
 export const occasions = [
+  { id: 'office', name: 'Office Wear' },
+  { id: 'modern', name: 'Modern Wear' },
+  { id: 'casual', name: 'Casual Wear' },
+  { id: 'traditional', name: 'Traditional Wear' },
   { id: 'bridal', name: 'Bridal' },
   { id: 'daily', name: 'Daily Wear' },
   { id: 'party', name: 'Party Wear' },

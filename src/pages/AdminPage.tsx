@@ -280,14 +280,10 @@ const AdminPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 mb-8">
+              <div className="mb-8">
                 <div className="bg-[#0D0D0D] border border-[#222222] p-6 rounded-3xl">
                   <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Wallet Balance</p>
                   <p className="text-2xl font-black text-white">₹{(selectedCust.walletBalance || 0).toLocaleString()}</p>
-                </div>
-                <div className="bg-[#0D0D0D] border border-[#222222] p-6 rounded-3xl">
-                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Total Points</p>
-                  <p className="text-2xl font-black text-purple-400">{(selectedCust.points || 0).toLocaleString()}</p>
                 </div>
               </div>
 

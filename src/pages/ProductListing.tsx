@@ -13,7 +13,8 @@ const ProductListing: React.FC = () => {
   const { category: pathCategory } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const [showFilters, setShowFilters] = useState(false);
-  const [sortBy, setSortBy] = useState('featured');
+  const filterParam = searchParams.get('filter') || '';
+  const [sortBy, setSortBy] = useState(filterParam === 'new' ? 'newest' : 'featured');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const { pathname, search } = useLocation();
 
@@ -28,6 +29,13 @@ const ProductListing: React.FC = () => {
     }
   }, [searchParams]);
 
+  // Set newest sort if filter is new
+  useEffect(() => {
+    if (searchParams.get('filter') === 'new') {
+      setSortBy('newest');
+    }
+  }, [searchParams]);
+
   // Scroll to top on navigation or filter change
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -36,7 +44,9 @@ const ProductListing: React.FC = () => {
   // Get filter values from URL
   const selectedCategory = pathCategory || searchParams.get('category') || '';
   const selectedMaterial = searchParams.get('material') || '';
-  const selectedOccasion = searchParams.get('occasion') || '';
+  const selectedOccasion = searchParams.get('occasion') || (
+    ['office', 'modern', 'casual', 'traditional', 'bridal', 'daily', 'party', 'gift'].includes(filterParam) ? filterParam : ''
+  );
   const searchQuery = searchParams.get('search') || '';
   const priceRange = searchParams.get('price') || '';
   const selectedGender = searchParams.get('gender') || '';

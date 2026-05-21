@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import '../providers/store_provider.dart';
-import '../services/notification_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   final StoreProvider provider;
@@ -1337,96 +1336,11 @@ class _ProfileScreenState extends State<ProfileScreen>
 
           // Loyalty rules card matching the web storefront policy
           _buildLoyaltyRulesCard(),
-          const SizedBox(height: 20),
-
-          // FCM Device Token (for testing/debugging)
-          _buildFcmTokenCard(),
         ],
       ),
     );
   }
 
-  Widget _buildFcmTokenCard() {
-    return FutureBuilder<String?>(
-      future: NotificationService().getToken(),
-      builder: (context, snapshot) {
-        final token = snapshot.data ?? 'Loading...';
-        return Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF9F6F0),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0x33C5A059)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Row(
-                children: [
-                  Icon(Icons.key_rounded, color: Color(0xFFC5A059), size: 18),
-                  SizedBox(width: 8),
-                  Text(
-                    'FCM Device Token',
-                    style: TextStyle(
-                      color: Color(0xFF2C2C2C),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                token,
-                style: const TextStyle(
-                  color: Color(0xFF707070),
-                  fontSize: 10,
-                  fontFamily: 'monospace',
-                ),
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 8),
-              GestureDetector(
-                onTap: () {
-                  Clipboard.setData(ClipboardData(text: token));
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('FCM token copied to clipboard!'),
-                      backgroundColor: Color(0xFFC5A059),
-                    ),
-                  );
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFC5A059),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.copy_rounded, color: Colors.white, size: 14),
-                      SizedBox(width: 6),
-                      Text(
-                        'Copy Token',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
 
   Widget _buildLoyaltyRulesCard() {
     return Container(

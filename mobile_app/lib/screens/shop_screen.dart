@@ -413,6 +413,26 @@ class _ShopScreenState extends State<ShopScreen> {
           final nameLower = product.name.toLowerCase();
           final descLower = product.description.toLowerCase();
           final occLower = occ.toLowerCase();
+          
+          // Map display name to Firestore occasion key
+          final dbOccasionMap = {
+            'office wear': 'office',
+            'modern wear': 'modern',
+            'casual wear': 'casual',
+            'traditional wear': 'traditional',
+            'bridal': 'bridal',
+            'daily wear': 'daily',
+            'party wear': 'party',
+            'gifting': 'gift',
+          };
+          
+          final dbOccKey = dbOccasionMap[occLower] ?? occLower;
+          final prodOccasionLower = product.occasion.toLowerCase();
+          if (prodOccasionLower.isNotEmpty && prodOccasionLower == dbOccKey) {
+            return true;
+          }
+          
+          // Fallbacks for local mock data or description-based searches
           if (occLower == 'bridal') {
             return nameLower.contains('bridal') || descLower.contains('wedding') || nameLower.contains('wedding') || descLower.contains('bridal');
           }

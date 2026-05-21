@@ -96,7 +96,7 @@ const AdminCustomers: React.FC<AdminCustomersProps> = ({
             <table className="w-full">
               <thead className="bg-white/[0.02] border-b border-[#222222]">
                 <tr>
-                  {['Customer', 'Contact', 'Joined', 'Tier', 'Wallet', 'Points', 'Referrals', 'Actions'].map(h => (
+                  {['Customer', 'Contact', 'Joined', 'Tier', 'Wallet', 'Referrals', 'Actions'].map(h => (
                     <th key={h} className="px-4 py-3 text-left text-[10px] font-mono font-bold text-gray-500 uppercase tracking-wider">{h}</th>
                   ))}
                 </tr>
@@ -123,13 +123,15 @@ const AdminCustomers: React.FC<AdminCustomersProps> = ({
                       {c.joinedDate ? new Date(c.joinedDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' }) : '—'}
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase border ${c.tier === 'platinum' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
-                        c.tier === 'gold' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
-                          'bg-white/5 text-gray-400 border-white/10'
-                        }`}>{c.tier || 'silver'}</span>
+                      {(c.tier === 'gold' || c.tier === 'platinum') ? (
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase border ${c.tier === 'platinum' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                          'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                        }`}>{c.tier}</span>
+                      ) : (
+                        <span className="text-gray-500 text-xs font-medium">—</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-sm font-bold text-amber-500">₹{(c.walletBalance || 0).toLocaleString()}</td>
-                    <td className="px-4 py-3 text-sm text-purple-400 font-bold">{c.points || 0}</td>
                     <td className="px-4 py-3 text-sm text-green-400 font-bold">{c.referralCount || 0}</td>
                     <td className="px-4 py-3">
                       <button

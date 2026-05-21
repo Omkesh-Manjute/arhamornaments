@@ -10,6 +10,7 @@ class Product {
   final bool isBestSeller;
   final bool isNewArrival;
   final String designNo;
+  final String occasion;
 
   const Product({
     required this.id,
@@ -23,6 +24,7 @@ class Product {
     this.isBestSeller = false,
     this.isNewArrival = false,
     this.designNo = '',
+    this.occasion = '',
   });
 
   // Calculate current price dynamically based on live gold rates (per gram)
@@ -131,6 +133,7 @@ class Product {
     final bool isBestSeller = fields['trending']?['booleanValue'] ?? false;
     final bool isNewArrival = fields['featured']?['booleanValue'] ?? true;
     final String parsedDesignNo = fields['designNo']?['stringValue'] ?? '';
+    final String parsedOccasion = fields['occasion']?['stringValue'] ?? '';
     
     return Product(
       id: parsedId,
@@ -144,6 +147,7 @@ class Product {
       isBestSeller: isBestSeller,
       isNewArrival: isNewArrival,
       designNo: parsedDesignNo,
+      occasion: parsedOccasion,
     );
   }
 }

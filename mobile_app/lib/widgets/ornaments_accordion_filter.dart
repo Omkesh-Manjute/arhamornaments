@@ -68,7 +68,7 @@ class OrnamentsAccordionFilter extends StatelessWidget {
   ];
 
   static const List<String> occasionsList = [
-    'Bridal', 'Daily Wear', 'Party Wear', 'Gifting'
+    'Office Wear', 'Modern Wear', 'Casual Wear', 'Traditional Wear', 'Bridal', 'Daily Wear', 'Party Wear', 'Gifting'
   ];
 
   static const List<String> collectionsList = [

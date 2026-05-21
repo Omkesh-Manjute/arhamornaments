@@ -125,11 +125,16 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
                 _currentIndex = index;
               });
             },
-            onCategorySelect: (category, {search, collection}) {
+            onCategorySelect: (category, {search, collection, occasion}) {
               setState(() {
                 _selectedCategory = category;
                 _searchQuery = search ?? '';
-                if (collection != null) {
+                if (occasion != null) {
+                  _activeFilterState = FilterState(
+                    categories: category != 'All' ? [category] : [],
+                    occasions: [occasion],
+                  );
+                } else if (collection != null) {
                   _activeFilterState = FilterState(
                     categories: category != 'All' ? [category] : [],
                     collections: [collection],

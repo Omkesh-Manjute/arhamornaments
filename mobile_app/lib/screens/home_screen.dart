@@ -7,7 +7,7 @@ import '../widgets/product_detail_sheet.dart';
 class HomeScreen extends StatelessWidget {
   final StoreProvider provider;
   final Function(int) onTabChange; // Allows navigating to Shop tab directly
-  final Function(String, {String? search, String? collection}) onCategorySelect; // Selects a category with optional search and collection
+  final Function(String, {String? search, String? collection, String? occasion}) onCategorySelect; // Selects a category with optional search, collection, and occasion
 
   const HomeScreen({
     super.key,
@@ -196,33 +196,102 @@ class HomeScreen extends StatelessWidget {
     
     String category = 'All';
     String? search;
+    String? collection;
+    String? occasion;
     
     if (uri.queryParameters.containsKey('category')) {
       final String rawCat = uri.queryParameters['category'] ?? '';
-      if (rawCat.toLowerCase().contains('neck')) {
+      final String catLower = rawCat.toLowerCase();
+      if (catLower.contains('neck')) {
         category = 'Necklaces';
-      } else if (rawCat.toLowerCase().contains('bangle')) {
+      } else if (catLower.contains('bangle')) {
         category = 'Bangles';
-      } else if (rawCat.toLowerCase().contains('ring')) {
+      } else if (catLower.contains('ring')) {
         category = 'Rings';
-      } else if (rawCat.toLowerCase().contains('mangal')) {
+      } else if (catLower.contains('mangal')) {
         category = 'Mangalsutras';
-      } else if (rawCat.toLowerCase().contains('chain')) {
+      } else if (catLower.contains('chain')) {
         category = 'Chains';
-      } else if (rawCat.toLowerCase().contains('ear')) {
+      } else if (catLower.contains('ear')) {
         category = 'Earrings';
       } else {
         category = rawCat;
       }
     }
     
-    if (uri.queryParameters.containsKey('gender')) {
-      search = uri.queryParameters['gender'];
-    } else if (uri.queryParameters.containsKey('filter')) {
-      search = uri.queryParameters['filter'];
+    // Map occasion query params
+    String? occasionParam = uri.queryParameters['occasion'] ?? uri.queryParameters['filter'];
+    if (occasionParam != null) {
+      final String occLower = occasionParam.toLowerCase();
+      final Map<String, String> occMap = {
+        'office': 'Office Wear',
+        'modern': 'Modern Wear',
+        'casual': 'Casual Wear',
+        'traditional': 'Traditional Wear',
+        'bridal': 'Bridal',
+        'daily': 'Daily Wear',
+        'party': 'Party Wear',
+        'gift': 'Gifting',
+      };
+      if (occMap.containsKey(occLower)) {
+        occasion = occMap[occLower];
+      } else if (occLower.contains('office')) {
+        occasion = 'Office Wear';
+      } else if (occLower.contains('modern')) {
+        occasion = 'Modern Wear';
+      } else if (occLower.contains('casual')) {
+        occasion = 'Casual Wear';
+      } else if (occLower.contains('traditional')) {
+        occasion = 'Traditional Wear';
+      } else if (occLower.contains('bridal')) {
+        occasion = 'Bridal';
+      } else if (occLower.contains('daily')) {
+        occasion = 'Daily Wear';
+      } else if (occLower.contains('party')) {
+        occasion = 'Party Wear';
+      } else if (occLower.contains('gift')) {
+        occasion = 'Gifting';
+      } else {
+        search = occasionParam;
+      }
     }
     
-    onCategorySelect(category, search: search);
+    if (uri.queryParameters.containsKey('gender')) {
+      final genderVal = uri.queryParameters['gender'];
+      if (genderVal != null) {
+        if (genderVal.toLowerCase().contains('men')) {
+          collection = "Men's Collection";
+        } else if (genderVal.toLowerCase().contains('women')) {
+          collection = "Women's Collection";
+        } else if (genderVal.toLowerCase().contains('kid')) {
+          collection = "Kids Collection";
+        } else {
+          search = genderVal;
+        }
+      }
+    }
+    
+    if (uri.queryParameters.containsKey('collection')) {
+      final colVal = uri.queryParameters['collection'];
+      if (colVal != null) {
+        if (colVal.toLowerCase().contains('men')) {
+          collection = "Men's Collection";
+        } else if (colVal.toLowerCase().contains('women')) {
+          collection = "Women's Collection";
+        } else if (colVal.toLowerCase().contains('kid')) {
+          collection = "Kids Collection";
+        } else {
+          collection = colVal;
+        }
+      }
+    }
+
+    onCategorySelect(
+      category, 
+      search: search, 
+      collection: collection, 
+      occasion: occasion,
+    );
   }
 
 

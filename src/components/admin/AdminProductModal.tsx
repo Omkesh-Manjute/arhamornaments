@@ -34,7 +34,7 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
     category: 'rings',
     material: 'gold',
     purity: '22K',
-    occasion: 'daily',
+    occasion: '',
     description: '',
     images: [] as string[],
     grossWeight: '',
@@ -63,7 +63,7 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
         category: product.category,
         material: product.material,
         purity: product.purity || '22K',
-        occasion: product.occasion,
+        occasion: product.occasion || '',
         description: product.description,
         images: product.images || [],
         grossWeight: (product.grossWeight || '').toString(),
@@ -80,7 +80,7 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
       });
     } else {
       setFormData({
-        name: '', price: '', originalPrice: '', category: 'rings', material: 'gold', purity: '22K', occasion: 'daily', description: '', images: [], grossWeight: '', netWeight: '', laborCharges: '', inStock: true, featured: false, trending: false,
+        name: '', price: '', originalPrice: '', category: 'rings', material: 'gold', purity: '22K', occasion: '', description: '', images: [], grossWeight: '', netWeight: '', laborCharges: '', inStock: true, featured: false, trending: false,
         batchNo: '', designNo: '', gender: 'unisex', diamondDetails: [], variants: []
       });
     }
@@ -346,8 +346,8 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
                 </div>
               </div>
 
-              {/* Row 2: Gender + Category */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {/* Row 2: Gender + Category + Occasion */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Gender</label>
                   <div className="flex gap-2">
@@ -376,6 +376,24 @@ const AdminProductModal: React.FC<AdminProductModalProps> = ({
                     {(GENDER_CATEGORIES[formData.gender] || CATEGORIES).map(c => (
                       <option key={c} value={c}>{c}</option>
                     ))}
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Occasion</label>
+                  <select 
+                    value={formData.occasion} 
+                    onChange={e => setFormData({...formData, occasion: e.target.value as any})} 
+                    className="w-full px-5 py-3.5 bg-[#0D0D0D] border border-[#222222] rounded-2xl text-white outline-none focus:border-amber-500 transition-colors appearance-none capitalize"
+                  >
+                    <option value="">Select Occasion</option>
+                    <option value="office">Office Wear</option>
+                    <option value="modern">Modern Wear</option>
+                    <option value="casual">Casual Wear</option>
+                    <option value="traditional">Traditional Wear</option>
+                    <option value="bridal">Bridal</option>
+                    <option value="daily">Daily Wear</option>
+                    <option value="party">Party Wear</option>
+                    <option value="gift">Gifting</option>
                   </select>
                 </div>
               </div>

@@ -46,7 +46,7 @@ export interface Product {
   variants?: ProductVariant[];
 
   gender?: 'men' | 'women' | 'unisex';
-  occasion: 'bridal' | 'daily' | 'party' | 'gift';
+  occasion?: string;
   images: string[];
   description: string;
   inStock: boolean;
